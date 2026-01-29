@@ -2,8 +2,10 @@ import { createClass, getClassesByTeacher, approveStudent, rejectStudent } from 
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
 import { getSubmissionsByStudent } from '../../services/submission.service.js';
-import { getAssessment } from '../../services/assessment.service.js';
+import { getAssessment, getAssessmentsByClass } from '../../services/assessment.service.js';
 import { renderInput } from '../../shared/input.js';
+import { getSubmissionsForAssessment } from '../../services/grading.service.js';
+import { downloadCSV } from '../../shared/csv.utils.js';
 
 export const ClassManagerPage = async () => {
     const app = document.getElementById('app');
@@ -78,10 +80,14 @@ export const ClassManagerPage = async () => {
                         <button id="back-to-list" class="p-2 text-gray-400 hover:text-blue-600 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         </button>
-                        <div>
+                        <div class="flex-1">
                             <h1 class="text-xl font-black text-gray-900 leading-tight">${cls.name}</h1>
                             <p class="text-xs text-gray-500 font-medium">${cls.section || 'General Section'}</p>
                         </div>
+                        <button onclick="window.exportClassScores('${cls.id}')" class="bg-white text-gray-700 p-2 rounded-xl text-xs font-black shadow-sm border border-gray-100 hover:bg-gray-50 transition-all flex items-center gap-2">
+                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                             Export CSV
+                        </button>
                     </div>
                 </header>
 
@@ -113,9 +119,12 @@ export const ClassManagerPage = async () => {
 
                         <!-- Student List -->
                         <section>
-                            <div class="flex items-center gap-3 mb-6 pl-2">
-                                <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Enrolled</h2>
-                                <span class="bg-gray-200 text-gray-600 text-[10px] font-black px-3 py-1 rounded-full">${studentCount}</span>
+                            <div class="flex items-center justify-between mb-6 pl-2">
+                                <div class="flex items-center gap-3">
+                                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Enrolled</h2>
+                                    <span class="bg-gray-200 text-gray-600 text-[10px] font-black px-3 py-1 rounded-full">${studentCount}</span>
+                                </div>
+                                <button onclick="window.exportClassScores('${cls.id}')" class="text-blue-600 text-[10px] font-black uppercase tracking-widest hover:underline">Download CSV</button>
                             </div>
                             <div id="student-list" class="space-y-3">
                                 ${renderStudentList(cls)}
@@ -402,6 +411,55 @@ export const ClassManagerPage = async () => {
         } catch (err) {
             console.error(err);
             alert("Action failed.");
+        }
+    };
+
+    window.exportClassScores = async (classId) => {
+        try {
+            // 1. Fetch Assessments for this class
+            const assessments = await getAssessmentsByClass(classId);
+            if (assessments.length === 0) {
+                alert("No assessments found for this class.");
+                return;
+            }
+
+            // 2. Fetch Submissions for each assessment
+            const submissionsData = await Promise.all(assessments.map(async (a) => {
+                const subs = await getSubmissionsForAssessment(a.id);
+                return { assessmentTitle: a.title, submissions: subs };
+            }));
+
+            // 3. Aggregate Data
+            // We want a table where rows are students and columns are assessments
+            const exportData = [];
+            const students = selectedClass.students || [];
+
+            if (students.length === 0) {
+                alert("No students enrolled in this class.");
+                return;
+            }
+
+            students.forEach(student => {
+                const row = {
+                    'Student Name': student.displayName || 'Unnamed Student',
+                    'Student Email': student.email || 'No Email'
+                };
+
+                // Fill in scores for each assessment
+                submissionsData.forEach(ad => {
+                    const sub = ad.submissions.find(s => s.studentId === student.uid);
+                    row[ad.assessmentTitle] = sub ? (sub.score !== null ? `${sub.score}/${sub.totalPoints}` : 'Pending') : 'N/A';
+                });
+
+                exportData.push(row);
+            });
+
+            // 4. Download CSV
+            downloadCSV(exportData, `scores_${selectedClass.name.replace(/\s+/g, '_')}.csv`);
+
+        } catch (err) {
+            console.error(err);
+            alert("Failed to export scores: " + err.message);
         }
     };
 

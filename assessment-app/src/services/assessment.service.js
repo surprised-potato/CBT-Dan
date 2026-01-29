@@ -212,3 +212,18 @@ export const getActiveAssessments = async (enrolledClassIds = []) => {
         throw error;
     }
 };
+
+export const getAssessmentsByClass = async (classId) => {
+    try {
+        const q = query(
+            collection(db, COL_CONTENT),
+            where("assignedClassId", "==", classId),
+            orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+        console.error("Error fetching class assessments:", error);
+        throw error;
+    }
+};
