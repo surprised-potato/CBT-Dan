@@ -5,34 +5,37 @@ import { registerUser } from '../../services/auth.service.js';
 export const RegisterPage = () => {
     const app = document.getElementById('app');
 
-    // Quick inline UI for registration (since it's mostly dev-facing/MVP)
     app.innerHTML = `
-        <div class="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
-                <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900">Create Account</h1>
-                    <p class="text-gray-500 mt-2">Join as student</p>
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-white p-10 rounded-[40px] shadow-2xl shadow-blue-200/50 w-full max-w-md animate-in fade-in zoom-in duration-500 relative overflow-hidden border border-white">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
+
+                <div class="text-center mb-10 relative z-10">
+                     <div class="w-20 h-20 bg-blue-premium rounded-[28px] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-100">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h1 class="text-3xl font-black text-gray-900 tracking-tight uppercase">Initialise Account</h1>
+                    <p class="text-gray-500 mt-2 text-xs font-black uppercase tracking-[0.2em]">Personnel Enrolment</p>
                 </div>
                 
-                <form id="register-form" class="space-y-4">
-                    ${renderInput({ id: 'reg-name', label: 'Full Name', placeholder: 'e.g. Juan Dela Cruz', required: true })}
-                    ${renderInput({ id: 'reg-email', type: 'email', label: 'Email', required: true })}
-                    ${renderInput({ id: 'reg-course', label: 'Course', placeholder: 'e.g. BSCS, BSIT', required: true })}
-                    ${renderInput({ id: 'reg-pass', type: 'password', label: 'Password', required: true })}
+                <form id="register-form" class="space-y-5 relative z-10">
+                    ${renderInput({ id: 'reg-name', label: 'Full Personnel Name', placeholder: 'e.g. Johnathan Doe', required: true })}
+                    ${renderInput({ id: 'reg-email', type: 'email', label: 'Registry Email', placeholder: 'user@school.edu', required: true })}
+                    ${renderInput({ id: 'reg-course', label: 'Primary Course / Department', placeholder: 'e.g. BSCS, Engineering', required: true })}
+                    ${renderInput({ id: 'reg-pass', type: 'password', label: 'Operational Key', placeholder: '••••••••', required: true })}
                     
-                    <!-- Hidden teacher toggle for dev/testing -->
-                    <div class="flex items-center gap-2 mt-2">
-                        <input type="checkbox" id="reg-is-teacher" class="w-4 h-4 text-blue-600 rounded">
-                        <label for="reg-is-teacher" class="text-xs text-gray-400">Register as Teacher</label>
+                    <div class="flex items-center gap-3 py-2 bg-gray-50 px-4 rounded-xl border border-gray-100">
+                        <input type="checkbox" id="reg-is-teacher" class="w-5 h-5 text-blue-600 rounded-lg border-gray-300 focus:ring-blue-500">
+                        <label for="reg-is-teacher" class="text-[10px] font-black text-gray-600 uppercase tracking-widest cursor-pointer">Register as Instructor</label>
                     </div>
 
-                    <div id="reg-error" class="text-red-500 text-sm hidden text-center"></div>
+                    <div id="reg-error" class="text-red-500 text-[10px] font-black uppercase tracking-widest hidden text-center bg-red-50 py-3 rounded-xl border border-red-100"></div>
 
-                    ${renderButton({ text: 'Register', type: 'submit', variant: 'primary' })}
+                    <button type="submit" class="w-full bg-blue-premium text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-blue-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all">Create Registry Entry</button>
                 </form>
                 
-                 <p class="mt-6 text-center text-sm text-gray-600">
-                    Already have an account? <a href="#login" class="text-blue-600 font-semibold hover:underline">Log in</a>
+                  <p class="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-gray-500 relative z-10">
+                    Existing Personnel? <a href="#login" class="text-blue-600 hover:underline ml-1">Access Gateway</a>
                 </p>
             </div>
         </div>
@@ -54,20 +57,20 @@ export const RegisterPage = () => {
         const err = document.getElementById('reg-error');
 
         btn.disabled = true;
-        btn.textContent = 'Creating...';
+        btn.textContent = 'Initialising...';
         err.classList.add('hidden');
 
         try {
             await registerUser(email, password, role, name, course);
-            alert('Account created! Please log in.');
+            alert('Account Initialised! Proceed to Gateway.');
             window.location.hash = '#login';
         } catch (error) {
             console.error(error);
-            err.textContent = error.message;
+            err.textContent = error.message.toUpperCase();
             err.classList.remove('hidden');
         } finally {
             btn.disabled = false;
-            btn.textContent = 'Register';
+            btn.textContent = 'Create Registry Entry';
         }
     });
 };

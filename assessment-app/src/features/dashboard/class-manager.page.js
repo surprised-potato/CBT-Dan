@@ -35,7 +35,7 @@ export const ClassManagerPage = async () => {
                 <main class="max-w-5xl mx-auto p-4 space-y-10 mt-8">
                     <section>
                         <div class="flex justify-between items-center mb-8 pl-1">
-                            <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Standardised Classes</h2>
+                            <h2 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Standardised Classes</h2>
                             <button id="add-class-btn" class="bg-blue-premium text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                 New Registry
@@ -115,7 +115,7 @@ export const ClassManagerPage = async () => {
                         <!-- Pending Requests -->
                         <section>
                             <div class="flex items-center gap-4 mb-8 pl-2">
-                                <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Access Requests</h2>
+                                <h2 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Access Requests</h2>
                                 <span class="bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full shadow-lg shadow-orange-200 animation-pulse">${pendingCount}</span>
                             </div>
                             <div id="pending-list" class="space-y-5">
@@ -126,7 +126,7 @@ export const ClassManagerPage = async () => {
                         <!-- Student List -->
                         <section>
                             <div class="flex items-center gap-4 mb-8 pl-2">
-                                <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Authorized Cohort</h2>
+                                <h2 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Authorized Cohort</h2>
                                 <span class="bg-gray-200 text-gray-600 text-[10px] font-black px-4 py-1.5 rounded-full">${studentCount}</span>
                             </div>
                             <div id="student-list" class="space-y-4">
@@ -160,7 +160,7 @@ export const ClassManagerPage = async () => {
                 <main class="max-w-3xl mx-auto p-4 space-y-10 mt-8">
                     <section>
                         <div class="flex items-center gap-3 mb-8 pl-2">
-                            <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Module History</h2>
+                            <h2 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Module History</h2>
                             <div class="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent"></div>
                         </div>
                         <div id="score-list" class="space-y-6">
@@ -273,7 +273,7 @@ export const ClassManagerPage = async () => {
                         </div>
                         <div>
                             <p class="font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">${email}</p>
-                            <p class="text-[10px] text-gray-400 font-mono tracking-widest mt-1">${s.uid.substring(0, 16).toUpperCase()}</p>
+                            <p class="text-[10px] text-gray-500 font-mono tracking-widest mt-1">${s.uid.substring(0, 16).toUpperCase()}</p>
                         </div>
                     </div>
                     <div class="text-gray-200 group-hover:text-blue-500 group-hover:translate-x-1 transition-all">
@@ -313,7 +313,7 @@ export const ClassManagerPage = async () => {
                             </div>
                             <div>
                                 <h3 class="font-black text-gray-900 text-3xl group-hover:text-blue-600 transition-colors uppercase tracking-tight">${cls.name}</h3>
-                                <p class="text-[10px] font-black text-gray-400 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
+                                <p class="text-[10px] font-black text-gray-500 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
                                     ${cls.section || 'General'}
                                     <span class="w-1.5 h-1.5 bg-blue-200 rounded-full"></span>
                                     ${cls.code}
@@ -323,7 +323,7 @@ export const ClassManagerPage = async () => {
 
                         <div class="flex items-center gap-10 pl-10 md:pl-0 border-l md:border-l-0 border-gray-100">
                             <div>
-                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Cohort Size</p>
+                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Cohort Size</p>
                                 <p class="text-3xl font-black text-gray-900">${cls.students?.length || 0}</p>
                             </div>
                             

@@ -12,7 +12,7 @@ export const BankPage = async () => {
             <header class="glass-panel sticky top-0 z-40 px-4 py-6 border-b border-white/20">
                 <div class="max-w-5xl mx-auto flex justify-between items-center">
                     <div class="flex items-center gap-4">
-                        <button onclick="location.hash='#teacher-dash'" class="p-3 glass-panel rounded-2xl text-gray-400 hover:text-blue-600 transition-colors shadow-sm">
+                        <button onclick="location.hash='#teacher-dash'" class="p-3 glass-panel rounded-2xl text-gray-500 hover:text-blue-600 transition-colors shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         </button>
                         <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight">Question Library</h1>
@@ -70,7 +70,7 @@ export const BankPage = async () => {
                     oninput="window.updateSearch(this.value)"
                     class="w-full p-6 pl-16 rounded-[28px] glass-panel border-white/40 shadow-xl shadow-blue-50/20 focus:ring-2 focus:ring-blue-500/20 text-lg font-bold tracking-tight outline-none transition-all"
                 >
-                <div class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                <div class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
             </div>
@@ -80,11 +80,11 @@ export const BankPage = async () => {
             if (hierarchy.courses.length === 0) {
                 html += `
                     <div class="text-center py-24 glass-panel rounded-[50px] border-2 border-dashed border-white">
-                        <p class="text-gray-400 font-black uppercase tracking-widest text-xs opacity-50 mb-6">Library is currently empty</p>
+                        <p class="text-gray-500 font-black uppercase tracking-widest text-xs opacity-50 mb-6">Library is currently empty</p>
                         <button onclick="location.hash='#editor'" class="bg-blue-premium text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-200">Start Resource Building</button>
                     </div>`;
             } else {
-                html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-400 font-black uppercase tracking-widest text-xs opacity-50">No departments match query "${viewState.searchTerm}"</div>`;
+                html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-500 font-black uppercase tracking-widest text-xs opacity-50">No departments match query "${viewState.searchTerm}"</div>`;
             }
             contentDiv.innerHTML = html;
             return;
@@ -105,7 +105,7 @@ export const BankPage = async () => {
                             </div>
                             <div>
                                 <h3 class="font-black text-gray-900 text-3xl group-hover:text-blue-600 transition-colors uppercase tracking-tight">${course}</h3>
-                                <p class="text-[10px] font-black text-gray-400 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
+                                <p class="text-[10px] font-black text-gray-500 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
                                     ${topicCount} Theoretical Topics
                                     <span class="w-1.5 h-1.5 bg-blue-200 rounded-full"></span>
                                     ${courseQs.length} Operational Qs
@@ -144,7 +144,7 @@ export const BankPage = async () => {
         let html = `
             <div class="flex flex-col gap-8 mb-10 sticky top-24 z-30">
                 <div class="flex items-center gap-6">
-                    <button onclick="window.backToCourses()" class="p-4 glass-panel rounded-2xl text-gray-400 hover:text-blue-600 hover:shadow-md transition-all active:scale-95 shadow-sm border border-white">
+                    <button onclick="window.backToCourses()" class="p-4 glass-panel rounded-2xl text-gray-500 hover:text-blue-600 hover:shadow-md transition-all active:scale-95 shadow-sm border border-white">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     </button>
                     <div>
@@ -159,7 +159,7 @@ export const BankPage = async () => {
                         oninput="window.updateSearch(this.value)"
                         class="w-full p-6 pl-16 rounded-[28px] glass-panel border-white/40 shadow-xl shadow-blue-50/20 focus:ring-2 focus:ring-blue-500/20 text-lg font-bold tracking-tight outline-none transition-all"
                     >
-                    <div class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                    <div class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                 </div>
@@ -167,7 +167,7 @@ export const BankPage = async () => {
         `;
 
         if (filtered.length === 0) {
-            html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-400 font-black uppercase tracking-widest text-xs opacity-50">No operational items match telemetry criteria</div>`;
+            html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-500 font-black uppercase tracking-widest text-xs opacity-50">No operational items match telemetry criteria</div>`;
             contentDiv.innerHTML = html;
             return;
         }
@@ -217,10 +217,10 @@ export const BankPage = async () => {
                                 ` : ''}
                             </div>
                             <div class="flex justify-end gap-3 shrink-0 relative z-10">
-                                <button onclick="location.hash='#editor?id=${q.id}'" class="w-12 h-12 glass-panel rounded-2xl text-gray-400 hover:text-blue-600 transition-all flex items-center justify-center hover:shadow-md" title="Modify Registry">
+                                <button onclick="location.hash='#editor?id=${q.id}'" class="w-12 h-12 glass-panel rounded-2xl text-gray-500 hover:text-blue-600 transition-all flex items-center justify-center hover:shadow-md" title="Modify Registry">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
-                                <button onclick="window.deleteQ('${q.id}')" class="w-12 h-12 glass-panel rounded-2xl text-gray-400 hover:text-red-600 transition-all flex items-center justify-center hover:shadow-md" title="Purge Record">
+                                <button onclick="window.deleteQ('${q.id}')" class="w-12 h-12 glass-panel rounded-2xl text-gray-500 hover:text-red-600 transition-all flex items-center justify-center hover:shadow-md" title="Purge Record">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>

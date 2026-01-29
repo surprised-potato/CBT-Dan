@@ -8,148 +8,153 @@ export const EditorPage = async () => {
     const user = getUser();
     if (!user) { window.location.hash = '#login'; return; }
 
-    // --- 1. Initial Shell with Loading Overlay ---
     app.innerHTML = `
-        <div class="px-4 py-6 max-w-2xl mx-auto pb-24 relative min-h-screen">
-            <!-- Loading Overlay -->
-            <div id="loading-overlay" class="absolute inset-0 bg-white/80 z-50 flex items-center justify-center backdrop-blur-sm">
-                <div class="flex flex-col items-center gap-3">
-                    <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p class="text-blue-600 font-bold animate-pulse">Loading Question...</p>
-                </div>
-            </div>
-
-            <header class="mb-8">
-                <div class="flex items-center justify-between">
-                    <h1 id="page-title" class="text-2xl font-bold text-gray-900">Add Question</h1>
-                    <button onclick="location.hash='#bank'" class="text-gray-500 hover:text-gray-700 font-medium">Cancel</button>
-                </div>
-                <p id="page-desc" class="text-gray-500 text-sm mt-1">Add new content to the bank.</p>
+        <div class="px-4 py-12 max-w-3xl mx-auto pb-32 relative min-h-screen">
+            <header class="mb-12">
+                <button onclick="location.hash='#bank'" class="p-3 glass-panel rounded-2xl text-gray-500 hover:text-blue-600 transition-all shadow-sm mb-6">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+                <h1 id="page-title" class="text-4xl font-black text-gray-900 tracking-tight uppercase">Resource Forge</h1>
+                <p id="page-desc" class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mt-2">Author operational items for registry bank</p>
             </header>
 
-            <form id="question-form" class="space-y-6 opacity-0 transition-opacity duration-300">
+            <form id="question-form" class="space-y-8 opacity-0 transition-opacity duration-300">
                 <!-- Metadata -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-sm font-bold text-gray-700">Course</label>
-                        <input id="course" list="course-list" type="text" placeholder="e.g. CE101" class="p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-colors" autocomplete="off" required>
-                        <datalist id="course-list"></datalist>
+                <div class="bg-white p-10 rounded-[50px] shadow-2xl shadow-blue-50/50 border border-white space-y-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Knowledge Domain</label>
+                            <input id="course" list="course-list" type="text" placeholder="e.g. CE101" class="p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-blue-500 outline-none transition-all font-black text-gray-700 uppercase" autocomplete="off" required>
+                            <datalist id="course-list"></datalist>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Theoretical Vector</label>
+                            <input id="topic" list="topic-list" type="text" placeholder="e.g. Vectors" class="p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-blue-500 outline-none transition-all font-black text-gray-700 uppercase" autocomplete="off" required>
+                            <datalist id="topic-list"></datalist>
+                        </div>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-sm font-bold text-gray-700">Topic</label>
-                        <input id="topic" list="topic-list" type="text" placeholder="e.g. Vectors" class="p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-colors" autocomplete="off" required>
-                        <datalist id="topic-list"></datalist>
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-sm font-bold text-gray-700">Question Type</label>
-                        <select id="q-type" class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:border-blue-500 outline-none transition-colors cursor-pointer">
-                            <option value="MCQ">Multiple Choice</option>
-                            <option value="IDENTIFICATION">Identification / Fill-in</option>
-                            <option value="TRUE_FALSE">True / False</option>
-                        </select>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 relative z-10">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Item Schema</label>
+                            <select id="q-type" class="p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-blue-500 outline-none transition-all font-bold text-gray-600 appearance-none shadow-inner">
+                                <option value="MCQ">MULTIPLE CHOICE</option>
+                                <option value="IDENTIFICATION">IDENTIFICATION</option>
+                                <option value="TRUE_FALSE">TRUE / FALSE</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Complexity</label>
+                            <select id="q-difficulty" class="p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-blue-500 outline-none transition-all font-bold text-gray-600 appearance-none shadow-inner">
+                                <option value="EASY">STANDARD</option>
+                                <option value="MODERATE">REFINED</option>
+                                <option value="DIFFICULT">EXTREME</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Point Value</label>
+                            <input id="q-points" type="number" value="1" min="1" class="p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-blue-500 outline-none transition-all font-black text-blue-600 text-center">
+                        </div>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-sm font-bold text-gray-700">Difficulty</label>
-                        <select id="q-difficulty" class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:border-blue-500 outline-none transition-colors cursor-pointer">
-                            <option value="EASY">Easy</option>
-                            <option value="MODERATE">Moderate</option>
-                            <option value="DIFFICULT">Difficult</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-sm font-bold text-gray-700">Default Points</label>
-                        <input id="q-points" type="number" value="1" min="1" class="p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-colors">
-                    </div>
-                </div>
 
-                <!-- Common: Question Text -->
-                <div class="flex flex-col gap-1">
-                    <label class="text-sm font-bold text-gray-700">Question Statement</label>
-                    <div id="q-editor-container" class="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
-                        <div id="q-editor" style="height: 200px;" class="text-lg"></div>
+                    <div class="flex flex-col gap-2 relative z-10">
+                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Item Statement</label>
+                        <div id="q-editor-container" class="bg-gray-50 rounded-[32px] border border-gray-100 overflow-hidden shadow-inner">
+                            <div id="q-editor" style="height: 250px;" class="text-lg"></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Dynamic Answer Section -->
-                <div id="dynamic-content" class="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                <div id="dynamic-content" class="bg-white p-10 rounded-[50px] border border-white shadow-2xl shadow-blue-50/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
+                    
                     <!-- MCQ Choices -->
-                    <div id="section-mcq" class="space-y-4 hidden">
-                        <div class="flex justify-between items-center">
-                            <label class="text-sm font-bold text-gray-700">Choices & Correct Answer</label>
-                            <button type="button" id="add-choice-btn" class="text-sm text-blue-600 font-bold hover:underline">+ Add Option</button>
+                    <div id="section-mcq" class="space-y-6 hidden relative z-10">
+                        <div class="flex justify-between items-center px-2">
+                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Alternative Responses</label>
+                            <button type="button" id="add-choice-btn" class="text-[10px] font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-600 pb-0.5">+ APPEND OPTION</button>
                         </div>
-                        <div id="choices-list" class="space-y-3"></div>
+                        <div id="choices-list" class="space-y-4"></div>
                     </div>
 
                     <!-- Identification Answers -->
-                    <div id="section-id" class="space-y-3 hidden">
-                        <label class="text-sm font-bold text-gray-700 text-purple-700">Accepted Answers (Tags)</label>
-                        <p class="text-[11px] text-gray-500 uppercase tracking-wider font-bold">Add all variants (e.g. "Color", "Colour")</p>
-                        <div class="flex gap-2">
-                            <input id="id-input" type="text" class="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none" placeholder="Add answer...">
-                            <button type="button" id="add-id-btn" class="bg-purple-600 text-white px-6 rounded-xl font-bold shadow-lg shadow-purple-100 active:scale-95 transition-transform">Add</button>
+                    <div id="section-id" class="space-y-6 hidden relative z-10">
+                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] px-2 block">Accepted Data Variants</label>
+                        <div class="flex gap-4">
+                            <input id="id-input" type="text" class="flex-1 p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-blue-500 outline-none transition-all font-black text-gray-700 uppercase" placeholder="ADD VARIANT...">
+                            <button type="button" id="add-id-btn" class="bg-blue-premium text-white px-10 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-100 active:scale-95 transition-all">COMMIT</button>
                         </div>
-                        <div id="id-list" class="flex flex-wrap gap-2 pt-2"></div>
+                        <div id="id-list" class="flex flex-wrap gap-3 pt-2"></div>
                     </div>
 
                     <!-- True/False -->
-                    <div id="section-tf" class="space-y-3 hidden">
-                         <label class="text-sm font-bold text-gray-700 text-blue-700">Correct Answer</label>
-                         <div class="flex gap-4">
+                    <div id="section-tf" class="space-y-6 hidden relative z-10">
+                         <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] px-2 block">Binary Truth Determination</label>
+                         <div class="flex gap-6">
                             <label class="flex-1 cursor-pointer">
                                 <input type="radio" name="tf-answer" value="true" class="peer hidden">
-                                <div class="p-4 border-2 border-gray-200 rounded-xl text-center peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 font-extrabold transition-all hover:bg-gray-50">TRUE</div>
+                                <div class="p-8 glass-panel border border-white rounded-[32px] text-center peer-checked:bg-green-500 peer-checked:text-white peer-checked:shadow-2xl peer-checked:shadow-green-200 font-black uppercase tracking-widest text-[10px] transition-all hover:bg-gray-50 h-full flex items-center justify-center">TRUE PROTOCOL</div>
                             </label>
                             <label class="flex-1 cursor-pointer">
                                 <input type="radio" name="tf-answer" value="false" class="peer hidden">
-                                <div class="p-4 border-2 border-gray-200 rounded-xl text-center peer-checked:border-red-500 peer-checked:bg-red-50 peer-checked:text-red-700 font-extrabold transition-all hover:bg-gray-50">FALSE</div>
+                                <div class="p-8 glass-panel border border-white rounded-[32px] text-center peer-checked:bg-red-500 peer-checked:text-white peer-checked:shadow-2xl peer-checked:shadow-red-200 font-black uppercase tracking-widest text-[10px] transition-all hover:bg-gray-50 h-full flex items-center justify-center">FALSE PROTOCOL</div>
                             </label>
                         </div>
                     </div>
                 </div>
 
                 <!-- Figures Section -->
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <label class="text-sm font-bold text-gray-700">Figures / Diagrams</label>
-                        <button type="button" id="add-fig-btn" class="text-sm text-blue-600 font-bold hover:underline">+ Add Figure</button>
+                <div class="bg-white p-10 rounded-[50px] border border-white shadow-2xl shadow-blue-50/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center px-2 mb-8">
+                            <label class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Visual Telemetry (Figures)</label>
+                            <button type="button" id="add-fig-btn" class="text-[10px] font-black text-blue-600 uppercase tracking-widest border-b-2 border-blue-600 pb-0.5">+ APPEND DIAGRAM</button>
+                        </div>
+                        <input type="file" id="fig-input" class="hidden" accept="image/*">
+                        <div id="figures-list" class="grid grid-cols-2 sm:grid-cols-3 gap-6"></div>
                     </div>
-                    <input type="file" id="fig-input" class="hidden" accept="image/*">
-                    <div id="figures-list" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                 </div>
 
-                <div class="pt-4">
-                    ${renderButton({ text: 'Save Question', type: 'submit', id: 'submit-btn' })}
+                <div class="pt-8">
+                    <button id="submit-btn" type="submit" class="w-full bg-blue-premium text-white p-6 rounded-3xl font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-blue-200/50 hover:shadow-blue-300 hover:-translate-y-1 active:scale-[0.98] transition-all">Execute Commit Protocol</button>
                 </div>
-                <div id="save-status" class="text-center text-sm font-bold hidden p-3 rounded-xl"></div>
+                <div id="save-status" class="text-center text-[10px] font-black uppercase tracking-widest hidden p-5 rounded-3xl border mt-6"></div>
             </form>
+
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="fixed inset-0 bg-white/60 z-50 flex flex-col items-center justify-center backdrop-blur-xl">
+                 <div class="w-16 h-1 bg-blue-premium rounded-full animate-pulse mb-8"></div>
+                 <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">Accessing Resource Registry...</p>
+            </div>
         </div>
 
-        <!-- MathLive Visual Editor Modal -->
-        <div id="math-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
-                <div class="p-4 bg-blue-600 text-white flex justify-between items-center">
-                    <h3 class="font-bold">Equation Editor</h3>
-                    <button onclick="document.getElementById('math-modal').classList.add('hidden')" class="text-white/80 hover:text-white text-2xl px-2">×</button>
+        <!-- Math Modal -->
+        <div id="math-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-6 backdrop-blur-xl">
+            <div class="bg-white w-full max-w-lg rounded-[50px] shadow-2xl shadow-blue-500/20 overflow-hidden animate-in zoom-in duration-300 border border-white">
+                <div class="p-8 bg-blue-premium flex justify-between items-center">
+                    <h3 class="font-black text-white uppercase tracking-widest text-xs">Equation Architect</h3>
+                    <button onclick="document.getElementById('math-modal').classList.add('hidden')" class="w-10 h-10 glass-panel rounded-xl text-white/80 hover:text-white flex items-center justify-center font-black">×</button>
                 </div>
-                <div class="p-6 space-y-4">
-                    <p class="text-xs text-gray-500 uppercase tracking-widest font-bold">Equation Preview</p>
-                    <div class="border-2 border-gray-100 rounded-xl p-4 bg-gray-50 min-h-[100px] flex items-center justify-center">
-                        <math-field id="visual-math" class="w-full text-2xl focus:outline-none bg-transparent" virtual-keyboard-toggle="on"></math-field>
+                <div class="p-10 space-y-8">
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-black">Real-time LaTeX Telemetry</p>
+                    <div class="glass-panel rounded-3xl p-8 bg-gray-50/50 min-h-[120px] flex items-center justify-center shadow-inner">
+                        <math-field id="visual-math" class="w-full text-3xl focus:outline-none bg-transparent" virtual-keyboard-toggle="on"></math-field>
                     </div>
-                    <div class="flex gap-3 pt-2">
-                        <button id="insert-math-btn" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100">Insert Equation</button>
-                        <button onclick="document.getElementById('math-modal').classList.add('hidden')" class="px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
+                    <div class="flex gap-4 pt-4">
+                        <button id="insert-math-btn" class="flex-1 bg-blue-premium text-white py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-100 hover:shadow-2xl transition-all">Commit Equation</button>
+                        <button onclick="document.getElementById('math-modal').classList.add('hidden')" class="px-8 py-5 glass-panel text-gray-500 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-gray-100 italic">Abort</button>
                     </div>
                 </div>
             </div>
         </div>
     `;
 
-    // --- 2. Elements & State ---
+    // --- State & Handlers Logic ---
     const els = {
         overlay: document.getElementById('loading-overlay'),
         form: document.getElementById('question-form'),
@@ -162,17 +167,14 @@ export const EditorPage = async () => {
         status: document.getElementById('save-status'),
         difficulty: document.getElementById('q-difficulty'),
         points: document.getElementById('q-points'),
-        // Sections
         secMCQ: document.getElementById('section-mcq'),
         secID: document.getElementById('section-id'),
         secTF: document.getElementById('section-tf'),
-        // Containers/Handlers
         choicesList: document.getElementById('choices-list'),
         idList: document.getElementById('id-list'),
         idInput: document.getElementById('id-input'),
         addChoiceBtn: document.getElementById('add-choice-btn'),
         addIdBtn: document.getElementById('add-id-btn'),
-        // Figures
         figBtn: document.getElementById('add-fig-btn'),
         figInput: document.getElementById('fig-input'),
         figList: document.getElementById('figures-list')
@@ -188,7 +190,6 @@ export const EditorPage = async () => {
         figures: []
     };
 
-    // --- 3. Helpers: Image Compression ---
     const compressImage = async (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -198,57 +199,33 @@ export const EditorPage = async () => {
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800;
+                    const MAX_WIDTH = 1200;
                     let width = img.width;
                     let height = img.height;
-
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-
-                    // Compress to JPEG 0.7
-                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                    resolve(canvas.toDataURL('image/jpeg', 0.8));
                 };
             };
         });
     };
 
-    // --- 3. Quill Initialization ---
     const initQuill = () => {
         state.quill = new Quill('#q-editor', {
             theme: 'snow',
-            modules: {
-                formula: true,
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline'],
-                    ['formula'],
-                    ['clean']
-                ]
-            },
-            placeholder: 'Type your question statement here... Use the fx icon for visual math.'
+            modules: { formula: true, toolbar: [[{ 'header': [2, 3, false] }], ['bold', 'italic', 'underline'], ['formula'], ['clean']] },
+            placeholder: 'Initialise statement data stream...'
         });
-
-        // Intercept formula button
         const toolbar = state.quill.getModule('toolbar');
         toolbar.addHandler('formula', () => {
-            const modal = document.getElementById('math-modal');
-            const mf = document.getElementById('visual-math');
-            modal.classList.remove('hidden');
+            document.getElementById('math-modal').classList.remove('hidden');
             setTimeout(() => {
+                const mf = document.getElementById('visual-math');
                 mf.focus();
-                // If there's a virtual keyboard, open it
-                if (window.mathVirtualKeyboard) window.mathVirtualKeyboard.show();
             }, 100);
         });
-
-        // Insert Button Logic
         document.getElementById('insert-math-btn').onclick = () => {
             const mf = document.getElementById('visual-math');
             const latex = mf.value;
@@ -258,53 +235,41 @@ export const EditorPage = async () => {
                 state.quill.setSelection(range.index + 1, Quill.sources.SILENT);
             }
             document.getElementById('math-modal').classList.add('hidden');
-            mf.value = ''; // Reset for next time
+            mf.value = '';
         };
     };
 
-    // --- 5. Render Helpers ---
-
     const renderFigures = () => {
         els.figList.innerHTML = state.figures.map((fig, i) => `
-            <div class="relative group aspect-video bg-gray-100 rounded-xl overflow-hidden border-2 border-gray-100">
-                <img src="${fig}" class="w-full h-full object-cover">
-                <button type="button" data-idx="${i}" class="remove-fig absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+            <div class="relative group aspect-square bg-gray-50 rounded-[32px] overflow-hidden border border-gray-100 shadow-inner p-2">
+                <img src="${fig}" class="w-full h-full object-cover rounded-[24px]">
+                <button type="button" data-idx="${i}" class="remove-fig absolute top-4 right-4 bg-white/90 text-red-500 w-10 h-10 rounded-2xl flex items-center justify-center font-black shadow-xl opacity-0 group-hover:opacity-100 transition-all border border-red-50 hover:bg-red-500 hover:text-white">×</button>
             </div>
         `).join('');
-
         els.figList.querySelectorAll('.remove-fig').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                state.figures.splice(e.currentTarget.dataset.idx, 1);
-                renderFigures();
-            });
+            btn.addEventListener('click', (e) => { state.figures.splice(e.currentTarget.dataset.idx, 1); renderFigures(); });
         });
     };
 
     const renderChoices = () => {
         els.choicesList.innerHTML = state.choices.map((c, i) => `
-            <div class="flex items-center gap-3 group animate-fade-in">
-                <div class="relative">
-                    <input type="radio" name="mcq-correct" value="${c.id}" 
-                           ${state.correctMCQ === c.id ? 'checked' : ''}
-                           class="peer w-6 h-6 border-2 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+            <div class="flex items-center gap-4 group animate-in fade-in slide-in-from-left-4 duration-300">
+                <div class="relative flex-shrink-0">
+                    <input type="radio" name="mcq-correct" value="${c.id}" ${state.correctMCQ === c.id ? 'checked' : ''} class="peer hidden">
+                    <div class="w-12 h-12 glass-panel border border-white rounded-2xl flex items-center justify-center cursor-pointer transition-all peer-checked:bg-blue-premium peer-checked:text-white peer-checked:shadow-xl peer-checked:shadow-blue-100 font-black text-[10px] uppercase">
+                        ${String.fromCharCode(65 + i)}
+                    </div>
                 </div>
-                
-                <input type="text" value="${c.text}" data-idx="${i}" 
-                       class="choice-input flex-1 p-3 border-2 border-gray-200 rounded-xl text-sm font-medium transition-all focus:border-blue-500 outline-none" 
-                       placeholder="Choice ${String.fromCharCode(65 + i)}...">
-                       
-                <button type="button" data-idx="${i}" class="remove-choice text-gray-300 hover:text-red-500 font-bold text-xl px-2 transition-colors">×</button>
+                <input type="text" value="${c.text}" data-idx="${i}" class="choice-input flex-1 p-5 bg-gray-50 border border-gray-100 rounded-2xl text-[13px] font-black uppercase tracking-tight transition-all focus:bg-white focus:border-blue-500 outline-none placeholder:opacity-30" placeholder="DATA ALT ${String.fromCharCode(65 + i)}...">
+                <button type="button" data-idx="${i}" class="remove-choice text-gray-300 hover:text-red-500 font-black text-2xl px-3 transition-colors opacity-0 group-hover:opacity-100">×</button>
             </div>
         `).join('');
-
         els.choicesList.querySelectorAll('input[type="radio"]').forEach(r => {
-            r.addEventListener('change', (e) => state.correctMCQ = e.target.value);
+            r.previousElementSibling.onclick = () => { r.checked = true; state.correctMCQ = r.value; };
         });
-
         els.choicesList.querySelectorAll('.choice-input').forEach(inp => {
             inp.addEventListener('input', (e) => state.choices[e.target.dataset.idx].text = e.target.value);
         });
-
         els.choicesList.querySelectorAll('.remove-choice').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const idx = parseInt(e.currentTarget.dataset.idx);
@@ -318,214 +283,90 @@ export const EditorPage = async () => {
 
     const renderIdTags = () => {
         els.idList.innerHTML = state.acceptedAnswers.map((ans, i) => `
-            <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200 shadow-sm animate-scale-in">
+            <span class="inline-flex items-center px-5 py-2.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 border border-blue-100 shadow-sm animate-in zoom-in uppercase tracking-widest">
                 ${ans}
-                <button type="button" data-idx="${i}" class="rm-tag ml-2 text-purple-400 hover:text-purple-600 transition-colors">×</button>
+                <button type="button" data-idx="${i}" class="rm-tag ml-3 text-blue-300 hover:text-red-500 transition-colors">×</button>
             </span>
         `).join('');
-
         els.idList.querySelectorAll('.rm-tag').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                state.acceptedAnswers.splice(e.currentTarget.dataset.idx, 1);
-                renderIdTags();
-            });
+            btn.addEventListener('click', (e) => { state.acceptedAnswers.splice(e.currentTarget.dataset.idx, 1); renderIdTags(); });
         });
     };
 
     const updateUIByType = () => {
         const type = els.type.value;
-        const hide = (el) => el.classList.add('hidden');
-        const show = (el) => el.classList.remove('hidden');
-
-        hide(els.secMCQ);
-        hide(els.secID);
-        hide(els.secTF);
-
+        els.secMCQ.classList.add('hidden'); els.secID.classList.add('hidden'); els.secTF.classList.add('hidden');
         if (type === 'MCQ') {
-            show(els.secMCQ);
+            els.secMCQ.classList.remove('hidden');
             if (state.choices.length === 0) {
-                state.choices = [
-                    { id: 'choice_a', text: '' },
-                    { id: 'choice_b', text: '' },
-                    { id: 'choice_c', text: '' },
-                    { id: 'choice_d', text: '' }
-                ];
+                state.choices = [{ id: 'choice_a', text: '' }, { id: 'choice_b', text: '' }, { id: 'choice_c', text: '' }, { id: 'choice_d', text: '' }];
                 renderChoices();
             }
-        } else if (type === 'IDENTIFICATION') {
-            show(els.secID);
-        } else if (type === 'TRUE_FALSE') {
-            show(els.secTF);
-        }
+        } else if (type === 'IDENTIFICATION') els.secID.classList.remove('hidden');
+        else if (type === 'TRUE_FALSE') els.secTF.classList.remove('hidden');
     };
-
-    // --- 4. Core Logic: Initialization ---
 
     const init = async () => {
         try {
-            // A. Initialize Quill
             initQuill();
-
-            // B. Fetch common data
             state.hierarchy = await getHierarchy();
             const courseList = document.getElementById('course-list');
             courseList.innerHTML = state.hierarchy.courses.map(c => `<option value="${c}">`).join('');
-
-            // C. Listen for Course changes to update Topic list
             els.course.addEventListener('input', () => {
                 const selected = els.course.value;
                 const topics = state.hierarchy.topics[selected] || [];
                 document.getElementById('topic-list').innerHTML = topics.map(t => `<option value="${t}">`).join('');
             });
-
-            // D. Check for Edit mode
             const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
             state.questionId = urlParams.get('id');
-
             if (state.questionId) {
-                els.title.textContent = 'Edit Question';
-                els.desc.textContent = 'Modify existing question in the bank.';
-                els.submitBtn.textContent = 'Update Question';
-
+                els.title.textContent = 'Resource Modification';
+                els.desc.textContent = 'Update operational parameters of existing item';
+                els.submitBtn.textContent = 'Execute Update Protocol';
                 const q = await getQuestionById(state.questionId);
                 if (q) {
-                    els.course.value = q.course;
-                    els.topic.value = q.topic;
-                    els.type.value = q.type;
-                    els.difficulty.value = q.difficulty || 'EASY';
-                    els.points.value = q.points || 1;
+                    els.course.value = q.course; els.topic.value = q.topic; els.type.value = q.type;
+                    els.difficulty.value = q.difficulty || 'EASY'; els.points.value = q.points || 1;
                     state.quill.root.innerHTML = q.text || '';
-
-                    // Manual trigger for topic list
                     const topics = state.hierarchy.topics[q.course] || [];
                     document.getElementById('topic-list').innerHTML = topics.map(t => `<option value="${t}">`).join('');
-
-                    if (q.type === 'MCQ') {
-                        state.choices = q.choices || [];
-                        state.correctMCQ = q.correct_answer;
-                        renderChoices();
-                    } else if (q.type === 'IDENTIFICATION') {
-                        state.acceptedAnswers = Array.isArray(q.correct_answer) ? q.correct_answer : [q.correct_answer];
-                        renderIdTags();
-                    } else if (q.type === 'TRUE_FALSE') {
-                        const radio = document.querySelector(`input[name="tf-answer"][value="${q.correct_answer}"]`);
-                        if (radio) radio.checked = true;
-                    }
-
-                    state.figures = q.figures || [];
-                    renderFigures();
+                    if (q.type === 'MCQ') { state.choices = q.choices || []; state.correctMCQ = q.correct_answer; renderChoices(); }
+                    else if (q.type === 'IDENTIFICATION') { state.acceptedAnswers = Array.isArray(q.correct_answer) ? q.correct_answer : [q.correct_answer]; renderIdTags(); }
+                    else if (q.type === 'TRUE_FALSE') { const radio = document.querySelector(`input[name="tf-answer"][value="${q.correct_answer}"]`); if (radio) radio.checked = true; }
+                    state.figures = q.figures || []; renderFigures();
                 }
             }
-
-            // E. Ready! Show form
             updateUIByType();
-            els.overlay.classList.add('hidden');
-            els.form.classList.remove('opacity-0');
-
-        } catch (err) {
-            console.error(err);
-            alert("Failed to load editor.");
-            location.hash = '#bank';
-        }
+            els.overlay.classList.add('hidden'); els.form.classList.remove('opacity-0');
+        } catch (err) { alert("Protocol Failure: Telemetry sync error."); location.hash = '#bank'; }
     };
-
-    // --- 5. Handlers ---
 
     els.type.addEventListener('change', updateUIByType);
-
-    els.addChoiceBtn.addEventListener('click', () => {
-        const nextId = 'choice_' + Math.random().toString(36).substr(2, 5);
-        state.choices.push({ id: nextId, text: '' });
-        renderChoices();
-    });
-
-    const addIdAnswer = () => {
-        const val = els.idInput.value.trim();
-        if (val && !state.acceptedAnswers.includes(val)) {
-            state.acceptedAnswers.push(val);
-            renderIdTags();
-            els.idInput.value = '';
-        }
-    };
+    els.addChoiceBtn.addEventListener('click', () => { state.choices.push({ id: 'choice_' + Math.random().toString(36).substr(2, 5), text: '' }); renderChoices(); });
+    const addIdAnswer = () => { const val = els.idInput.value.trim(); if (val && !state.acceptedAnswers.includes(val)) { state.acceptedAnswers.push(val); renderIdTags(); els.idInput.value = ''; } };
     els.addIdBtn.addEventListener('click', addIdAnswer);
-    els.idInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); addIdAnswer(); }
-    });
-
-    // Figures Handlers
+    els.idInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); addIdAnswer(); } });
     els.figBtn.addEventListener('click', () => els.figInput.click());
-    els.figInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const compressed = await compressImage(file);
-            state.figures.push(compressed);
-            renderFigures();
-            els.figInput.value = ''; // Reset
-        }
-    });
+    els.figInput.addEventListener('change', async (e) => { const file = e.target.files[0]; if (file) { const compressed = await compressImage(file); state.figures.push(compressed); renderFigures(); els.figInput.value = ''; } });
 
     els.form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const type = els.type.value;
         const qContent = state.quill.root.innerHTML.trim();
-
-        // Manual Validation
-        if (!qContent || qContent === '<p><br></p>') return alert("Please enter the question statement.");
-
+        if (!qContent || qContent === '<p><br></p>') return alert("ITEM STATEMENT REQUIRED.");
         let finalAnswer = null;
-
-        if (type === 'MCQ') {
-            if (state.choices.some(c => !c.text.trim())) return alert("Please fill in all MCQ choices.");
-            if (!state.correctMCQ) return alert("Please select a correct answer.");
-            finalAnswer = state.correctMCQ;
-        } else if (type === 'TRUE_FALSE') {
-            const sel = document.querySelector('input[name="tf-answer"]:checked');
-            if (!sel) return alert("Please select True or False.");
-            finalAnswer = sel.value;
-        } else if (type === 'IDENTIFICATION') {
-            if (state.acceptedAnswers.length === 0) return alert("Add at least one accepted answer.");
-            finalAnswer = state.acceptedAnswers;
-        }
-
-        els.submitBtn.disabled = true;
-        els.submitBtn.textContent = 'Saving...';
-
+        if (type === 'MCQ') { if (state.choices.some(c => !c.text.trim())) return alert("ALL CHOICES REQUIRED."); if (!state.correctMCQ) return alert("CORRECT OPTION REQUIRED."); finalAnswer = state.correctMCQ; }
+        else if (type === 'TRUE_FALSE') { const sel = document.querySelector('input[name="tf-answer"]:checked'); if (!sel) return alert("BINARY OPTION REQUIRED."); finalAnswer = sel.value; }
+        else if (type === 'IDENTIFICATION') { if (state.acceptedAnswers.length === 0) return alert("MINIMUM ONE VARIANT REQUIRED."); finalAnswer = state.acceptedAnswers; }
+        els.submitBtn.disabled = true; els.submitBtn.textContent = 'EXECUTING COMMIT...';
         try {
-            const data = {
-                course: els.course.value,
-                topic: els.topic.value,
-                type: type,
-                difficulty: els.difficulty.value,
-                points: parseInt(els.points.value) || 1,
-                text: state.quill.root.innerHTML,
-                correct_answer: finalAnswer,
-                choices: type === 'MCQ' ? state.choices : [],
-                figures: state.figures,
-                authorId: user.user.uid
-            };
-
-            if (state.questionId) {
-                await updateQuestion(state.questionId, data);
-            } else {
-                await addQuestion(data);
-            }
-
-            els.status.textContent = state.questionId ? "✅ Question Updated!" : "✅ Question Added!";
-            els.status.classList.remove('hidden', 'bg-red-50', 'text-red-600');
-            els.status.classList.add('bg-green-50', 'text-green-600');
-
+            const data = { course: els.course.value, topic: els.topic.value, type: type, difficulty: els.difficulty.value, points: parseInt(els.points.value) || 1, text: state.quill.root.innerHTML, correct_answer: finalAnswer, choices: type === 'MCQ' ? state.choices : [], figures: state.figures, authorId: user.user.uid };
+            if (state.questionId) await updateQuestion(state.questionId, data); else await addQuestion(data);
+            els.status.textContent = "✅ REGISTRY COMMIT SUCCESSFUL";
+            els.status.classList.remove('hidden', 'bg-red-50', 'text-red-600'); els.status.classList.add('bg-green-50', 'text-green-600', 'border-green-100');
             setTimeout(() => location.hash = '#bank', 1200);
-
-        } catch (err) {
-            console.error(err);
-            els.status.textContent = "❌ Error saving changes.";
-            els.status.classList.remove('hidden', 'bg-green-50', 'text-green-600');
-            els.status.classList.add('bg-red-50', 'text-red-600');
-            els.submitBtn.disabled = false;
-            els.submitBtn.textContent = state.questionId ? 'Update Question' : 'Save Question';
-        }
+        } catch (err) { els.status.textContent = "❌ COMMIT PROTOCOL FAILURE"; els.status.classList.remove('hidden', 'bg-green-50', 'text-green-600'); els.status.classList.add('bg-red-50', 'text-red-600', 'border-red-100'); els.submitBtn.disabled = false; els.submitBtn.textContent = 'Execute Commit Protocol'; }
     });
 
-    // Start!
     init();
 };

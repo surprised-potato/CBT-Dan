@@ -15,36 +15,37 @@ export const TakerPage = async () => {
         return;
     }
 
-    // Parse ID from hash: #taker?id=XYZ
     const params = new URLSearchParams(window.location.hash.split('?')[1]);
     const assessmentId = params.get('id');
 
     if (!assessmentId) {
-        app.innerHTML = '<div class="p-10 text-center">Invalid Assessment Link</div>';
+        app.innerHTML = '<div class="p-20 text-center glass-panel rounded-[40px] font-black text-red-500 uppercase tracking-widest m-8">INVALID TELEMETRY LINK</div>';
         return;
     }
 
-    // --- Loading State ---
     app.innerHTML = `
-        <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p class="mt-4 text-gray-500">Loading Assessment...</p>
+        <div class="min-h-screen flex flex-col items-center justify-center">
+            <div class="w-16 h-1 bg-blue-premium rounded-full animate-pulse mb-8"></div>
+            <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">Initialising Secure Session...</p>
         </div>
     `;
 
     try {
-        // Teacher preview bypasses duplicate check
         const isTeacher = user.role === 'teacher';
 
         if (!isTeacher) {
             const hasTaken = await checkSubmission(assessmentId, user.user.uid);
             if (hasTaken) {
                 app.innerHTML = `
-                    <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                        <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-                            <h2 class="text-2xl font-bold text-gray-800 mb-4">Assessment Completed</h2>
-                            <p class="text-gray-600 mb-8">You have already submitted this assessment.</p>
-                            <button onclick="window.location.hash='#student-dash'" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold w-full hover:bg-blue-700"> Back to Dashboard</button>
+                    <div class="min-h-screen flex flex-col items-center justify-center p-6">
+                        <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-blue-100 border border-white max-w-md w-full text-center relative overflow-hidden">
+                             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
+                            <div class="w-20 h-20 bg-green-50 rounded-[28px] flex items-center justify-center mx-auto mb-8 shadow-inner border border-green-100">
+                                <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <h2 class="text-3xl font-black text-gray-900 mb-4 uppercase tracking-tight">Access Locked</h2>
+                            <p class="text-xs font-black text-gray-500 mb-10 uppercase tracking-widest leading-loose">Telemetry has already been transmitted from this asset sector.</p>
+                            <button onclick="window.location.hash='#student-dash'" class="w-full bg-blue-premium text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all">Return to Dashboard</button>
                         </div>
                     </div>
                 `;
@@ -53,144 +54,134 @@ export const TakerPage = async () => {
         }
 
         const assessment = await getAssessment(assessmentId);
-
-        // Restore state from localStorage
         const storageKey = `session_${assessmentId}_${user.user.uid}`;
         const savedState = JSON.parse(localStorage.getItem(storageKey) || '{}');
         const answers = savedState.answers || {};
 
-        // --- Render Template ---
         app.innerHTML = `
-            <div class="bg-gray-50 min-h-screen pb-20">
-                <!-- Header -->
-                <!-- Header -->
-                <header class="bg-white shadow p-4 sticky top-0 z-10">
-                    <div class="max-w-3xl mx-auto flex justify-between items-center">
-                        <div class="flex items-center gap-4">
+            <div class="min-h-screen pb-32">
+                <header class="glass-panel sticky top-0 z-50 px-6 py-6 border-b border-white/20">
+                    <div class="max-w-4xl mx-auto flex justify-between items-center">
+                        <div class="flex items-center gap-6">
                             ${user.role === 'teacher'
-                ? `<button onclick="window.location.hash='#details?id=${assessmentId}'" class="text-gray-500 hover:text-gray-700 font-bold">← Back</button>`
+                ? `<button onclick="window.location.hash='#details?id=${assessmentId}'" class="p-3 glass-panel rounded-xl text-gray-500 hover:text-blue-600 transition-all shadow-sm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                   </button>`
                 : ''
             }
                             <div>
-                                <h1 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Assessment</h1>
-                                <p class="text-lg font-bold text-gray-900 truncate max-w-[200px] md:max-w-md">${assessment.title}</p>
+                                <h1 class="text-[9px] font-black text-blue-600 uppercase tracking-[0.4em] mb-1">Operational Interface</h1>
+                                <p class="text-lg font-black text-gray-900 truncate max-w-[200px] md:max-w-md uppercase tracking-tight">${assessment.title}</p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <div id="timer" class="font-mono font-bold text-blue-600 text-xl">--:--</div>
+                        <div class="px-6 py-3 glass-panel rounded-2xl border border-blue-100/50 shadow-inner">
+                            <div id="timer" class="font-mono font-black text-blue-600 text-xl tracking-tighter">00:00</div>
                         </div>
                     </div>
                 </header>
 
-                <main class="max-w-3xl mx-auto p-4 mt-4">
+                <main class="max-w-4xl mx-auto p-4 mt-10">
                     <form id="assessment-form">
-                        <div id="questions-container" class="space-y-8">
+                        <div id="questions-container" class="space-y-10">
                             <!-- Questions Injected Here -->
                         </div>
 
-                        <div class="mt-10 pt-6 border-t border-gray-200">
-                            ${renderButton({ text: 'Submit Assessment', type: 'submit', variant: 'primary', id: 'submit-btn' })}
-                            <p class="text-center text-xs text-gray-400 mt-4">Answers are saved automatically.</p>
+                        <div class="mt-16 pt-12 border-t border-gray-100 flex flex-col items-center">
+                            <button type="submit" id="submit-btn" class="w-full max-w-md bg-blue-premium text-white p-6 rounded-3xl font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-blue-200/50 hover:shadow-blue-300 hover:-translate-y-1 active:scale-[0.98] transition-all">Transmit Telemetry</button>
+                            <p class="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em] mt-8 animate-pulse">Auto-save sync active between local and cloud buffers</p>
                         </div>
                     </form>
                 </main>
             </div>
         `;
 
-        // --- Render Questions ---
         const container = document.getElementById('questions-container');
 
         container.innerHTML = assessment.questions.map((q, index) => {
-            // Helper to check if answered (for re-checking radios/inputs)
-            // We'll need a way to restore values after render string generation
-            // For now, let's render standard and hydrate values after
-
-            // Map renderer based on type
             let html = '';
-            // Ensure question object matches renderer expectations (text vs question_text)
-            // We fixed details page earlier, verify data structure.
-            // Assuming 'q' has 'type', 'text', 'choices', etc.
+            // Wrap in premium container
+            const getQuestionUI = (content) => `
+                <div class="bg-white p-10 rounded-[50px] border border-white shadow-2xl shadow-blue-50/50 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full -mr-16 -mt-16 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-8 h-8 bg-gray-50 rounded-xl flex items-center justify-center text-[10px] font-black text-gray-500 border border-gray-100 shadow-inner group-hover:bg-blue-premium group-hover:text-white transition-all">
+                                ${index + 1}
+                            </div>
+                            <div class="w-12 h-1 bg-gray-100 rounded-full"></div>
+                        </div>
+                        ${content}
+                    </div>
+                </div>
+            `;
 
-            if (q.type === 'MCQ') html = renderMCQ(q, index + 1);
-            else if (q.type === 'TRUE_FALSE') html = renderTrueFalse(q, index + 1);
-            else if (q.type === 'IDENTIFICATION') html = renderIdentification(q, index + 1);
-            else html = `<div class="p-4 bg-red-100 text-red-500">Unknown Type: ${q.type}</div>`;
+            if (q.type === 'MCQ') html = getQuestionUI(renderMCQ(q, index + 1));
+            else if (q.type === 'TRUE_FALSE') html = getQuestionUI(renderTrueFalse(q, index + 1));
+            else if (q.type === 'IDENTIFICATION') html = getQuestionUI(renderIdentification(q, index + 1));
+            else html = `<div class="p-8 bg-red-50 text-red-500 rounded-3xl border border-red-100 uppercase font-black text-xs tracking-widest text-center">Telemetry Corruption: ${q.type}</div>`;
 
             return html;
         }).join('');
 
-        // --- Hydrate Answers (Restore State) ---
+        // Hydrate Answers
         Object.keys(answers).forEach(questionId => {
             const value = answers[questionId];
-            // Try radio first (MCQ/TF)
             const radio = document.querySelector(`input[name="q-${questionId}"][value="${value}"]`);
             if (radio) radio.checked = true;
 
-            // Try text input (Identification)
-            const input = document.querySelector(`input[name="q-${questionId}"]`); // Assuming ID/Name convention matches
-            // Wait, identification renderer usually uses ID or generic name.
-            // We need to check renderer outputs.
-            // renderIdentification likely outputs an input. Let's assume name="q-${id}" convention is standard?
-            // If not, we might need to adjust renderers or query differently.
+            const input = document.querySelector(`input[name="q-${questionId}"]`);
+            if (input) input.value = value;
         });
 
-        // --- Event Listeners (Auto-Save) ---
         const form = document.getElementById('assessment-form');
+        const updateStorage = (qId, val) => {
+            answers[qId] = val;
+            localStorage.setItem(storageKey, JSON.stringify({
+                answers,
+                lastUpdated: new Date().toISOString()
+            }));
+        };
+
         form.addEventListener('change', (e) => {
             if (e.target.name && e.target.name.startsWith('q-')) {
-                const qId = e.target.name.replace('q-', '');
-                answers[qId] = e.target.value;
-                localStorage.setItem(storageKey, JSON.stringify({
-                    answers,
-                    lastUpdated: new Date().toISOString()
-                }));
+                updateStorage(e.target.name.replace('q-', ''), e.target.value);
             }
         });
 
-        // Handle Text Input 'input' event for real-time saving (debounced ideally, but raw for now)
         form.addEventListener('input', (e) => {
             if (e.target.type === 'text' && e.target.name && e.target.name.startsWith('q-')) {
-                const qId = e.target.name.replace('q-', '');
-                answers[qId] = e.target.value;
-                localStorage.setItem(storageKey, JSON.stringify({
-                    answers,
-                    lastUpdated: new Date().toISOString()
-                }));
+                updateStorage(e.target.name.replace('q-', ''), e.target.value);
             }
         });
 
-        // --- Submission ---
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Confirm
-            if (!confirm("Are you sure you want to submit? You cannot change answers after submitting.")) return;
+            if (!confirm("FINALISE TRANSMISSION? This action will permanently lock your telemetry entry.")) return;
 
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
-            btn.textContent = 'Submitting...';
+            btn.textContent = 'TRANSMITTING...';
 
             try {
-                const subId = await submitTest(assessmentId, user.user.uid, answers, {
+                await submitTest(assessmentId, user.user.uid, answers, {
                     displayName: user.displayName,
                     email: user.email || user.user.email
                 });
 
-                // Clear local state
                 localStorage.removeItem(storageKey);
-
-                alert("Assessment Submitted Successfully!");
+                alert("TELEMETRY TRANSMISSION SUCCESSFUL");
                 window.location.hash = '#student-dash';
             } catch (error) {
                 console.error(error);
-                alert("Submission failed. Please try again.");
+                alert("TRANSMISSION PROTOCOL FAILURE");
                 btn.disabled = false;
-                btn.textContent = 'Submit Assessment';
+                btn.textContent = 'TRANSMIT TELEMETRY';
             }
         });
 
     } catch (error) {
         console.error(error);
-        app.innerHTML = `<div class="p-10 text-center text-red-500">Error loading assessment.</div>`;
+        app.innerHTML = `<div class="p-20 text-center glass-panel rounded-[40px] font-black text-red-500 uppercase tracking-widest m-8">CRITICAL INTERFACE FAILURE: ${error.message}</div>`;
     }
 };
