@@ -119,12 +119,9 @@ export const ClassManagerPage = async () => {
 
                         <!-- Student List -->
                         <section>
-                            <div class="flex items-center justify-between mb-6 pl-2">
-                                <div class="flex items-center gap-3">
-                                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Enrolled</h2>
-                                    <span class="bg-gray-200 text-gray-600 text-[10px] font-black px-3 py-1 rounded-full">${studentCount}</span>
-                                </div>
-                                <button onclick="window.exportClassScores('${cls.id}')" class="text-blue-600 text-[10px] font-black uppercase tracking-widest hover:underline">Download CSV</button>
+                            <div class="flex items-center gap-3 mb-6 pl-2">
+                                <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Enrolled</h2>
+                                <span class="bg-gray-200 text-gray-600 text-[10px] font-black px-3 py-1 rounded-full">${studentCount}</span>
                             </div>
                             <div id="student-list" class="space-y-3">
                                 ${renderStudentList(cls)}
