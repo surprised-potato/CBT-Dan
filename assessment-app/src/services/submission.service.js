@@ -46,3 +46,17 @@ export const checkSubmission = async (assessmentId, studentId) => {
         return false;
     }
 };
+
+export const getSubmissionsByStudent = async (studentId) => {
+    try {
+        const q = query(
+            collection(db, COLLECTION),
+            where("studentId", "==", studentId)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+        console.error("Error fetching student submissions:", error);
+        throw error;
+    }
+};

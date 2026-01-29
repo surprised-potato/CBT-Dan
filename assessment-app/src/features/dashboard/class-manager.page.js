@@ -1,8 +1,9 @@
-import { renderButton } from '../../shared/button.js';
-import { renderInput } from '../../shared/input.js';
 import { createClass, getClassesByTeacher, approveStudent, rejectStudent } from '../../services/class.service.js';
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
+import { getSubmissionsByStudent } from '../../services/submission.service.js';
+import { getAssessment } from '../../services/assessment.service.js';
+import { renderInput } from '../../shared/input.js';
 
 export const ClassManagerPage = async () => {
     const app = document.getElementById('app');
@@ -14,7 +15,8 @@ export const ClassManagerPage = async () => {
     }
 
     let currentClasses = [];
-    let selectedClass = null; // null for Level 1, class object for Level 2
+    let selectedClass = null; // for Level 2
+    let selectedStudent = null; // for Level 3
 
     const renderLevel1 = () => {
         app.innerHTML = `
@@ -37,9 +39,9 @@ export const ClassManagerPage = async () => {
                                 New Class
                             </button>
                         </div>
-                        <div id="class-list-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="h-40 bg-gray-200 animate-pulse rounded-2xl"></div>
-                            <div class="h-40 bg-gray-200 animate-pulse rounded-2xl"></div>
+                        <div id="class-list-grid" class="flex flex-col gap-4">
+                            <div class="h-32 bg-gray-200 animate-pulse rounded-3xl"></div>
+                            <div class="h-32 bg-gray-200 animate-pulse rounded-3xl"></div>
                         </div>
                     </section>
                 </main>
@@ -83,44 +85,137 @@ export const ClassManagerPage = async () => {
                     </div>
                 </header>
 
-                <main class="max-w-2xl mx-auto p-4 space-y-8 mt-4">
-                    <!-- Join Code Card -->
-                    <div class="bg-blue-600 p-6 rounded-3xl shadow-xl shadow-blue-100 flex justify-between items-center text-white">
-                        <div>
-                            <p class="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">Student Join Code</p>
-                            <p class="text-3xl font-mono font-black tracking-[0.2em]">${cls.code}</p>
+                <main class="max-w-3xl mx-auto p-4 space-y-8 mt-4">
+                    <!-- Wide Join Code Card -->
+                    <div class="bg-blue-600 p-8 rounded-[40px] shadow-2xl shadow-blue-200 flex flex-col md:flex-row justify-between items-center gap-6 text-white overflow-hidden relative">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl capitalize"></div>
+                        <div class="relative z-10 text-center md:text-left">
+                            <p class="text-[10px] font-black uppercase tracking-[0.3em] opacity-70 mb-2">Class Access Protocol</p>
+                            <p class="text-5xl font-mono font-black tracking-[0.1em] text-white underline decoration-white/20 underline-offset-8">${cls.code}</p>
                         </div>
-                        <button onclick="window.copyJoinCode('${cls.code}', this)" class="p-3 bg-white/20 rounded-2xl hover:bg-white/30 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        <button onclick="window.copyJoinCode('${cls.code}', this)" class="relative z-10 w-full md:w-auto px-8 py-4 bg-white/20 rounded-2xl hover:bg-white/30 transition-all font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            Copy Join Key
                         </button>
                     </div>
 
-                    <!-- Pending Requests -->
-                    <section>
-                        <div class="flex items-center gap-2 mb-4 pl-1">
-                            <h2 class="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Pending Requests</h2>
-                            <span class="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">${pendingCount}</span>
-                        </div>
-                        <div id="pending-list" class="space-y-3">
-                            ${renderPendingList(cls)}
-                        </div>
-                    </section>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Pending Requests -->
+                        <section>
+                            <div class="flex items-center gap-3 mb-6 pl-2">
+                                <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Pending Access</h2>
+                                <span class="bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg shadow-orange-100">${pendingCount}</span>
+                            </div>
+                            <div id="pending-list" class="space-y-4">
+                                ${renderPendingList(cls)}
+                            </div>
+                        </section>
 
-                    <!-- Student List -->
-                    <section>
-                         <div class="flex items-center gap-2 mb-4 pl-1">
-                            <h2 class="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Enrolled Students</h2>
-                            <span class="bg-gray-200 text-gray-600 text-[10px] font-black px-2 py-0.5 rounded-full">${studentCount}</span>
+                        <!-- Student List -->
+                        <section>
+                            <div class="flex items-center gap-3 mb-6 pl-2">
+                                <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Enrolled</h2>
+                                <span class="bg-gray-200 text-gray-600 text-[10px] font-black px-3 py-1 rounded-full">${studentCount}</span>
+                            </div>
+                            <div id="student-list" class="space-y-3">
+                                ${renderStudentList(cls)}
+                            </div>
+                        </section>
+                    </div>
+                </main>
+            </div>
+        `;
+
+        document.getElementById('back-to-list').addEventListener('click', renderLevel1);
+    };
+
+    const renderLevel3 = async (student) => {
+        selectedStudent = student;
+        app.innerHTML = `
+            <div class="bg-gray-50 min-h-screen pb-20">
+                <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100 p-4 sticky top-0 z-40">
+                    <div class="max-w-5xl mx-auto flex items-center gap-4">
+                        <button id="back-to-students" class="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        </button>
+                        <div>
+                            <h1 class="text-xl font-black text-gray-900 leading-tight">${student.email}</h1>
+                            <p class="text-xs text-gray-500 font-medium uppercase tracking-widest">Performance Profile</p>
                         </div>
-                        <div id="student-list" class="space-y-2">
-                            ${renderStudentList(cls)}
+                    </div>
+                </header>
+
+                <main class="max-w-2xl mx-auto p-4 space-y-8 mt-4">
+                    <section>
+                        <h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em] mb-6 pl-2">Assessment History</h2>
+                        <div id="score-list" class="space-y-4">
+                            <div class="h-24 bg-gray-200 animate-pulse rounded-3xl"></div>
+                            <div class="h-24 bg-gray-200 animate-pulse rounded-3xl"></div>
                         </div>
                     </section>
                 </main>
             </div>
         `;
 
-        document.getElementById('back-to-list').addEventListener('click', renderLevel1);
+        document.getElementById('back-to-students').addEventListener('click', () => renderLevel2(selectedClass));
+
+        // Load Scores
+        const scoreList = document.getElementById('score-list');
+        try {
+            const submissions = await getSubmissionsByStudent(student.uid);
+            if (submissions.length === 0) {
+                scoreList.innerHTML = `
+                    <div class="bg-white p-12 rounded-[32px] text-center border border-gray-100 shadow-sm">
+                        <p class="text-gray-400 font-medium">No assessments found for this student.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Fetch assessment details for titles
+            const enriched = await Promise.all(submissions.map(async (s) => {
+                try {
+                    const assessment = await getAssessment(s.assessmentId);
+                    return { ...s, assessmentTitle: assessment.title };
+                } catch {
+                    return { ...s, assessmentTitle: 'Deleted Assessment' };
+                }
+            }));
+
+            scoreList.innerHTML = enriched.map(s => {
+                const isGraded = s.status === 'graded';
+                const percentage = isGraded ? Math.round((s.score / s.totalPoints) * 100) : null;
+                const date = new Date(s.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+                return `
+                    <div class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 ${isGraded ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'} rounded-2xl flex items-center justify-center font-black text-xs uppercase">
+                                ${date}
+                            </div>
+                            <div>
+                                <h3 class="font-black text-gray-900 group-hover:text-blue-600 transition-colors">${s.assessmentTitle}</h3>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${isGraded ? 'Completed' : 'Awaiting Grade'}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            ${isGraded ? `
+                                <p class="text-2xl font-black text-gray-900">${s.score}<span class="text-gray-300 mx-1">/</span>${s.totalPoints}</p>
+                                <div class="w-24 h-1.5 bg-gray-50 rounded-full mt-2 overflow-hidden">
+                                    <div class="h-full bg-blue-600" style="width: ${percentage}%"></div>
+                                </div>
+                            ` : `
+                                <span class="text-xs font-black text-orange-500 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full">Pending</span>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (err) {
+            console.error(err);
+            scoreList.innerHTML = `<p class="text-red-500 text-center py-8">Failed to fetch scores.</p>`;
+        }
     };
 
     const renderPendingList = (cls) => {
@@ -152,16 +247,21 @@ export const ClassManagerPage = async () => {
         if (!cls.students || cls.students.length === 0) {
             return `<p class="text-sm text-gray-400 italic pl-1">No students enrolled yet.</p>`;
         }
-        return cls.students.map(s => {
+        return cls.students.map((s, idx) => {
             const email = s.email || 'No Email';
             return `
-                <div class="bg-white p-4 rounded-2xl border border-gray-50 flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 font-black text-xs">
-                        ${email.charAt(0).toUpperCase()}
+                <div onclick="window.viewScores(${idx})" class="bg-white p-5 rounded-[24px] border border-gray-100 flex items-center justify-between group hover:border-blue-500 hover:shadow-lg hover:shadow-blue-50 cursor-pointer transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 font-black text-xs group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                            ${email.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="font-black text-gray-900 group-hover:text-blue-600 transition-colors">${email}</p>
+                            <p class="text-[10px] text-gray-400 font-mono uppercase tracking-tight">${s.uid.substring(0, 12)}...</p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="font-bold text-gray-900">${email}</p>
-                        <p class="text-[10px] text-gray-400 font-mono uppercase">${s.uid.substring(0, 12)}...</p>
+                    <div class="text-gray-300 group-hover:text-blue-500 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </div>
                 </div>
             `;
@@ -188,30 +288,49 @@ export const ClassManagerPage = async () => {
             }
 
             grid.innerHTML = currentClasses.map((cls, idx) => `
-                <div onclick="window.drillDown(${idx})" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-blue-100">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="font-black text-gray-900 text-lg group-hover:text-blue-600 transition-colors">${cls.name}</h3>
-                            <p class="text-xs text-gray-400 mt-1">${cls.section || 'General'}</p>
+                <div onclick="window.drillDown(${idx})" class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-blue-50 transition-all cursor-pointer group hover:border-blue-200 relative overflow-hidden">
+                    <!-- Visual Accent -->
+                    <div class="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                        <div class="flex items-center gap-6">
+                            <div class="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-black text-gray-900 text-2xl group-hover:text-blue-600 transition-colors uppercase tracking-tight">${cls.name}</h3>
+                                <p class="text-xs font-bold text-gray-400 mt-1 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    ${cls.section || 'General'}
+                                    <span class="w-1 h-1 bg-gray-200 rounded-full"></span>
+                                    ${cls.code}
+                                </p>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                             ${(cls.pendingStudents?.length || 0) > 0 ? `
-                                <span class="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">${cls.pendingStudents.length} Req</span>
-                             ` : ''}
-                             <div class="p-2 bg-gray-50 rounded-xl text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                             </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-6 pt-4 border-t border-gray-50">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                            <span class="text-sm font-bold text-gray-700">${cls.students?.length || 0}</span>
-                            <span class="text-[10px] text-gray-400 font-bold uppercase">Students</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">Code:</span>
-                            <span class="font-mono font-black text-blue-600 text-sm leading-none">${cls.code}</span>
+
+                        <div class="flex items-center gap-8 pl-6 md:pl-0 border-l md:border-l-0 border-gray-100">
+                            <div class="text-left md:text-right">
+                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Students</p>
+                                <p class="text-2xl font-black text-gray-900">${cls.students?.length || 0}</p>
+                            </div>
+                            
+                            ${(cls.pendingStudents?.length || 0) > 0 ? `
+                                <div class="text-left md:text-right relative">
+                                    <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Requests</p>
+                                    <p class="text-2xl font-black text-orange-600 flex items-center gap-2">
+                                        ${cls.pendingStudents.length}
+                                        <span class="w-2 h-2 bg-orange-500 rounded-full animate-ping"></span>
+                                    </p>
+                                </div>
+                            ` : `
+                                <div class="text-left md:text-right opacity-30">
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Requests</p>
+                                    <p class="text-2xl font-black text-gray-300">0</p>
+                                </div>
+                            `}
+
+                            <div class="p-4 bg-gray-50 rounded-2xl text-gray-300 group-hover:bg-blue-600 group-hover:text-white transition-all group-hover:translate-x-1">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -253,6 +372,10 @@ export const ClassManagerPage = async () => {
     // Global Handlers
     window.drillDown = (idx) => {
         renderLevel2(currentClasses[idx]);
+    };
+
+    window.viewScores = (idx) => {
+        renderLevel3(selectedClass.students[idx]);
     };
 
     window.copyJoinCode = (code, btn) => {
