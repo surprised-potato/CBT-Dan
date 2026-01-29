@@ -1,0 +1,4 @@
+/* Global custom styles if needed, mostly using Tailwind */
+body {
+    -webkit-tap-highlight-color: transparent;
+}
