@@ -13,7 +13,9 @@ import { AssessmentBankPage } from './src/features/assessment/assessment-bank.pa
 import { DetailsPage } from './src/features/assessment/details.page.js';
 import { WizardPage } from './src/features/assessment/wizard.page.js';
 import { TakerPage } from './src/features/assessment/taker.page.js';
+import { ReportPage } from './src/features/assessment/report.page.js';
 import { BankPage } from './src/features/question-bank/bank.page.js';
+import { ClassManagerPage } from './src/features/dashboard/class-manager.page.js';
 import { UITestPage } from './src/features/test/ui-test.page.js';
 import { observeAuthChanges } from './src/services/auth.service.js';
 
@@ -27,7 +29,9 @@ addRoute('#assessment-bank', AssessmentBankPage);
 addRoute('#details', DetailsPage);
 addRoute('#wizard', WizardPage);
 addRoute('#taker', TakerPage);
+addRoute('#report', ReportPage);
 addRoute('#bank', BankPage);
+addRoute('#class-manager', ClassManagerPage);
 addRoute('#test-ui', UITestPage);
 // Add a default route or alias
 addRoute('', LoginPage);

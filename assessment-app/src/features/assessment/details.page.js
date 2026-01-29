@@ -68,6 +68,10 @@ export const DetailsPage = async () => {
                     ? `<button onclick="window.location.hash='#taker?id=${id}'" class="w-full py-3 rounded-xl font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">Preview as Student</button>`
                     : `<button onclick="window.location.hash='#taker?id=${id}'" class="w-full py-3 rounded-xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Preview Draft</button>`
                 }
+
+                <button onclick="window.location.hash='#report?id=${id}'" class="col-span-2 w-full py-3 rounded-xl font-bold bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors border border-purple-100">
+                    View Grades & Reports
+                </button>
                     </div>
                      ${isActive ? `<p class="text-center text-xs text-green-600 mt-2 font-bold">Students can now see and take this assessment.</p>` : ''}
                 </div>

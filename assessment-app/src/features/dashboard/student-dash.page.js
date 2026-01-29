@@ -44,8 +44,8 @@ export const StudentDashPage = () => {
             <div class="grid gap-4">
                 <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
                     <h3 class="font-bold text-blue-800 mb-4">Available Assessments</h3>
-                    <div id="active-assessments-list" class="space-y-3">
-                        <p class="text-blue-600 animate-pulse">Checking for exams...</p>
+                    <div id="active-assessments-list" class="space-y-6">
+                        <p class="text-blue-600 animate-pulse font-bold">Scanning for assessments...</p>
                     </div>
                 </div>
             </div>
@@ -118,8 +118,6 @@ export const StudentDashPage = () => {
     // Fetch Active Tests
     (async () => {
         const listContainer = document.getElementById('active-assessments-list');
-        listContainer.innerHTML = '<div class="py-12 text-center text-blue-600 animate-pulse font-bold">Scanning for assessments...</div>';
-
         try {
             // 1. Get Student Classes
             const { getStudentClasses } = await import('../../services/class.service.js');
@@ -127,12 +125,11 @@ export const StudentDashPage = () => {
             const myClassIds = myClasses.map(c => c.id);
 
             console.log("Debug: Student ID:", user.user.uid);
-            console.log("Debug: Enrolled Classes Found:", myClasses);
+            console.log("Debug: Enrolled Classes:", myClasses);
 
             // 2. Get Assessments (filtered by class)
-            // Note: We pass myClassIds to service to filter by assignedClassId
             const rawAssessments = await getActiveAssessments(myClassIds);
-            console.log("Debug: Active Assessments from Firestore:", rawAssessments);
+            console.log("Debug: Raw Assessments:", rawAssessments);
 
             // Check completion for each
             const { checkSubmission } = await import('../../services/submission.service.js');
@@ -143,19 +140,11 @@ export const StudentDashPage = () => {
 
             // 3. Group By Class
             const groups = {};
-
-            // Initialize groups for enrolled classes (to show them even if empty)
             myClasses.forEach(c => {
-                groups[c.id] = {
-                    name: `${c.name} (${c.section})`,
-                    code: c.code,
-                    assessments: []
-                };
+                groups[c.id] = { name: `${c.name} (${c.section})`, code: c.code, assessments: [] };
             });
 
-            // "Public" / General group
             const publicGroup = [];
-
             assessments.forEach(a => {
                 if (a.assignedClassId && groups[a.assignedClassId]) {
                     groups[a.assignedClassId].assessments.push(a);
@@ -167,17 +156,16 @@ export const StudentDashPage = () => {
             // 4. Render
             let html = '';
 
-            // Render Enrolled Classes Pills (Visual feedback)
+            // Enrolled Pills
             if (myClasses.length > 0) {
                 html += `
-                    <div class="mb-8">
-                        <h4 class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-3">Enrolled Classes</h4>
-                        <div class="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+                    <div class="mb-4">
+                        <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">My Classes</h4>
+                        <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                             ${myClasses.map(c => `
-                                <div class="bg-white px-5 py-2.5 rounded-2xl border border-blue-100 shadow-sm flex items-center gap-2 whitespace-nowrap group hover:border-blue-400 transition-colors">
+                                <div class="bg-white px-4 py-2 rounded-xl border border-blue-100 shadow-sm flex items-center gap-2 whitespace-nowrap">
                                     <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                                    <span class="font-bold text-gray-700 text-sm">${c.name}</span>
-                                    <span class="text-[10px] bg-gray-50 text-gray-400 px-2 py-1 rounded-lg font-mono font-bold">${c.code}</span>
+                                    <span class="font-bold text-gray-700 text-xs">${c.name}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -185,45 +173,42 @@ export const StudentDashPage = () => {
                 `;
             }
 
-            // Render Class Groups
-            if (Object.keys(groups).length > 0) {
-                Object.values(groups).forEach(group => {
-                    html += `
-                        <div class="mb-8 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div class="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                                <h3 class="font-bold text-gray-900">${group.name}</h3>
-                                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-lg">Class Exam</span>
-                            </div>
-                            <div class="divide-y divide-gray-50 bg-white">
-                                ${group.assessments.length > 0
-                            ? group.assessments.map(a => renderAssessmentRow(a)).join('')
-                            : '<div class="p-10 text-center text-gray-400 text-sm italic">No active assessments found in this class.</div>'
-                        }
-                            </div>
-                        </div>
-                    `;
-                });
-            } else if (publicGroup.length === 0) {
+            // Groups
+            Object.values(groups).forEach(g => {
                 html += `
-                    <div class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-gray-100">
-                        <div class="mb-4 text-gray-300">
-                             <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+                        <div class="bg-gray-50/50 px-6 py-3 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800 text-sm">${g.name}</h3>
+                            <span class="text-[10px] font-mono text-gray-400 bg-white px-2 py-1 rounded border">Code: ${g.code}</span>
                         </div>
-                        <p class="text-gray-500 mb-2 font-bold">You are not enrolled in any classes yet.</p>
-                        <p class="text-sm text-blue-500 font-medium">Join a class above to see your assessments.</p>
-                    </div>`;
-            }
+                        <div class="divide-y divide-gray-50">
+                            ${g.assessments.length > 0
+                        ? g.assessments.map(a => renderRow(a)).join('')
+                        : '<div class="p-8 text-center text-gray-400 text-sm italic">No active assessments.</div>'}
+                        </div>
+                    </div>
+                `;
+            });
 
-            // Render Public Group
+            // Public Exams
             if (publicGroup.length > 0) {
                 html += `
-                    <div class="mb-8 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div class="bg-purple-50 px-6 py-4 border-b border-purple-100">
-                            <h3 class="font-bold text-purple-900">General assessments</h3>
+                    <div class="bg-white rounded-2xl border border-purple-100 shadow-sm overflow-hidden mb-6">
+                        <div class="bg-purple-50 px-6 py-3 border-b border-purple-100">
+                            <h3 class="font-bold text-purple-900 text-sm">General Assessments</h3>
                         </div>
-                        <div class="divide-y divide-gray-50 bg-white">
-                            ${publicGroup.map(a => renderAssessmentRow(a)).join('')}
+                        <div class="divide-y divide-gray-50">
+                            ${publicGroup.map(a => renderRow(a)).join('')}
                         </div>
+                    </div>
+                `;
+            }
+
+            if (myClasses.length === 0 && publicGroup.length === 0) {
+                html = `
+                    <div class="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-100">
+                        <p class="text-gray-500 font-bold mb-1">No assessments available.</p>
+                        <p class="text-xs text-blue-500">Join a class above to see your exams.</p>
                     </div>
                 `;
             }
@@ -231,32 +216,24 @@ export const StudentDashPage = () => {
             listContainer.innerHTML = html;
 
         } catch (err) {
-            console.error("Student Dashboard Render Error:", err);
-            listContainer.innerHTML = `
-                <div class="p-10 text-center">
-                    <p class="text-red-500 font-bold mb-2">Failed to load assessments</p>
-                    <p class="text-xs text-gray-400">${err.message}</p>
-                </div>
-            `;
+            console.error(err);
+            listContainer.innerHTML = `<p class="text-red-500 text-center py-10 font-bold">Error loading dashboard: ${err.message}</p>`;
         }
     })();
 
-    // Helper for Row
-    const renderAssessmentRow = (a) => `
-        <div class="p-5 hover:bg-gray-50/50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-5 group">
-            <div class="pl-2">
-                <h4 class="font-bold text-gray-900 text-lg mb-1 group-hover:text-blue-600 transition-colors">${a.title}</h4>
-                <div class="flex items-center gap-3">
-                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-1 rounded-md">${a.questionCount} Items</span>
-                    ${!a.assignedClassId ? '<span class="text-[10px] font-black text-purple-600 uppercase tracking-widest bg-purple-50 px-2 py-1 rounded-md border border-purple-100">Public Access</span>' : ''}
+    const renderRow = (a) => `
+        <div class="p-4 flex justify-between items-center group hover:bg-gray-50 transition-colors">
+            <div>
+                <h4 class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">${a.title}</h4>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded">${a.questionCount} Qs</span>
+                    ${!a.assignedClassId ? '<span class="text-[10px] font-black text-purple-500 uppercase tracking-widest bg-purple-50 px-2 py-0.5 rounded">Public</span>' : ''}
                 </div>
             </div>
-            <div class="shrink-0 flex items-center">
-                ${a.completed
-            ? `<button disabled class="w-full sm:w-auto bg-gray-50 text-gray-300 px-8 py-3 rounded-2xl font-bold text-sm cursor-not-allowed border border-gray-100">Completed</button>`
-            : `<button onclick="window.location.hash='#taker?id=${a.id}'" class="w-full sm:w-auto bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-blue-100 hover:bg-blue-700 hover:shadow-2xl hover:-translate-y-0.5 transition-all active:scale-95">Start Exam</button>`
+            ${a.completed
+            ? '<button disabled class="bg-gray-50 text-gray-300 px-6 py-2 rounded-xl font-bold text-xs border border-gray-100 cursor-not-allowed">Done</button>'
+            : `<button onclick="window.location.hash='#taker?id=${a.id}'" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-xs shadow-lg shadow-blue-100 hover:bg-blue-700 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">Start</button>`
         }
-            </div>
         </div>
     `;
 };
