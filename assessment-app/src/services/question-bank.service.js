@@ -9,7 +9,8 @@ import {
     getDoc,
     query,
     where,
-    orderBy
+    orderBy,
+    writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const COLLECTION_NAME = 'questions';
@@ -126,6 +127,31 @@ export const getQuestionById = async (id) => {
         }
     } catch (error) {
         console.error("Error getting question:", error);
+        throw error;
+    }
+};
+export const bulkAddQuestions = async (questions) => {
+    const BATCH_LIMIT = 500;
+    try {
+        const timestamp = new Date().toISOString();
+        const colRef = collection(db, COLLECTION_NAME);
+
+        for (let i = 0; i < questions.length; i += BATCH_LIMIT) {
+            const batch = writeBatch(db);
+            const chunk = questions.slice(i, i + BATCH_LIMIT);
+
+            chunk.forEach(q => {
+                const newDocRef = doc(colRef);
+                batch.set(newDocRef, {
+                    ...q,
+                    createdAt: timestamp
+                });
+            });
+
+            await batch.commit();
+        }
+    } catch (error) {
+        console.error("Error in bulk add:", error);
         throw error;
     }
 };

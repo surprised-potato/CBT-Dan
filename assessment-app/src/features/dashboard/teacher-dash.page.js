@@ -25,7 +25,7 @@ export const TeacherDashPage = async () => {
                 ${icon}
             </div>
             <div>
-                <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">${title}</p>
+                <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1">${title}</p>
                 <p class="text-3xl font-black text-gray-900">${value}</p>
             </div>
         </div>
@@ -44,7 +44,7 @@ export const TeacherDashPage = async () => {
                         <div>
                             <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight">Teacher Console</h1>
                             <div class="flex items-center gap-2 mt-0.5">
-                                <p class="text-xs text-gray-600 font-bold">${userName}</p>
+                                <p class="text-xs text-gray-800 font-bold">${userName}</p>
                                 <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
                                 <button id="edit-profile-btn" class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700">Account Settings</button>
                             </div>
@@ -68,7 +68,7 @@ export const TeacherDashPage = async () => {
                 <!-- Management Actions -->
                 <section>
                     <div class="flex items-center gap-3 mb-6 pl-1">
-                        <h2 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Institutional Management</h2>
+                        <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Institutional Management</h2>
                         <div class="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent"></div>
                     </div>
                     
@@ -83,7 +83,7 @@ export const TeacherDashPage = async () => {
                                     </div>
                                     <div>
                                         <h3 class="font-black text-gray-900 text-3xl group-hover:text-blue-600 transition-colors">Question Library</h3>
-                                        <p class="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mt-2">Manage Curriculum & Question Items</p>
+                                        <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Manage Curriculum & Question Items</p>
                                     </div>
                                 </div>
                                 <div class="bg-gray-50 p-4 rounded-2xl text-gray-300 group-hover:bg-blue-600 group-hover:text-white transition-all">
@@ -102,7 +102,7 @@ export const TeacherDashPage = async () => {
                                     </div>
                                     <div>
                                         <h3 class="font-black text-gray-900 text-3xl group-hover:text-purple-600 transition-colors">Assessments</h3>
-                                        <p class="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mt-2">Draft, Deploy & Monitor Exams</p>
+                                        <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Draft, Deploy & Monitor Exams</p>
                                     </div>
                                 </div>
                                 <div class="bg-gray-50 p-4 rounded-2xl text-gray-300 group-hover:bg-purple-600 group-hover:text-white transition-all">
@@ -121,7 +121,7 @@ export const TeacherDashPage = async () => {
                                     </div>
                                     <div>
                                         <h3 class="font-black text-gray-900 text-3xl group-hover:text-emerald-600 transition-colors">Class Manager</h3>
-                                        <p class="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mt-2">Enrollment, Student Performance & Grades</p>
+                                        <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Enrollment, Student Performance & Grades</p>
                                     </div>
                                 </div>
                                 <div class="bg-gray-50 p-4 rounded-2xl text-gray-300 group-hover:bg-emerald-600 group-hover:text-white transition-all">

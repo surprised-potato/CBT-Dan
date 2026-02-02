@@ -90,6 +90,7 @@ export const generateAssessment = async (config) => {
             status: 'draft', // Default status
             createdAt: new Date().toISOString(),
             questionCount: allSelectedQuestions.length,
+            settings: config.settings || { oneAtATime: false, randomizeOrder: false },
             sections: config.sections.map(s => ({
                 title: s.title,
                 topics: s.topics,

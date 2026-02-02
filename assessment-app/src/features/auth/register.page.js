@@ -15,7 +15,7 @@ export const RegisterPage = () => {
                         <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <h1 class="text-3xl font-black text-gray-900 tracking-tight uppercase">Initialise Account</h1>
-                    <p class="text-gray-500 mt-2 text-xs font-black uppercase tracking-[0.2em]">Personnel Enrolment</p>
+                    <p class="text-gray-600 mt-2 text-xs font-black uppercase tracking-[0.2em]">Personnel Enrolment</p>
                 </div>
                 
                 <form id="register-form" class="space-y-5 relative z-10">
@@ -26,7 +26,7 @@ export const RegisterPage = () => {
                     
                     <div class="flex items-center gap-3 py-2 bg-gray-50 px-4 rounded-xl border border-gray-100">
                         <input type="checkbox" id="reg-is-teacher" class="w-5 h-5 text-blue-600 rounded-lg border-gray-300 focus:ring-blue-500">
-                        <label for="reg-is-teacher" class="text-[10px] font-black text-gray-600 uppercase tracking-widest cursor-pointer">Register as Instructor</label>
+                        <label for="reg-is-teacher" class="text-[10px] font-black text-gray-700 uppercase tracking-widest cursor-pointer">Register as Instructor</label>
                     </div>
 
                     <div id="reg-error" class="text-red-500 text-[10px] font-black uppercase tracking-widest hidden text-center bg-red-50 py-3 rounded-xl border border-red-100"></div>
@@ -34,7 +34,7 @@ export const RegisterPage = () => {
                     <button type="submit" class="w-full bg-blue-premium text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-blue-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all">Create Registry Entry</button>
                 </form>
                 
-                  <p class="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-gray-500 relative z-10">
+                  <p class="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-gray-600 relative z-10">
                     Existing Personnel? <a href="#login" class="text-blue-600 hover:underline ml-1">Access Gateway</a>
                 </p>
             </div>

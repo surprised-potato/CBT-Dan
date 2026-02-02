@@ -32,7 +32,7 @@ export const StudentDashPage = async () => {
                     <div>
                         <h1 class="text-xl font-black text-gray-900 leading-tight">Student Portal</h1>
                         <div class="flex items-center gap-2">
-                            <p class="text-xs text-gray-600 font-bold">${userName}</p>
+                            <p class="text-xs text-gray-800 font-bold">${userName}</p>
                             <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
                             <button id="edit-profile-btn" class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700">Settings</button>
                         </div>
@@ -47,8 +47,8 @@ export const StudentDashPage = async () => {
 
     const renderNav = () => `
         <nav class="flex gap-1 p-1 bg-gray-200/50 rounded-2xl mb-8 glass-panel backdrop-blur-sm">
-            <button id="view-exams-btn" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${currentView === 'assessments' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}">Exams</button>
-            <button id="view-grades-btn" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${currentView === 'grades' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}">My Performance</button>
+            <button id="view-exams-btn" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${currentView === 'assessments' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'}">Exams</button>
+            <button id="view-grades-btn" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${currentView === 'grades' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'}">My Performance</button>
         </nav>
     `;
 
@@ -178,7 +178,7 @@ export const StudentDashPage = async () => {
             if (myClasses.length > 0) {
                 html += `
                     <div class="mb-4 overflow-hidden">
-                        <h4 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4 pl-1">Authorized Enrolments</h4>
+                        <h4 class="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-4 pl-1">Authorized Enrolments</h4>
                         <div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
                             ${myClasses.map(c => `
                                 <div class="bg-white px-6 py-4 rounded-[20px] shadow-sm border border-white flex items-center gap-3 whitespace-nowrap">
@@ -207,7 +207,7 @@ export const StudentDashPage = async () => {
                         <div class="divide-y divide-gray-50">
                             ${g.exams.length > 0
                         ? g.exams.map(e => renderExamRow(e)).join('')
-                        : '<div class="p-16 text-center text-gray-400 text-xs font-black uppercase tracking-widest italic opacity-60">No active assessments in this group</div>'}
+                        : '<div class="p-16 text-center text-gray-500 text-xs font-black uppercase tracking-widest italic opacity-80">No active assessments in this group</div>'}
                         </div>
                     </div>
                 `;
@@ -229,7 +229,7 @@ export const StudentDashPage = async () => {
                 <div>
                     <h4 class="font-black text-gray-900 text-xl group-hover:text-blue-600 transition-colors tracking-tight">${ex.title}</h4>
                     <div class="flex items-center gap-3 mt-1.5">
-                        <span class="text-[10px] text-gray-500 font-black uppercase tracking-widest">${ex.questionCount} Items</span>
+                        <span class="text-[10px] text-gray-600 font-black uppercase tracking-widest">${ex.questionCount} Items</span>
                         <span class="w-1 h-1 bg-gray-200 rounded-full"></span>
                         <span class="text-[10px] text-blue-500/70 font-black uppercase tracking-widest">Active Now</span>
                     </div>
@@ -270,7 +270,7 @@ export const StudentDashPage = async () => {
 
             container.innerHTML = `
                 <div class="flex items-center gap-3 mb-6 pl-2">
-                    <h2 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Institutional Record</h2>
+                    <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Institutional Record</h2>
                     <div class="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent"></div>
                 </div>
                 <div class="grid gap-6">
@@ -288,7 +288,7 @@ export const StudentDashPage = async () => {
                                     </div>
                                     <div class="flex-1">
                                         <h3 class="font-black text-gray-900 text-2xl group-hover:text-blue-600 transition-colors uppercase tracking-tight leading-tight">${s.assessmentTitle}</h3>
-                                        <p class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mt-2">${isGraded ? 'Standardized Score' : 'Evaluation in Progress'}</p>
+                                        <p class="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] mt-2">${isGraded ? 'Standardized Score' : 'Evaluation in Progress'}</p>
                                     </div>
                                 </div>
                                 <div class="text-center sm:text-right w-full sm:w-auto">

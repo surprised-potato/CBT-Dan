@@ -12,7 +12,7 @@ export const renderLoginUI = () => {
                         <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                     </div>
                     <h1 class="text-3xl font-black text-gray-900 tracking-tight uppercase">Operational Access</h1>
-                    <p class="text-gray-500 mt-2 text-xs font-black uppercase tracking-[0.2em]">CBT Integrated Systems</p>
+                    <p class="text-gray-600 mt-2 text-xs font-black uppercase tracking-[0.2em]">CBT Integrated Systems</p>
                 </div>
                 
                 <form id="login-form" class="space-y-6 relative z-10">
@@ -44,7 +44,7 @@ export const renderLoginUI = () => {
                         <div class="w-full border-t border-gray-100"></div>
                     </div>
                     <div class="relative flex justify-center text-[10px] font-black uppercase tracking-[0.3em]">
-                        <span class="px-4 bg-white text-gray-500">OAuth Gateway</span>
+                        <span class="px-4 bg-white text-gray-600">OAuth Gateway</span>
                     </div>
                 </div>
 
@@ -55,7 +55,7 @@ export const renderLoginUI = () => {
                     </button>
                 </div>
 
-                <p class="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-gray-500 relative z-10">
+                <p class="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-gray-600 relative z-10">
                     New Personnel? <a href="#register" class="text-blue-600 hover:underline ml-1">Initialise Account</a>
                 </p>
             </div>

@@ -17,10 +17,16 @@ export const BankPage = async () => {
                         </button>
                         <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight">Question Library</h1>
                     </div>
-                    <button onclick="location.hash='#editor'" class="bg-blue-premium text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        New Resource
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button onclick="location.hash='#bulk-import'" class="bg-white text-blue-600 border border-blue-100 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-50/50 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
+                            Bulk Entry
+                        </button>
+                        <button onclick="location.hash='#editor'" class="bg-blue-premium text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            New Resource
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -80,11 +86,11 @@ export const BankPage = async () => {
             if (hierarchy.courses.length === 0) {
                 html += `
                     <div class="text-center py-24 glass-panel rounded-[50px] border-2 border-dashed border-white">
-                        <p class="text-gray-500 font-black uppercase tracking-widest text-xs opacity-50 mb-6">Library is currently empty</p>
+                        <p class="text-gray-600 font-black uppercase tracking-widest text-xs opacity-70 mb-6">Library is currently empty</p>
                         <button onclick="location.hash='#editor'" class="bg-blue-premium text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-200">Start Resource Building</button>
                     </div>`;
             } else {
-                html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-500 font-black uppercase tracking-widest text-xs opacity-50">No departments match query "${viewState.searchTerm}"</div>`;
+                html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-600 font-black uppercase tracking-widest text-xs opacity-70">No departments match query "${viewState.searchTerm}"</div>`;
             }
             contentDiv.innerHTML = html;
             return;
@@ -100,12 +106,12 @@ export const BankPage = async () => {
                     
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
                         <div class="flex items-center gap-8">
-                            <div class="w-20 h-20 bg-gray-50 rounded-[28px] flex items-center justify-center text-gray-200 group-hover:bg-blue-premium group-hover:text-white group-hover:shadow-xl group-hover:shadow-blue-200 transition-all shadow-inner">
+                            <div class="w-20 h-20 bg-gray-50 rounded-[28px] flex items-center justify-center text-blue-500 group-hover:bg-blue-50 group-hover:text-blue-700 group-hover:shadow-md transition-all shadow-inner">
                                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                             </div>
                             <div>
                                 <h3 class="font-black text-gray-900 text-3xl group-hover:text-blue-600 transition-colors uppercase tracking-tight">${course}</h3>
-                                <p class="text-[10px] font-black text-gray-500 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
+                                <p class="text-[10px] font-black text-gray-600 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
                                     ${topicCount} Theoretical Topics
                                     <span class="w-1.5 h-1.5 bg-blue-200 rounded-full"></span>
                                     ${courseQs.length} Operational Qs
@@ -113,7 +119,7 @@ export const BankPage = async () => {
                             </div>
                         </div>
 
-                        <div class="p-5 glass-panel rounded-[24px] text-gray-200 group-hover:bg-blue-premium group-hover:text-white group-hover:shadow-xl transition-all group-hover:translate-x-1">
+                        <div class="p-5 glass-panel rounded-[24px] text-blue-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all group-hover:translate-x-1 border border-transparent group-hover:border-blue-100">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </div>
                     </div>
@@ -167,7 +173,7 @@ export const BankPage = async () => {
         `;
 
         if (filtered.length === 0) {
-            html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-500 font-black uppercase tracking-widest text-xs opacity-50">No operational items match telemetry criteria</div>`;
+            html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-600 font-black uppercase tracking-widest text-xs opacity-70">No operational items match telemetry criteria</div>`;
             contentDiv.innerHTML = html;
             return;
         }
@@ -190,7 +196,7 @@ export const BankPage = async () => {
                         <div class="w-2 h-8 bg-blue-premium rounded-full"></div>
                         <h3 class="font-black text-gray-800 tracking-tight uppercase text-lg">${topic} <span class="bg-blue-premium text-white px-4 py-1 rounded-full text-[10px] ml-4 shadow-lg shadow-blue-100">${qs.length}</span></h3>
                     </div>
-                    <div class="p-2 glass-panel rounded-xl text-gray-300">
+                    <div class="p-2 glass-panel rounded-xl text-blue-400">
                         <svg class="w-6 h-6 transform transition-transform duration-500 ${isCollapsed ? '-rotate-90' : 'rotate-0'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </div>

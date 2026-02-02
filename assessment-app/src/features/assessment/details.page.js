@@ -16,7 +16,7 @@ export const DetailsPage = async () => {
             <header class="glass-panel sticky top-0 z-40 px-4 py-6 border-b border-white/20">
                 <div class="max-w-4xl mx-auto flex justify-between items-center">
                     <div class="flex items-center gap-4">
-                        <button onclick="location.hash='#assessment-bank'" class="p-3 glass-panel rounded-2xl text-gray-500 hover:text-blue-600 transition-colors shadow-sm">
+                        <button onclick="location.hash='#assessment-bank'" class="p-3 glass-panel rounded-2xl text-purple-600 hover:text-purple-800 transition-colors shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         </button>
                         <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight uppercase">Assessment Specs</h1>
@@ -47,26 +47,28 @@ export const DetailsPage = async () => {
                    </span>`;
 
             content.innerHTML = `
-                <div class="bg-white p-10 rounded-[50px] shadow-2xl shadow-blue-50/50 border border-white mb-10 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                <div class="bg-white p-10 rounded-[50px] shadow-2xl shadow-purple-50/50 border border-white mb-10 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-purple-50/50 rounded-full -mr-32 -mt-32 blur-3xl"></div>
                     
                     <div class="flex flex-col md:flex-row justify-between items-start gap-8 relative z-10">
                         <div class="flex-1">
                             <div class="flex flex-wrap items-center gap-4 mb-6">
                                 ${statusBadge}
-                                <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] bg-blue-50/50 px-3 py-1.5 rounded-lg border border-blue-100/50">Module ID: ${id.substring(0, 8)}...</span>
+                                <span class="text-[10px] font-black text-purple-600 uppercase tracking-[0.2em] bg-purple-50/50 px-3 py-1.5 rounded-lg border border-purple-100/50">Module ID: ${id.substring(0, 8)}...</span>
+                                ${assessment.settings?.oneAtATime ? '<span class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] bg-indigo-50/50 px-3 py-1.5 rounded-lg border border-indigo-100/50">Discrete Delivery</span>' : ''}
+                                ${assessment.settings?.randomizeOrder ? '<span class="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] bg-amber-50/50 px-3 py-1.5 rounded-lg border border-amber-100/50">Random Order</span>' : ''}
                             </div>
                             <h2 class="text-4xl font-black text-gray-900 leading-[1.1] tracking-tight uppercase mb-4">${assessment.title}</h2>
-                            <p class="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">Initialised on ${new Date(assessment.createdAt).toLocaleDateString(undefined, { dateStyle: 'full' })}</p>
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Initialised on ${new Date(assessment.createdAt).toLocaleDateString(undefined, { dateStyle: 'full' })}</p>
                         </div>
                         <div class="bg-gray-50 p-6 rounded-[32px] border border-gray-100 shadow-inner text-center min-w-[140px]">
                             <p class="text-4xl font-black text-gray-900 tracking-tighter">${assessment.questionCount}</p>
-                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Operational Items</p>
+                            <p class="text-[10px] font-black text-gray-600 uppercase tracking-widest mt-1">Operational Items</p>
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12 relative z-10">
-                        <button id="toggle-status-btn" class="w-full ${isActive ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-premium text-white'} p-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all hover:-translate-y-0.5 active:scale-95 border">
+                        <button id="toggle-status-btn" class="w-full ${isActive ? 'bg-red-50 text-red-600 border-red-100' : 'bg-purple-premium text-white'} p-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all hover:-translate-y-0.5 active:scale-95 border">
                             ${isActive ? 'End Operational Window' : 'Launch Assessment'}
                         </button>
                         
@@ -85,11 +87,11 @@ export const DetailsPage = async () => {
                 <div class="space-y-8">
                     <h3 class="text-xl font-black text-gray-900 uppercase tracking-[0.2em] px-4">Registry Preview</h3>
                     ${assessment.questions.map((q, idx) => `
-                        <div class="bg-white p-8 rounded-[40px] border border-white shadow-xl shadow-blue-50/50 relative overflow-hidden group">
-                             ${isActive ? '<div class="absolute inset-0 bg-gray-50/80 backdrop-blur-[2px] z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="font-black text-[10px] uppercase tracking-[0.3em] text-gray-500 bg-white px-6 py-3 rounded-2xl shadow-xl">Encryption Locked (Active Session)</span></div>' : ''}
+                        <div class="bg-white p-8 rounded-[40px] border border-white shadow-xl shadow-purple-50/50 relative overflow-hidden group">
+                             ${isActive ? '<div class="absolute inset-0 bg-gray-50/80 backdrop-blur-[2px] z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="font-black text-[10px] uppercase tracking-[0.3em] text-gray-700 bg-white px-6 py-3 rounded-2xl shadow-xl">Encryption Locked (Active Session)</span></div>' : ''}
                             <div class="flex justify-between items-center mb-6">
-                                <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Item Reference ${idx + 1}</span>
-                                <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100 uppercase tracking-widest">${q.type}</span>
+                                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Item Reference ${idx + 1}</span>
+                                <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-4 py-1.5 rounded-full border border-purple-100 uppercase tracking-widest">${q.type}</span>
                             </div>
                             <p class="text-gray-900 font-extrabold text-lg mb-6 leading-relaxed">${q.text || 'No operational data provided'}</p>
                              ${q.choices && q.choices.length > 0 ? `
