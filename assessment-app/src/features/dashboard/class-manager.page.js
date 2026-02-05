@@ -1,4 +1,4 @@
-import { createClass, getClassesByTeacher, approveStudent, rejectStudent } from '../../services/class.service.js';
+import { createClass, getClassesByTeacher, approveStudent, rejectStudent, softDeleteClass } from '../../services/class.service.js';
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
 import { getSubmissionsByStudent } from '../../services/submission.service.js';
@@ -22,30 +22,35 @@ export const ClassManagerPage = async () => {
 
     const renderLevel1 = () => {
         app.innerHTML = `
-            <div class="min-h-screen pb-20">
-                <header class="glass-panel sticky top-0 z-40 px-4 py-6 border-b border-white/20">
-                    <div class="max-w-5xl mx-auto flex items-center gap-4">
-                        <button onclick="location.hash='#teacher-dash'" class="p-3 glass-panel rounded-2xl text-green-500 hover:text-green-700 transition-colors shadow-sm">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                        </button>
-                        <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight">Institutional Registry</h1>
-                    </div>
-                </header>
-
-                <main class="max-w-5xl mx-auto p-4 space-y-10 mt-8">
-                    <section>
-                        <div class="flex justify-between items-center mb-8 pl-1">
-                            <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Standardised Classes</h2>
-                            <button id="add-class-btn" class="bg-green-premium text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-green-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                New Registry
+            <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4">
+                <div class="bg-white w-full max-w-4xl rounded-[50px] shadow-2xl shadow-blue-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
+                    <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-30"></div>
+                    
+                    <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center transition-all">
+                        <div class="flex items-center gap-5">
+                            <button onclick="location.hash='#teacher-dash'" class="p-3 glass-panel rounded-2xl text-green-500 hover:text-green-700 transition-colors shadow-sm">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                             </button>
+                            <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight">Institutional Registry</h1>
                         </div>
-                        <div id="class-list-grid" class="flex flex-col gap-6">
-                            <div class="h-40 glass-panel animate-pulse rounded-[40px]"></div>
-                        </div>
-                    </section>
-                </main>
+                    </header>
+
+                    <main class="p-8 space-y-12 relative z-10">
+                        <section>
+                            <div class="flex justify-between items-center mb-8 pl-1">
+                                <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Standardised Classes</h2>
+                                <button id="add-class-btn" class="bg-green-premium text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-green-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    New Registry
+                                </button>
+                            </div>
+                            <div id="class-list-grid" class="flex flex-col gap-6">
+                                <div class="h-40 glass-panel animate-pulse rounded-[40px]"></div>
+                            </div>
+                        </section>
+                    </main>
+                </div>
+            </div>
 
                 <!-- Create Class Modal -->
                 ${renderModal({
@@ -60,7 +65,6 @@ export const ClassManagerPage = async () => {
                         </form>
                     `
         })}
-            </div>
         `;
 
         setupEventListeners();
@@ -73,10 +77,12 @@ export const ClassManagerPage = async () => {
         const studentCount = cls.students?.length || 0;
 
         app.innerHTML = `
-            <div class="min-h-screen pb-20">
-                <header class="glass-panel sticky top-0 z-40 px-4 py-6 border-b border-white/20">
-                    <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-4">
+        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4">
+            <div class="bg-white w-full max-w-4xl rounded-[50px] shadow-2xl shadow-blue-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-30"></div>
+                
+                <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center transition-all">
+                    <div class="flex items-center gap-5">
                             <button id="back-to-list" class="p-3 glass-panel rounded-2xl text-green-500 hover:text-green-700 transition-colors shadow-sm">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                             </button>
@@ -89,10 +95,9 @@ export const ClassManagerPage = async () => {
                              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                              Export Gradebook
                         </button>
-                    </div>
-                </header>
+                    </header>
 
-                <main class="max-w-4xl mx-auto p-4 space-y-10 mt-8">
+                <main class="p-8 space-y-12 relative z-10">
                     <!-- Wide Join Code Card -->
                     <div class="relative bg-green-premium p-12 rounded-[50px] shadow-2xl shadow-green-200/50 flex flex-col md:flex-row justify-between items-center gap-10 text-white overflow-hidden">
                         <div class="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-40 -mt-40 blur-3xl opacity-50"></div>
@@ -136,6 +141,7 @@ export const ClassManagerPage = async () => {
                     </div>
                 </main>
             </div>
+        </div>
         `;
 
         document.getElementById('back-to-list').onclick = renderLevel1;
@@ -144,9 +150,12 @@ export const ClassManagerPage = async () => {
     const renderLevel3 = async (student) => {
         selectedStudent = student;
         app.innerHTML = `
-            <div class="min-h-screen pb-20">
-                <header class="glass-panel sticky top-0 z-40 px-4 py-6 border-b border-white/20">
-                    <div class="max-w-5xl mx-auto flex items-center gap-6">
+        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4">
+            <div class="bg-white w-full max-w-4xl rounded-[50px] shadow-2xl shadow-blue-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-30"></div>
+                
+                <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center transition-all">
+                    <div class="flex items-center gap-5">
                         <button id="back-to-students" class="p-3 glass-panel rounded-2xl text-green-500 hover:text-green-700 transition-all shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         </button>
@@ -157,7 +166,7 @@ export const ClassManagerPage = async () => {
                     </div>
                 </header>
 
-                <main class="max-w-3xl mx-auto p-4 space-y-10 mt-8">
+                <main class="p-8 space-y-12 relative z-10">
                     <section>
                         <div class="flex items-center gap-3 mb-8 pl-2">
                             <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Module History</h2>
@@ -306,6 +315,11 @@ export const ClassManagerPage = async () => {
                 <div onclick="window.drillDown(${idx})" class="group relative bg-white p-10 rounded-[50px] border border-white shadow-xl shadow-green-50/40 hover:shadow-2xl hover:shadow-green-100 hover:border-green-200 hover:-translate-y-1 transition-all cursor-pointer overflow-hidden">
                     <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-green-50/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     
+                    <!-- Hide/Archive Button - Top Right -->
+                    <button onclick="event.stopPropagation(); window.hideClass('${cls.id}')" class="absolute top-6 right-6 z-20 p-3 rounded-2xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all border border-transparent hover:border-red-100" title="Hide Class">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                    </button>
+                    
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
                         <div class="flex items-center gap-8">
                             <div class="w-20 h-20 bg-gray-50 rounded-[28px] flex items-center justify-center text-green-500 group-hover:bg-green-50 group-hover:text-green-700 transition-all shadow-inner">
@@ -321,29 +335,25 @@ export const ClassManagerPage = async () => {
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-10 pl-10 md:pl-0 border-l md:border-l-0 border-gray-100">
-                            <div>
-                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Cohort Size</p>
+                        <div class="flex items-center gap-6">
+                            <div class="text-center">
+                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Cohort</p>
                                 <p class="text-3xl font-black text-gray-900">${cls.students?.length || 0}</p>
                             </div>
                             
                             ${(cls.pendingStudents?.length || 0) > 0 ? `
-                                <div class="relative">
+                                <div class="text-center relative">
                                     <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1.5">Requests</p>
-                                    <p class="text-3xl font-black text-orange-600 flex items-center gap-3">
+                                    <p class="text-3xl font-black text-orange-600 flex items-center justify-center gap-2">
                                         ${cls.pendingStudents.length}
-                                        <span class="w-2.5 h-2.5 bg-orange-500 rounded-full animate-ping shadow-lg shadow-orange-200"></span>
+                                        <span class="w-2.5 h-2.5 bg-orange-500 rounded-full animate-ping"></span>
                                     </p>
                                 </div>
-                            ` : `
-                                <div class="opacity-30">
-                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Requests</p>
-                                    <p class="text-3xl font-black text-gray-300">0</p>
-                                </div>
-                            `}
+                            ` : ''}
 
-                            <div class="p-5 glass-panel rounded-[24px] text-green-400 group-hover:bg-green-50 group-hover:text-green-600 transition-all group-hover:translate-x-1 border border-transparent group-hover:border-green-100">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner border border-transparent group-hover:border-emerald-400">
+                                <span class="text-[10px] font-black uppercase tracking-widest mr-3">View</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </div>
                         </div>
                     </div>
@@ -402,6 +412,16 @@ export const ClassManagerPage = async () => {
             renderLevel2(selectedClass);
         } catch (err) {
             alert("Workflow fail.");
+        }
+    };
+
+    window.hideClass = async (classId) => {
+        if (!confirm("Hide this class? It will no longer appear in your list but can be restored later.")) return;
+        try {
+            await softDeleteClass(classId);
+            loadClasses(); // Refresh the list
+        } catch (err) {
+            alert("Failed to hide class: " + err.message);
         }
     };
 

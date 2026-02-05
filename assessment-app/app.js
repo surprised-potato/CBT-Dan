@@ -13,6 +13,7 @@ import { AssessmentBankPage } from './src/features/assessment/assessment-bank.pa
 import { DetailsPage } from './src/features/assessment/details.page.js';
 import { WizardPage } from './src/features/assessment/wizard.page.js';
 import { TakerPage } from './src/features/assessment/taker.page.js';
+import { ResultsPage } from './src/features/assessment/results.page.js';
 import { ReportPage } from './src/features/assessment/report.page.js';
 import { BankPage } from './src/features/question-bank/bank.page.js';
 import { BulkImportPage } from './src/features/question-bank/bulk-import.page.js';
@@ -30,6 +31,7 @@ addRoute('#assessment-bank', AssessmentBankPage);
 addRoute('#details', DetailsPage);
 addRoute('#wizard', WizardPage);
 addRoute('#taker', TakerPage);
+addRoute('#results', ResultsPage);
 addRoute('#report', ReportPage);
 addRoute('#bank', BankPage);
 addRoute('#bulk-import', BulkImportPage);

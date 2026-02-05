@@ -33,11 +33,13 @@ export const TeacherDashPage = async () => {
 
     // --- Initial Shell ---
     app.innerHTML = `
-        <div class="min-h-screen pb-20">
-            <!-- Header -->
-            <header class="glass-panel sticky top-0 z-40 px-4 py-6 border-b border-white/20">
-                <div class="max-w-5xl mx-auto flex justify-between items-center">
-                    <div class="flex items-center gap-4">
+        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4">
+            <div class="bg-white w-full max-w-2xl rounded-[50px] shadow-2xl shadow-blue-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-blue-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-30"></div>
+                
+                <!-- Header -->
+                <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center">
+                    <div class="flex items-center gap-5">
                         <div class="w-12 h-12 bg-blue-premium rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
                             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                         </div>
@@ -53,10 +55,9 @@ export const TeacherDashPage = async () => {
                     <button id="logout-btn" class="p-3 glass-panel rounded-2xl text-gray-400 hover:text-red-500 transition-colors shadow-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     </button>
-                </div>
-            </header>
+                </header>
 
-            <main class="max-w-5xl mx-auto p-4 space-y-10 mt-8">
+                <main class="p-8 space-y-12 relative z-10">
                 
                 <!-- Stats Overview -->
                 <section id="stats-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -74,7 +75,7 @@ export const TeacherDashPage = async () => {
                     
                     <div class="grid grid-cols-1 gap-6">
                         <!-- Card: Bank -->
-                        <div onclick="location.hash='#bank'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-blue-100/50 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-200/60 active:scale-[0.98]">
+                        <div onclick="location.hash='#bank'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-blue-500/10 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/40 active:scale-[0.98]">
                             <div class="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
                             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                                 <div class="flex items-center gap-8">
@@ -82,18 +83,19 @@ export const TeacherDashPage = async () => {
                                         <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                     </div>
                                     <div>
-                                        <h3 class="font-black text-gray-900 text-3xl group-hover:text-blue-600 transition-colors">Question Library</h3>
+                                        <h3 class="font-black text-gray-900 text-3xl group-hover:text-blue-600 transition-all">Question Library</h3>
                                         <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Manage Curriculum & Question Items</p>
                                     </div>
                                 </div>
-                                <div class="bg-gray-50 p-4 rounded-2xl text-gray-300 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <div class="mt-8 flex items-center justify-between p-5 bg-gray-50 rounded-[28px] text-gray-400 group-hover:bg-blue-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(37,99,235,0.4)] transition-all shadow-inner border border-transparent group-hover:border-blue-400">
+                                    <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Open Repository</span>
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Card: Assessments -->
-                        <div onclick="location.hash='#assessment-bank'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-purple-100/50 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-200/60 active:scale-[0.98]">
+                        <div onclick="location.hash='#assessment-bank'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-purple-500/10 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/40 active:scale-[0.98]">
                             <div class="absolute top-0 right-0 w-64 h-64 bg-purple-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
                             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                                 <div class="flex items-center gap-8">
@@ -105,14 +107,15 @@ export const TeacherDashPage = async () => {
                                         <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Draft, Deploy & Monitor Exams</p>
                                     </div>
                                 </div>
-                                <div class="bg-gray-50 p-4 rounded-2xl text-gray-300 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                <div class="mt-8 flex items-center justify-between p-5 bg-gray-50 rounded-[28px] text-gray-400 group-hover:bg-purple-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(147,51,234,0.4)] transition-all shadow-inner border border-transparent group-hover:border-purple-400">
+                                    <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Manage Modules</span>
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Card: Class Manager -->
-                        <div onclick="location.hash='#class-manager'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-emerald-100/50 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-200/60 active:scale-[0.98]">
+                        <div onclick="location.hash='#class-manager'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-emerald-500/10 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/40 active:scale-[0.98]">
                             <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
                             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                                 <div class="flex items-center gap-8">
@@ -124,7 +127,8 @@ export const TeacherDashPage = async () => {
                                         <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Enrollment, Student Performance & Grades</p>
                                     </div>
                                 </div>
-                                <div class="bg-gray-50 p-4 rounded-2xl text-gray-300 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                <div class="mt-8 flex items-center justify-between p-5 bg-gray-50 rounded-[28px] text-gray-400 group-hover:bg-emerald-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(16,185,129,0.4)] transition-all shadow-inner border border-transparent group-hover:border-emerald-400">
+                                    <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Cohort Registry</span>
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </div>
                             </div>
@@ -132,8 +136,9 @@ export const TeacherDashPage = async () => {
                     </div>
                 </section>
 
-            </main>
-            
+                </main>
+            </div>
+
             <!-- Profile Modal -->
             ${renderModal({
         id: 'profile-modal',

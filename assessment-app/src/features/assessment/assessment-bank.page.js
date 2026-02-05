@@ -8,10 +8,12 @@ export const AssessmentBankPage = async () => {
     if (!user) { window.location.hash = '#login'; return; }
 
     app.innerHTML = `
-        <div class="min-h-screen pb-20">
-            <header class="glass-panel sticky top-0 z-40 px-4 py-6 border-b border-white/20">
-                <div class="max-w-5xl mx-auto flex justify-between items-center">
-                    <div class="flex items-center gap-4">
+        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4">
+            <div class="bg-white w-full max-w-4xl rounded-[50px] shadow-2xl shadow-purple-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-purple-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-30"></div>
+                
+                <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center transition-all">
+                    <div class="flex items-center gap-5">
                         <button onclick="location.hash='#teacher-dash'" class="p-3 glass-panel rounded-2xl text-purple-600 hover:text-purple-800 transition-colors shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         </button>
@@ -21,22 +23,22 @@ export const AssessmentBankPage = async () => {
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         New Assessment
                     </button>
-                </div>
-            </header>
+                </header>
 
-            <main class="max-w-5xl mx-auto p-4 space-y-8 mt-8">
-                <div class="relative group">
-                    <input type="text" id="as-search" placeholder="Search operational modules..." class="w-full p-6 pl-16 rounded-[28px] glass-panel border-white/40 shadow-xl shadow-purple-50/20 focus:ring-2 focus:ring-purple-500/20 text-lg font-bold tracking-tight outline-none transition-all">
-                    <div class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <main class="p-8 space-y-12 relative z-10">
+                    <div class="relative group">
+                        <input type="text" id="as-search" placeholder="Search operational modules..." class="w-full p-6 pl-16 rounded-[28px] glass-panel border-white/40 shadow-xl shadow-purple-50/20 focus:ring-2 focus:ring-purple-500/20 text-lg font-bold tracking-tight outline-none transition-all">
+                        <div class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
                     </div>
-                </div>
 
-                <div id="as-list" class="grid grid-cols-1 gap-6">
-                    <div class="animate-pulse glass-panel p-8 rounded-[40px] h-32"></div>
-                    <div class="animate-pulse glass-panel p-8 rounded-[40px] h-32"></div>
-                </div>
-            </main>
+                    <div id="as-list" class="grid grid-cols-1 gap-6">
+                        <div class="animate-pulse glass-panel p-8 rounded-[40px] h-32"></div>
+                        <div class="animate-pulse glass-panel p-8 rounded-[40px] h-32"></div>
+                    </div>
+                </main>
+            </div>
         </div>
 
         <!-- Edit Title Modal -->
@@ -101,7 +103,7 @@ export const AssessmentBankPage = async () => {
                             ${statusBadge}
                             <span class="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">${new Date(a.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                         </div>
-                        <h3 class="text-2xl font-black text-gray-900 truncate tracking-tight group-hover:text-purple-600 transition-colors uppercase">${a.title}</h3>
+                        <h3 onclick="location.hash='#details?id=${a.id}'" class="text-2xl font-black text-gray-900 truncate tracking-tight group-hover:text-purple-600 transition-colors uppercase cursor-pointer">${a.title}</h3>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
                              ${a.questionCount} Validated Items 
                              <span class="w-1 h-1 bg-gray-200 rounded-full"></span> 
@@ -124,6 +126,10 @@ export const AssessmentBankPage = async () => {
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </button>
                     </div>
+                </div>
+                <div onclick="location.hash='#details?id=${a.id}'" class="mt-8 flex items-center justify-between p-5 bg-gray-50 rounded-[28px] text-gray-400 group-hover:bg-purple-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(147,51,234,0.4)] transition-all shadow-inner border border-transparent group-hover:border-purple-400 cursor-pointer">
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Manage Module</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </div>
             </div>
             `;

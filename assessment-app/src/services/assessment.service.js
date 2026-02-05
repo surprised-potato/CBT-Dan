@@ -23,7 +23,10 @@ export const generateAssessment = async (config) => {
         let allSelectedQuestions = [];
 
         // 1. Process each section
-        for (const section of config.sections) {
+        const sectionAnswerBanks = {}; // sectorIdx -> [shuffled choices]
+
+        for (let i = 0; i < config.sections.length; i++) {
+            const section = config.sections[i];
             const qRef = collection(db, 'questions');
             let q = qRef;
 
@@ -31,12 +34,8 @@ export const generateAssessment = async (config) => {
                 q = query(q, where("course", "==", section.course));
             }
 
-            // Support multiple topics if provided as an array
             if (section.topics && section.topics.length > 0) {
-                // Firestore 'in' operator limited to 10 items.
                 q = query(q, where("topic", "in", section.topics));
-            } else if (section.topic) {
-                q = query(q, where("topic", "==", section.topic));
             }
 
             const snapshot = await getDocs(q);
@@ -48,29 +47,40 @@ export const generateAssessment = async (config) => {
             }
 
             // --- Difficulty Distribution Logic ---
-            let selected = [];
-            const dist = section.distribution || { EASY: section.count || 5, MODERATE: 0, DIFFICULT: 0 };
-
+            let selectedForSection = [];
+            const dist = section.distribution || { EASY: 5, MODERATE: 0, DIFFICULT: 0 };
             const diffs = ['EASY', 'MODERATE', 'DIFFICULT'];
+
             for (const diff of diffs) {
                 const countNeeded = dist[diff] || 0;
                 if (countNeeded <= 0) continue;
 
                 const diffCandidates = candidates.filter(c => (c.difficulty || 'EASY') === diff);
-                // Randomize
+
+                if (diffCandidates.length < countNeeded) {
+                    throw new Error(`Insufficient ${diff} questions in ${section.course || 'selected domain'}. Requested: ${countNeeded}, Found: ${diffCandidates.length}`);
+                }
+
                 diffCandidates.sort(() => Math.random() - 0.5);
-                selected = [...selected, ...diffCandidates.slice(0, countNeeded)];
+                selectedForSection = [...selectedForSection, ...diffCandidates.slice(0, countNeeded)];
             }
 
-            // Fallback: If no distribution was provided but we have a count, pick random
-            if (selected.length === 0 && section.count > 0) {
-                candidates.sort(() => Math.random() - 0.5);
-                selected = candidates.slice(0, section.count);
+            // Global Answer Bank Logic
+            if (section.answerBankMode) {
+                const bankSet = new Set(section.distractors || []);
+                selectedForSection.forEach(sq => {
+                    const isID = sq.type === 'IDENTIFICATION' || (sq.type === 'MCQ' && (!sq.choices || sq.choices.length === 0));
+                    if (isID) {
+                        (sq.correct_answers || []).forEach(ans => bankSet.add(ans));
+                    }
+                });
+                sectionAnswerBanks[i] = Array.from(bankSet).sort(() => Math.random() - 0.5);
             }
 
-            // Label questions with section info and specific points
-            const labeled = selected.map(sq => ({
+            // Label questions
+            const labeled = selectedForSection.map(sq => ({
                 ...sq,
+                sectionIdx: i,
                 sectionTitle: section.title || 'Untitled Section',
                 sectionPoints: section.pointsPerQuestion || sq.points || 1
             }));
@@ -82,23 +92,26 @@ export const generateAssessment = async (config) => {
             throw new Error("No questions found for the selected criteria.");
         }
 
-        // 2. SPLIT DATA (The Security Step)
+        // 2. SPLIT DATA
         const contentPayload = {
             title: config.title,
             authorId: config.authorId,
-            assignedClassId: config.assignedClassId || null,
-            status: 'draft', // Default status
+            assignedClassIds: config.assignedClassIds || [],
+            status: 'draft',
             createdAt: new Date().toISOString(),
             questionCount: allSelectedQuestions.length,
             settings: config.settings || { oneAtATime: false, randomizeOrder: false },
-            sections: config.sections.map(s => ({
+            sections: config.sections.map((s, i) => ({
                 title: s.title,
                 topics: s.topics,
                 distribution: s.distribution,
-                pointsPerQuestion: s.pointsPerQuestion
+                pointsPerQuestion: s.pointsPerQuestion,
+                answerBank: sectionAnswerBanks[i] || null,
+                answerBankMode: s.answerBankMode || false
             })),
             questions: allSelectedQuestions.map(q => {
-                const { correct_answer, ...safeQ } = q;
+                // Remove all sensitive data
+                const { correct_answers, correct_answer, pairs, items, ...safeQ } = q;
                 return safeQ;
             })
         };
@@ -106,7 +119,20 @@ export const generateAssessment = async (config) => {
         const keysPayload = {
             assessmentId: null,
             answers: allSelectedQuestions.reduce((acc, q) => {
-                acc[q.id] = q.correct_answer;
+                // Selection logic for the "Reference Answer" in keys
+                let keyAnswer = q.correct_answers;
+
+                // If it's a list but only 1 element, flatten it for simpler grading in basic cases
+                // But generally keepers are arrays now to support multi-variants
+                if (Array.isArray(keyAnswer)) {
+                    if (q.type === 'MCQ' || q.type === 'TRUE_FALSE') {
+                        keyAnswer = keyAnswer[0]; // Pick first variant
+                    }
+                } else if (keyAnswer === undefined) {
+                    keyAnswer = q.correct_answer; // Fallback for legacy items
+                }
+
+                acc[q.id] = keyAnswer;
                 return acc;
             }, {})
         };
@@ -204,8 +230,9 @@ export const getActiveAssessments = async (enrolledClassIds = []) => {
         // 3. Else -> Hide
 
         return allActive.filter(a => {
-            if (!a.assignedClassId) return true; // Public
-            return enrolledClassIds.includes(a.assignedClassId);
+            const ids = a.assignedClassIds || (a.assignedClassId ? [a.assignedClassId] : []);
+            if (ids.length === 0) return true; // Public
+            return ids.some(id => enrolledClassIds.includes(id));
         });
 
     } catch (error) {
@@ -216,15 +243,71 @@ export const getActiveAssessments = async (enrolledClassIds = []) => {
 
 export const getAssessmentsByClass = async (classId) => {
     try {
+        // Simple query without orderBy to avoid composite index requirement
         const q = query(
             collection(db, COL_CONTENT),
-            where("assignedClassId", "==", classId),
-            orderBy("createdAt", "desc")
+            where("assignedClassId", "==", classId)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        const results = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Sort client-side by createdAt descending
+        return results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } catch (error) {
         console.error("Error fetching class assessments:", error);
+        throw error;
+    }
+};
+
+export const updateAssessmentConfig = async (id, updates) => {
+    // updates: { sections?, settings?, assignedClassIds?, title? }
+    try {
+        const allowedFields = ['sections', 'settings', 'assignedClassIds', 'title'];
+        const sanitized = {};
+        for (const key of allowedFields) {
+            if (updates[key] !== undefined) sanitized[key] = updates[key];
+        }
+        await updateDoc(doc(db, COL_CONTENT, id), sanitized);
+    } catch (error) {
+        console.error("Error updating assessment config:", error);
+        throw error;
+    }
+};
+
+export const cloneAssessment = async (id, assignedClassIds = null) => {
+    try {
+        // 1. Get original content and keys
+        const contentSnap = await getDoc(doc(db, COL_CONTENT, id));
+        const keysSnap = await getDoc(doc(db, COL_KEYS, id));
+
+        if (!contentSnap.exists()) throw new Error("Assessment not found");
+
+        const content = contentSnap.data();
+        const keys = keysSnap.exists() ? keysSnap.data() : { answers: {} };
+
+        // 2. Create new documents with fresh ID
+        const batch = writeBatch(db);
+        const newRef = doc(collection(db, COL_CONTENT));
+        const newId = newRef.id;
+
+        const clonedContent = {
+            ...content,
+            title: `${content.title} (COPY)`,
+            status: 'draft',
+            createdAt: new Date().toISOString(),
+            // Use provided classIds or keep original
+            assignedClassIds: assignedClassIds !== null ? assignedClassIds : (content.assignedClassIds || [])
+        };
+        // Remove legacy field if present
+        delete clonedContent.assignedClassId;
+
+        batch.set(doc(db, COL_CONTENT, newId), clonedContent);
+        batch.set(doc(db, COL_KEYS, newId), { ...keys, assessmentId: newId });
+
+        await batch.commit();
+        return newId;
+
+    } catch (error) {
+        console.error("Error cloning assessment:", error);
         throw error;
     }
 };

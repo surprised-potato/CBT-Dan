@@ -1,4 +1,6 @@
-import { getAssessment, toggleAssessmentStatus } from '../../services/assessment.service.js';
+import { getAssessment, toggleAssessmentStatus, cloneAssessment, updateAssessmentConfig } from '../../services/assessment.service.js';
+import { getClassesByTeacher } from '../../services/class.service.js';
+import { getUser } from '../../core/store.js';
 import { renderButton } from '../../shared/button.js';
 
 export const DetailsPage = async () => {
@@ -34,9 +36,17 @@ export const DetailsPage = async () => {
 
     const renderDetails = async () => {
         try {
-            const assessment = await getAssessment(id);
+            const user = getUser();
+            const [assessment, classes] = await Promise.all([
+                getAssessment(id),
+                user ? getClassesByTeacher(user.user.uid) : []
+            ]);
             const status = assessment.status || 'draft';
             const isActive = status === 'active';
+
+            // Get assigned class names for display
+            const assignedIds = assessment.assignedClassIds || (assessment.assignedClassId ? [assessment.assignedClassId] : []);
+            const assignedClasses = classes.filter(c => assignedIds.includes(c.id));
 
             const statusBadge = isActive
                 ? `<span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-50 text-green-600 border border-green-100">
@@ -80,9 +90,77 @@ export const DetailsPage = async () => {
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                             Generate Performance Registry
                         </button>
+                        <button id="clone-btn" class="w-full bg-amber-50 text-amber-700 p-5 rounded-2xl font-black uppercase text-xs tracking-widest border border-amber-100 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Clone Module
+                        </button>
                     </div>
-                     ${isActive ? `<p class="text-center text-[10px] font-black text-green-600 mt-6 uppercase tracking-widest animate-pulse">Tele-Access is currently open for student enrolment</p>` : ''}
+                    
+                    <!-- Assigned Classes -->
+                    ${assignedClasses.length > 0 ? `
+                    <div class="mt-8 p-6 bg-gray-50/50 rounded-3xl border border-gray-100">
+                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Assigned Sectors</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${assignedClasses.map(c => `<span class="px-4 py-2 bg-white text-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-gray-100 shadow-sm">${c.name} [${c.section}]</span>`).join('')}
+                        </div>
+                    </div>
+                    ` : '<p class="text-center text-[10px] font-black text-gray-400 mt-6 uppercase tracking-widest">Public Access Protocol (No Class Restrictions)</p>'}
+                    
+                    ${isActive ? `<p class="text-center text-[10px] font-black text-green-600 mt-6 uppercase tracking-widest animate-pulse">Tele-Access is currently open for student enrolment</p>` : ''}
                 </div>
+
+                <!-- Section Configuration Panel -->
+                ${(assessment.sections && assessment.sections.length > 0) ? `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center px-4">
+                        <h3 class="text-xl font-black text-gray-900 uppercase tracking-[0.2em]">Sector Configuration</h3>
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${assessment.sections.length} Sector(s)</span>
+                    </div>
+                    ${assessment.sections.map((sec, idx) => {
+                const totalItems = (sec.distribution?.EASY || 0) + (sec.distribution?.MODERATE || 0) + (sec.distribution?.DIFFICULT || 0);
+                return `
+                        <div class="bg-white p-8 rounded-[40px] border border-white shadow-xl shadow-purple-50/50 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-indigo-100">${idx + 1}</div>
+                                        <span class="text-xs font-black text-gray-900 uppercase tracking-tight">${sec.title || 'Untitled Sector'}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 uppercase tracking-widest">${totalItems} Items</span>
+                                        <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-100 uppercase tracking-widest">${sec.pointsPerQuestion || 1} Pts/Q</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Topics -->
+                                ${sec.topics && sec.topics.length > 0 ? `
+                                <div class="flex flex-wrap gap-2 mb-6">
+                                    ${sec.topics.map(t => `<span class="px-4 py-1.5 bg-gray-50 text-gray-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-gray-100">${t}</span>`).join('')}
+                                </div>
+                                ` : '<p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-6 italic">No topic constraints</p>'}
+
+                                <!-- Distribution -->
+                                <div class="flex items-center gap-6 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-green-400"></span>
+                                        <span class="text-[10px] font-black text-gray-600 uppercase">${sec.distribution?.EASY || 0} Easy</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                        <span class="text-[10px] font-black text-gray-600 uppercase">${sec.distribution?.MODERATE || 0} Moderate</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                                        <span class="text-[10px] font-black text-gray-600 uppercase">${sec.distribution?.DIFFICULT || 0} Difficult</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+            }).join('')}
+                </div>
+                ` : ''}
 
                 <div class="space-y-8">
                     <h3 class="text-xl font-black text-gray-900 uppercase tracking-[0.2em] px-4">Registry Preview</h3>
@@ -121,6 +199,68 @@ export const DetailsPage = async () => {
                 } else {
                     btn.disabled = false;
                 }
+            };
+
+            document.getElementById('clone-btn').onclick = () => {
+                // Show class selection modal
+                const modal = document.createElement('div');
+                modal.id = 'clone-modal';
+                modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-[40px] p-10 max-w-lg w-full shadow-2xl shadow-purple-200/50 animate-in slide-in-from-bottom-8 duration-500">
+                        <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">Clone for Other Sectors</h3>
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8">Select which classes to assign to the cloned assessment</p>
+                        
+                        <div class="flex flex-wrap gap-2 mb-8 p-4 bg-gray-50 rounded-2xl border border-gray-100 min-h-[80px] max-h-[200px] overflow-y-auto">
+                            ${classes.length > 0 ? classes.map(c => `
+                                <label class="cursor-pointer">
+                                    <input type="checkbox" class="clone-class-check hidden" data-classid="${c.id}">
+                                    <div class="clone-class-chip px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all bg-white text-gray-500 border-gray-100 hover:border-purple-200">
+                                        ${c.name} [${c.section}]
+                                    </div>
+                                </label>
+                            `).join('') : '<p class="text-[10px] font-black text-gray-300 uppercase tracking-widest italic">No classes available</p>'}
+                        </div>
+                        
+                        <div class="flex gap-4">
+                            <button id="cancel-clone" class="flex-1 p-4 glass-panel rounded-2xl font-black uppercase text-xs tracking-widest text-gray-600 border border-gray-100">Cancel</button>
+                            <button id="confirm-clone" class="flex-1 p-4 bg-purple-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-purple-100">Clone Module</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                // Wire up checkbox styling
+                modal.querySelectorAll('.clone-class-check').forEach(cb => {
+                    cb.onchange = (e) => {
+                        const chip = e.target.nextElementSibling;
+                        if (e.target.checked) {
+                            chip.classList.remove('bg-white', 'text-gray-500', 'border-gray-100');
+                            chip.classList.add('bg-purple-600', 'text-white', 'border-purple-400', 'shadow-lg');
+                        } else {
+                            chip.classList.add('bg-white', 'text-gray-500', 'border-gray-100');
+                            chip.classList.remove('bg-purple-600', 'text-white', 'border-purple-400', 'shadow-lg');
+                        }
+                    };
+                });
+
+                document.getElementById('cancel-clone').onclick = () => modal.remove();
+
+                document.getElementById('confirm-clone').onclick = async () => {
+                    const selectedIds = Array.from(modal.querySelectorAll('.clone-class-check:checked')).map(cb => cb.dataset.classid);
+                    const confirmBtn = document.getElementById('confirm-clone');
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = 'CLONING...';
+                    try {
+                        const newId = await cloneAssessment(id, selectedIds);
+                        modal.remove();
+                        window.location.hash = `#details?id=${newId}`;
+                    } catch (err) {
+                        alert("Clone failed: " + err.message);
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = 'Clone Module';
+                    }
+                };
             };
 
         } catch (err) {

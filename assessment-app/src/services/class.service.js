@@ -36,11 +36,29 @@ export const createClass = async (name, section, teacherId) => {
     }
 };
 
-export const getClassesByTeacher = async (teacherId) => {
+export const getClassesByTeacher = async (teacherId, includeHidden = false) => {
     try {
         const q = query(collection(db, COLLECTION), where("teacherId", "==", teacherId));
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const classes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Filter out hidden classes unless explicitly requested
+        return includeHidden ? classes : classes.filter(c => !c.hidden);
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const softDeleteClass = async (classId) => {
+    try {
+        await updateDoc(doc(db, COLLECTION, classId), { hidden: true });
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const restoreClass = async (classId) => {
+    try {
+        await updateDoc(doc(db, COLLECTION, classId), { hidden: false });
     } catch (error) {
         throw error;
     }

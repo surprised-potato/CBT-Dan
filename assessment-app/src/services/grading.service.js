@@ -56,20 +56,43 @@ export const gradeSubmission = async (submissionId) => {
 
         for (const [qId, correctAnswer] of Object.entries(keys)) {
             const studentAnswer = studentAnswers[qId];
+            const qObj = startData.questions.find(q => q.id === qId);
             const points = pointsMap[qId] || 1;
             totalPoints += points;
 
-            // Comparison Logic
             let isCorrect = false;
 
-            // Determine if strict or loose matching is needed based on answer type
-            // But here we only have the raw correct answer value.
-            // Assumption: key stores the raw correct value (ID for MCQ, "true" for bool, text for ID).
-
-            if (normalize(studentAnswer) === normalize(correctAnswer)) {
-                isCorrect = true;
-                score += points;
+            if (Array.isArray(correctAnswer)) {
+                if (Array.isArray(studentAnswer)) {
+                    // MULTI_ANSWER, MATCHING, ORDERING
+                    if (studentAnswer.length === correctAnswer.length) {
+                        if (qObj?.type === 'MULTI_ANSWER') {
+                            // Order independent
+                            isCorrect = studentAnswer.every(val => correctAnswer.includes(val)) &&
+                                correctAnswer.every(val => studentAnswer.includes(val));
+                        } else if (qObj?.type === 'MATCHING') {
+                            // Must match the definition in each pair
+                            isCorrect = studentAnswer.every((val, idx) => normalize(val) === normalize(correctAnswer[idx].definition));
+                        } else if (qObj?.type === 'ORDERING') {
+                            // Must match the item in sequence
+                            isCorrect = studentAnswer.every((val, idx) => normalize(val) === normalize(correctAnswer[idx]));
+                        } else {
+                            // General list fallback
+                            isCorrect = studentAnswer.every((val, idx) => normalize(val) === normalize(correctAnswer[idx]));
+                        }
+                    }
+                } else if (typeof studentAnswer === 'string') {
+                    // Identification with variants
+                    isCorrect = correctAnswer.some(variant => normalize(studentAnswer) === normalize(variant));
+                }
+            } else {
+                // Standard Single Match (MCQ Choice ID, True/False, or Legacy Identification)
+                if (normalize(studentAnswer) === normalize(correctAnswer)) {
+                    isCorrect = true;
+                }
             }
+
+            if (isCorrect) score += points;
         }
 
         // 5. Update Submission

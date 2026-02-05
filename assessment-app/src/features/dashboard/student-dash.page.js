@@ -23,30 +23,28 @@ export const StudentDashPage = async () => {
     let myClasses = [];
 
     const renderHeader = () => `
-        <header class="glass-panel sticky top-0 z-40 px-4 py-5 border-b border-white/20">
-            <div class="max-w-3xl mx-auto flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-premium rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-black text-gray-900 leading-tight">Student Portal</h1>
-                        <div class="flex items-center gap-2">
-                            <p class="text-xs text-gray-800 font-bold">${userName}</p>
-                            <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
-                            <button id="edit-profile-btn" class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700">Settings</button>
-                        </div>
+        <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-blue-premium rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-gray-900 leading-tight">Student Portal</h1>
+                    <div class="flex items-center gap-2">
+                        <p class="text-xs text-gray-800 font-bold">${userName}</p>
+                        <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                        <button id="edit-profile-btn" class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700">Settings</button>
                     </div>
                 </div>
-                <button id="logout-btn" class="p-2 glass-panel rounded-xl text-gray-400 hover:text-red-500 transition-colors shadow-sm">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                </button>
             </div>
+            <button id="logout-btn" class="p-2 glass-panel rounded-xl text-gray-400 hover:text-red-500 transition-colors shadow-sm">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </button>
         </header>
     `;
 
     const renderNav = () => `
-        <nav class="flex gap-1 p-1 bg-gray-200/50 rounded-2xl mb-8 glass-panel backdrop-blur-sm">
+        <nav class="flex gap-1 p-1 bg-gray-200/50 rounded-2xl mb-8 glass-panel backdrop-blur-sm sticky top-[100px] z-30">
             <button id="view-exams-btn" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${currentView === 'assessments' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'}">Exams</button>
             <button id="view-grades-btn" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${currentView === 'grades' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'}">My Performance</button>
         </nav>
@@ -80,15 +78,21 @@ export const StudentDashPage = async () => {
         </div>
     `;
 
+    // --- Initial Shell ---
     app.innerHTML = `
-        <div class="min-h-screen pb-20">
-            ${renderHeader()}
-            <main class="max-w-3xl mx-auto p-4 mt-8">
-                ${renderNav()}
-                <div id="view-content">
-                    ${renderAssessmentsView()}
-                </div>
-            </main>
+        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4">
+            <div class="bg-white w-full max-w-xl rounded-[50px] shadow-2xl shadow-blue-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
+                <div class="absolute top-0 right-0 w-80 h-80 bg-blue-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-30"></div>
+                
+                ${renderHeader()}
+                
+                <main class="p-8 relative z-10">
+                    ${renderNav()}
+                    <div id="view-content">
+                        ${renderAssessmentsView()}
+                    </div>
+                </main>
+            </div>
 
             <!-- Profile Modal -->
             ${renderModal({
@@ -167,9 +171,12 @@ export const StudentDashPage = async () => {
             myClasses.forEach(c => groups[c.id] = { name: c.name, section: c.section, exams: [] });
 
             examsWithStatus.forEach(ex => {
-                if (ex.assignedClassId && groups[ex.assignedClassId]) {
-                    groups[ex.assignedClassId].exams.push(ex);
-                }
+                const classIds = ex.assignedClassIds || (ex.assignedClassId ? [ex.assignedClassId] : []);
+                classIds.forEach(cid => {
+                    if (groups[cid]) {
+                        groups[cid].exams.push(ex);
+                    }
+                });
             });
 
             let html = '';
@@ -216,7 +223,7 @@ export const StudentDashPage = async () => {
             container.innerHTML = html;
 
         } catch (err) {
-            container.innerHTML = `<div class="glass-panel text-red-500 text-center py-10 font-bold">Error loading course materials</div>`;
+            container.innerHTML = '<div class="glass-panel text-red-500 text-center py-10 font-bold">Error loading course materials</div>';
         }
     };
 
@@ -236,7 +243,7 @@ export const StudentDashPage = async () => {
                 </div>
             </div>
             ${ex.completed
-            ? `<div class="bg-gray-100 text-gray-400 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-inner">Complete</div>`
+            ? '<div class="bg-gray-100 text-gray-400 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-inner">Complete</div>'
             : `<button onclick="location.hash='#taker?id=${ex.id}'" class="bg-blue-premium text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-100 hover:shadow-2xl hover:shadow-blue-200 hover:-translate-y-1 transition-all active:scale-95">Start Exam</button>`
         }
         </div>
@@ -274,7 +281,7 @@ export const StudentDashPage = async () => {
                     <div class="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent"></div>
                 </div>
                 <div class="grid gap-6">
-                    ${enriched.map(s => {
+        ${enriched.map(s => {
                 const isGraded = s.status === 'graded';
                 const percentage = isGraded ? Math.round((s.score / s.totalPoints) * 100) : null;
                 const date = new Date(s.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -293,9 +300,14 @@ export const StudentDashPage = async () => {
                                 </div>
                                 <div class="text-center sm:text-right w-full sm:w-auto">
                                     ${isGraded ? `
-                                        <p class="text-5xl font-black text-gray-900 tracking-tighter">${s.score}<span class="text-gray-200 mx-2 text-3xl">/</span>${s.totalPoints}</p>
-                                        <div class="w-full sm:w-40 h-3 bg-gray-50 rounded-full mt-5 overflow-hidden shadow-inner border border-gray-100">
-                                            <div class="h-full bg-blue-premium shadow-lg" style="width: ${percentage}%"></div>
+                                        <div class="flex flex-col items-center sm:items-end gap-6">
+                                            <div class="text-center sm:text-right">
+                                                <p class="text-5xl font-black text-gray-900 tracking-tighter">${s.score}<span class="text-gray-200 mx-2 text-3xl">/</span>${s.totalPoints}</p>
+                                                <div class="w-full sm:w-40 h-3 bg-gray-50 rounded-full mt-5 overflow-hidden shadow-inner border border-gray-100">
+                                                    <div class="h-full bg-blue-premium shadow-lg" style="width: ${percentage}%"></div>
+                                                </div>
+                                            </div>
+                                            <button onclick="location.hash='#results?id=${s.id}'" class="bg-gray-900 text-white px-8 py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-premium hover:-translate-y-1 transition-all shadow-xl shadow-gray-200">View Analysis</button>
                                         </div>
                                     ` : `
                                         <span class="text-[11px] font-black text-orange-600 uppercase tracking-widest bg-orange-100 px-6 py-3 rounded-2xl border border-orange-200">Processing</span>
@@ -304,10 +316,10 @@ export const StudentDashPage = async () => {
                             </div>
                         `;
             }).join('')}
-                </div>
-            `;
+    </div>
+`;
         } catch (err) {
-            container.innerHTML = `<div class="glass-panel text-red-500 text-center py-10 font-bold">Failed to process performance telemetry</div>`;
+            container.innerHTML = '<div class="glass-panel text-red-500 text-center py-10 font-bold">Failed to process performance telemetry</div>';
         }
     };
 

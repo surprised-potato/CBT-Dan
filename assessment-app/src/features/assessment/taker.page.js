@@ -5,6 +5,9 @@ import { renderButton } from '../../shared/button.js';
 import { renderMCQ } from '../question-bank/types/mcq.js';
 import { renderTrueFalse } from '../question-bank/types/true-false.js';
 import { renderIdentification } from '../question-bank/types/identification.js';
+import { renderMultiAnswer } from '../question-bank/types/multi-answer.js';
+import { renderMatching } from '../question-bank/types/matching.js';
+import { renderOrdering } from '../question-bank/types/ordering.js';
 
 export const TakerPage = async () => {
     const app = document.getElementById('app');
@@ -54,81 +57,118 @@ export const TakerPage = async () => {
         }
 
         const assessment = await getAssessment(assessmentId);
-        const settings = assessment.settings || { oneAtATime: false, randomizeOrder: false };
-        const storageKey = `session_${assessmentId}_${user.user.uid}`;
-        const savedState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        const { questions: rawQuestions, settings = { oneAtATime: false, randomizeOrder: false, shuffleChoices: false, timeLimit: 0 }, sections = [] } = assessment;
+        const storageKey = `test_${assessmentId}_${user.user.uid}`;
+        const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
 
-        let questions = assessment.questions;
-        let currentIdx = settings.oneAtATime ? (savedState.lastIdx || 0) : 0;
-        const answers = savedState.answers || {};
+        let questions = rawQuestions;
+        let answers = saved.answers || {};
+        let currentIdx = saved.lastIdx || 0;
+        let elapsed = saved.elapsed || 0;
 
         // 1. Shuffling Logic (Persist order in session)
         if (settings.randomizeOrder) {
-            if (savedState.shuffledIds) {
+            if (saved.shuffledIds) {
                 // Restore saved order
-                questions = savedState.shuffledIds.map(id => questions.find(q => q.id === id)).filter(Boolean);
+                questions = saved.shuffledIds.map(id => questions.find(q => q.id === id)).filter(Boolean);
             } else {
                 // New shuffle
                 questions = [...questions].sort(() => Math.random() - 0.5);
-                savedState.shuffledIds = questions.map(q => q.id);
-                localStorage.setItem(storageKey, JSON.stringify({ ...savedState, shuffledIds: savedState.shuffledIds }));
+                saved.shuffledIds = questions.map(q => q.id);
+                localStorage.setItem(storageKey, JSON.stringify({ ...saved, shuffledIds: saved.shuffledIds }));
             }
         }
 
-        const renderHeader = () => `
-            <header class="glass-panel sticky top-0 z-50 px-6 py-4 border-b border-white/20">
-                <div class="max-w-4xl mx-auto flex justify-between items-center">
-                    <div class="flex items-center gap-6">
-                        ${isTeacher ? `<button onclick="window.location.hash='#details?id=${assessmentId}'" class="p-3 glass-panel rounded-xl text-purple-600 hover:text-purple-800 transition-all shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg></button>` : ''}
-                        <div>
-                            <h1 class="text-[9px] font-black text-purple-600 uppercase tracking-[0.4em] mb-1">Operational Interface</h1>
-                            <p class="text-lg font-black text-gray-900 truncate max-w-[150px] md:max-w-md uppercase tracking-tight">${assessment.title}</p>
+        // 2. Choice Shuffling Logic (Persist order)
+        if (settings.shuffleChoices) {
+            questions.forEach(q => {
+                if (q.type === 'MCQ' && q.choices) {
+                    const choiceKey = `choices_${assessmentId}_${q.id}_${user.user.uid}`;
+                    let order = JSON.parse(localStorage.getItem(choiceKey) || '[]');
+
+                    if (order.length === q.choices.length) {
+                        // Sort based on saved order
+                        q.choices.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+                    } else {
+                        // Shuffle and save
+                        q.choices.sort(() => Math.random() - 0.5);
+                        localStorage.setItem(choiceKey, JSON.stringify(q.choices.map(c => c.id)));
+                    }
+                }
+            });
+        }
+
+        const renderHeader = () => {
+            const progress = ((Object.keys(answers).length) / questions.length) * 100;
+
+            // Timer Logic
+            let timeDisplay = '--:--';
+            if (settings.timeLimit && settings.timeLimit > 0) {
+                const totalSeconds = settings.timeLimit * 60;
+                const remaining = totalSeconds - elapsed;
+                const m = Math.floor(remaining / 60);
+                const s = Math.floor(remaining % 60);
+                timeDisplay = `${m}:${s < 10 ? '0' : ''}${s}`;
+            } else {
+                const m = Math.floor(elapsed / 60);
+                const s = Math.floor(elapsed % 60);
+                timeDisplay = `${m}:${s < 10 ? '0' : ''}${s}`;
+            }
+
+            return `
+                <header class="sticky top-0 z-50 glass-header border-b border-white backdrop-blur-xl p-6">
+                    <div class="max-w-5xl mx-auto flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <h1 class="text-xs font-black text-gray-900 uppercase tracking-[0.2em] mb-1">${assessment.title}</h1>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[9px] font-black text-purple-600 uppercase tracking-widest">${questions.length} ITEM DATASET</span>
+                                ${settings.oneAtATime ? `<span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-purple-100">Sequential Lock</span>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-10">
+                            <div class="hidden md:flex flex-col items-end gap-2">
+                                <div class="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div id="progress-bar" class="h-full bg-purple-premium transition-all duration-500" style="width: ${progress}%"></div>
+                                </div>
+                                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">TRANSMISSION PROGRESS: <span id="progress-text">${Math.round(progress)}</span>%</span>
+                            </div>
+                            
+                            <div class="flex items-center gap-4 bg-gray-900 px-6 py-3 rounded-2xl shadow-xl shadow-gray-200">
+                                <div class="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+                                <span id="timer" class="text-lg font-black text-white font-mono tracking-tighter">${timeDisplay}</span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="flex items-center gap-4">
-                        <div class="px-6 py-2 glass-panel rounded-2xl border border-purple-100/50 shadow-inner group">
-                            <div id="timer" class="font-mono font-black text-purple-600 text-lg tracking-tighter">00:00</div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Progress Bar -->
-                <div class="absolute bottom-0 left-0 w-full h-[2px] bg-gray-100/50">
-                    <div id="progress-bar" class="h-full bg-purple-premium transition-all duration-1000" style="width: 0%"></div>
-                </div>
-            </header>
-        `;
+                </header>
+            `;
+        };
 
         const renderNavigation = () => {
             if (!settings.oneAtATime) return '';
-            const isLast = currentIdx === questions.length - 1;
-            const isFirst = currentIdx === 0;
-
             return `
-                <div class="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-white/20 z-50">
-                    <div class="max-w-4xl mx-auto flex justify-between items-center gap-6">
-                        <button id="prev-btn" class="flex-1 max-w-[140px] p-5 glass-panel rounded-2xl font-black text-[10px] uppercase tracking-widest text-purple-400 hover:text-purple-600 transition-all disabled:opacity-30 border border-transparent hover:border-purple-100" ${isFirst ? 'disabled' : ''}>Back</button>
+                <nav class="fixed bottom-0 left-0 right-0 p-8 glass-header border-t border-white backdrop-blur-xl z-50">
+                    <div class="max-w-5xl mx-auto flex items-center justify-between gap-6">
+                        <button id="prev-btn" class="flex-1 max-w-[120px] p-5 rounded-2xl border border-gray-100 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all disabled:opacity-30" ${currentIdx === 0 ? 'disabled' : ''}>PREVIOUS</button>
                         
                         <div class="hidden md:flex gap-2 flex-grow justify-center overflow-x-auto px-4 no-scrollbar">
                             ${questions.map((q, i) => `
                                 <button data-jump="${i}" class="w-2.5 h-2.5 rounded-full transition-all ${i === currentIdx ? 'bg-purple-premium w-8' : (answers[q.id] ? 'bg-purple-200' : 'bg-gray-100')}"></button>
                             `).join('')}
                         </div>
-                        
-                        <div class="flex flex-col items-center md:hidden">
-                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">${currentIdx + 1} / ${questions.length}</span>
-                        </div>
 
-                        ${isLast
-                    ? `<button id="submit-trigger" class="flex-1 max-w-[200px] bg-purple-premium text-white p-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:shadow-2xl active:scale-95 transition-all">Transmit Telemetry</button>`
-                    : `<button id="next-btn" class="flex-1 max-w-[140px] bg-white border border-purple-100 text-purple-600 p-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-sm hover:shadow-md active:scale-95 transition-all">Advance</button>`
+                        ${currentIdx === questions.length - 1
+                    ? `<button id="submit-trigger" class="flex-1 max-w-[200px] p-5 bg-purple-premium text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-purple-200 hover:-translate-y-1 transition-all">FINALIZE SESSION</button>`
+                    : `<button id="next-btn" class="flex-1 max-w-[120px] p-5 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:-translate-y-1 transition-all">NEXT STEP</button>`
                 }
                     </div>
-                </div>
+                </nav>
             `;
         };
 
         const renderQuestion = (q, index) => {
+            const section = sections[q.sectionIdx || 0] || {};
+
             const getQuestionUI = (content) => `
                 <div class="bg-white p-10 rounded-[50px] border border-white shadow-2xl shadow-purple-50/50 relative overflow-hidden group animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50/50 rounded-full -mr-16 -mt-16 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -141,22 +181,25 @@ export const TakerPage = async () => {
                                 <div class="w-12 h-1 bg-gray-100 rounded-full"></div>
                                 <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Item Index ${index + 1} of ${questions.length}</span>
                             </div>
-                            ${settings.oneAtATime ? `<span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-purple-100">Sequential Lock</span>` : ''}
                         </div>
                         ${content}
                     </div>
                 </div>
             `;
 
-            if (q.type === 'MCQ') return getQuestionUI(renderMCQ(q, index + 1));
+            if (q.type === 'MCQ') return getQuestionUI(renderMCQ(q, index + 1, section));
             if (q.type === 'TRUE_FALSE') return getQuestionUI(renderTrueFalse(q, index + 1));
             if (q.type === 'IDENTIFICATION') return getQuestionUI(renderIdentification(q, index + 1));
+            if (q.type === 'MULTI_ANSWER') return getQuestionUI(renderMultiAnswer(q, index + 1));
+            if (q.type === 'MATCHING') return getQuestionUI(renderMatching(q, index + 1));
+            if (q.type === 'ORDERING') return getQuestionUI(renderOrdering(q, index + 1));
+
             return `<div class="p-8 bg-red-50 text-red-500 rounded-3xl border border-red-100 uppercase font-black text-xs tracking-widest text-center">Telemetry Corruption: ${q.type}</div>`;
         };
 
         const updateUI = () => {
             app.innerHTML = `
-                <div class="min-h-screen ${settings.oneAtATime ? 'pb-40' : 'pb-32'}">
+                <div class="min-h-screen pb-32">
                     ${renderHeader()}
                     <main class="max-w-3xl mx-auto p-4 mt-8">
                         <form id="assessment-form">
@@ -182,28 +225,87 @@ export const TakerPage = async () => {
             // Re-hydrate answers
             Object.keys(answers).forEach(qId => {
                 const val = answers[qId];
-                const radio = document.querySelector(`input[name="q-${qId}"][value="${val}"]`);
-                if (radio) radio.checked = true;
-                const input = document.querySelector(`input[name="q-${qId}"]`);
-                if (input) input.value = val;
+                if (Array.isArray(val)) {
+                    // Multi-selection, Matching, or Ordering
+                    val.forEach(v => {
+                        if (typeof v === 'string') {
+                            // Multi-choice or identification bank
+                            const cb = document.querySelector(`input[name="q-${qId}"][value="${v}"]`);
+                            if (cb) cb.checked = true;
+                        }
+                    });
+                    // For Matching/Ordering with specific sub-names
+                    const qObj = questions.find(item => item.id === qId);
+                    if (qObj?.type === 'MATCHING') {
+                        val.forEach((pairVal, i) => {
+                            const sel = document.querySelector(`select[name="q-${qId}-pair-${i}"]`);
+                            if (sel) sel.value = pairVal;
+                        });
+                    } else if (qObj?.type === 'ORDERING') {
+                        val.forEach((orderVal, i) => {
+                            const inp = document.querySelector(`input[name="q-${qId}-order-${i}"]`);
+                            if (inp) inp.value = orderVal;
+                        });
+                    }
+                } else {
+                    const radio = document.querySelector(`input[name="q-${qId}"][value="${val}"]`);
+                    if (radio) radio.checked = true;
+                    const input = document.querySelector(`input[name="q-${qId}"]`);
+                    if (input && input.type !== 'radio') input.value = val;
+                }
             });
+
+            // Unified Answer Collection
+            const collectAnswers = () => {
+                const formData = new FormData(form);
+                const newAnswers = { ...answers };
+
+                // Get all active questions in view
+                const activeQs = settings.oneAtATime ? [questions[currentIdx]] : questions;
+
+                activeQs.forEach(q => {
+                    if (q.type === 'MCQ' || q.type === 'TRUE_FALSE') {
+                        const val = formData.get(`q-${q.id}`);
+                        if (val !== null) newAnswers[q.id] = val;
+                    } else if (q.type === 'MULTI_ANSWER') {
+                        const vals = formData.getAll(`q-${q.id}`);
+                        newAnswers[q.id] = vals; // Array
+                    } else if (q.type === 'MATCHING') {
+                        const matched = [];
+                        (q.pairs || []).forEach((_, i) => {
+                            matched.push(formData.get(`q-${q.id}-pair-${i}`) || '');
+                        });
+                        newAnswers[q.id] = matched;
+                    } else if (q.type === 'ORDERING') {
+                        const ordered = [];
+                        (q.items || []).forEach((_, i) => {
+                            ordered.push(formData.get(`q-${q.id}-order-${i}`) || '');
+                        });
+                        newAnswers[q.id] = ordered;
+                    }
+                });
+
+                answers = newAnswers;
+
+                // Update UI Progress
+                const progress = ((Object.keys(answers).length) / questions.length) * 100;
+                const pBar = document.getElementById('progress-bar');
+                const pText = document.getElementById('progress-text');
+                if (pBar) pBar.style.width = `${progress}%`;
+                if (pText) pText.textContent = Math.round(progress);
+
+                localStorage.setItem(storageKey, JSON.stringify({
+                    answers,
+                    lastIdx: currentIdx,
+                    elapsed,
+                    shuffledIds: questions.map(q => q.id)
+                }));
+            };
 
             // Listeners
             const form = document.getElementById('assessment-form');
-            form.onchange = (e) => {
-                if (e.target.name?.startsWith('q-')) {
-                    const qId = e.target.name.replace('q-', '');
-                    answers[qId] = e.target.value;
-                    localStorage.setItem(storageKey, JSON.stringify({ ...JSON.parse(localStorage.getItem(storageKey) || '{}'), answers, lastIdx: currentIdx }));
-                }
-            };
-            form.oninput = (e) => {
-                if (e.target.type === 'text' && e.target.name?.startsWith('q-')) {
-                    const qId = e.target.name.replace('q-', '');
-                    answers[qId] = e.target.value;
-                    localStorage.setItem(storageKey, JSON.stringify({ ...JSON.parse(localStorage.getItem(storageKey) || '{}'), answers, lastIdx: currentIdx }));
-                }
-            };
+            form.onchange = collectAnswers;
+            form.oninput = collectAnswers;
 
             if (settings.oneAtATime) {
                 document.getElementById('prev-btn')?.addEventListener('click', () => {
@@ -222,7 +324,10 @@ export const TakerPage = async () => {
 
             form.onsubmit = async (e) => {
                 e.preventDefault();
-                if (!confirm("FINALISE TRANSMISSION PROTOCOL?")) return;
+                collectAnswers(); // Final pull
+
+                const isAutoSubmit = window.sessionTimeExpired === true;
+                if (!isAutoSubmit && !confirm("FINALISE TRANSMISSION PROTOCOL?")) return;
 
                 const btn = document.getElementById('submit-btn') || document.getElementById('submit-trigger');
                 btn.disabled = true;
@@ -234,34 +339,71 @@ export const TakerPage = async () => {
                         email: user.email || user.user.email
                     });
                     localStorage.removeItem(storageKey);
-                    window.location.hash = '#student-dash';
+                    if (user.role === 'teacher') {
+                        window.location.hash = `#details?id=${assessmentId}`;
+                    } else {
+                        window.location.hash = '#student-dash';
+                    }
                 } catch (err) {
+                    console.error(err);
                     alert("TRANSMISSION FAILURE: " + err.message);
-                    btn.disabled = false;
-                    btn.textContent = 'RETRY TRANSMISSION';
+                    btn.disabled = true;
+                    btn.textContent = 'PROTOCOL ABORTED';
                 }
             };
         };
 
         // Timer Logic
-        let startTime = savedState.startTime || Date.now();
-        if (!savedState.startTime) {
-            localStorage.setItem(storageKey, JSON.stringify({ ...savedState, startTime }));
+        let startTime = saved.startTime || (Date.now() - (saved.elapsed || 0) * 1000);
+        if (!saved.startTime) {
+            saved.startTime = startTime;
+            localStorage.setItem(storageKey, JSON.stringify(saved));
         }
 
         const tick = () => {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
-            const ss = String(elapsed % 60).padStart(2, '0');
             const timerEl = document.getElementById('timer');
             const progressEl = document.getElementById('progress-bar');
 
-            if (timerEl) timerEl.textContent = `${mm}:${ss}`;
-            if (progressEl) {
-                // For a progress bar that fills up over time (e.g. 60 mins max for visual effect, or just continuous)
-                const maxTime = 3600; // 1 hour reference
-                const perc = Math.min((elapsed / maxTime) * 100, 100);
-                progressEl.style.width = `${perc}%`;
+            if (settings.timeLimit && settings.timeLimit > 0) {
+                // Countdown Mode
+                const totalSeconds = settings.timeLimit * 60;
+                const remaining = totalSeconds - elapsed;
+
+                if (remaining <= 0) {
+                    window.sessionTimeExpired = true;
+                    const btn = document.getElementById('submit-btn') || document.getElementById('submit-trigger');
+
+                    if (timerEl) {
+                        timerEl.textContent = "00:00";
+                        timerEl.classList.add('text-red-600', 'animate-pulse');
+                    }
+                    if (progressEl) progressEl.style.width = "0%";
+
+                    if (btn && !btn.disabled) {
+                        // Trigger auto-submit
+                        const form = document.getElementById('assessment-form');
+                        if (form) {
+                            // Cloning the requestSubmit behavior manually if needed, or just calling handler
+                            // Since we set the global flag, we can just trigger it
+                            btn.click();
+                        }
+                    }
+                    return;
+                }
+
+                const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+                const ss = String(remaining % 60).padStart(2, '0');
+
+                if (timerEl) {
+                    timerEl.textContent = `${mm}:${ss}`;
+                }
+            } else {
+                // Count-up Mode (Default)
+                const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const ss = String(elapsed % 60).padStart(2, '0');
+
+                if (timerEl) timerEl.textContent = `${mm}:${ss}`;
             }
         };
 
