@@ -46,7 +46,9 @@ export const gradeSubmission = async (submissionId) => {
         // Build a map of points: { qId: 5, ... }
         const pointsMap = {};
         startData.questions.forEach(q => {
-            pointsMap[q.id] = parseInt(q.points || q.sectionPoints || 1);
+            // Priority: Question Point -> Section/Wizard Config -> Default 1
+            const p = q.points !== undefined ? q.points : (q.sectionPoints !== undefined ? q.sectionPoints : 1);
+            pointsMap[q.id] = parseInt(p);
         });
 
         // 4. Calculate Score

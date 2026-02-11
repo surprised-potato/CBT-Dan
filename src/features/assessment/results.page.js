@@ -142,11 +142,20 @@ const checkCorrectness = (q, studentAns, keyAns) => {
             if (q.type === 'MULTI_ANSWER') {
                 return studentAns.every(v => keyAns.includes(v)) && keyAns.every(v => studentAns.includes(v));
             } else if (q.type === 'MATCHING') {
-                return studentAns.every((v, idx) => normalize(v) === normalize(keyAns[idx].definition));
+                return studentAns.every((v, idx) => {
+                    const def = keyAns[idx]?.definition;
+                    return def && normalize(v) === normalize(def);
+                });
             } else if (q.type === 'ORDERING') {
-                return studentAns.every((v, idx) => normalize(v) === normalize(keyAns[idx]));
+                return studentAns.every((v, idx) => {
+                    const key = keyAns[idx];
+                    return key && normalize(v) === normalize(key);
+                });
             }
-            return studentAns.every((v, idx) => normalize(v) === normalize(keyAns[idx]));
+            return studentAns.every((v, idx) => {
+                const key = keyAns[idx];
+                return key && normalize(v) === normalize(key);
+            });
         } else if (typeof studentAns === 'string') {
             return keyAns.some(v => normalize(studentAns) === normalize(v));
         }
@@ -164,7 +173,8 @@ const formatAnswer = (q, ans) => {
             }).join(', ');
         }
         if (q.type === 'MATCHING') {
-            return ans.map((v, i) => `${q.pairs[i].term} → ${v}`).join('<br>');
+            const terms = q.matchingTerms || (q.pairs || []).map(p => p.term);
+            return ans.map((v, i) => `${terms[i] || '?'} → ${v}`).join('<br>');
         }
         if (q.type === 'ORDERING') {
             return ans.map((v, i) => `${i + 1}. ${v}`).join(', ');
