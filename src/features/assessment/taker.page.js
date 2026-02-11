@@ -272,13 +272,15 @@ export const TakerPage = async () => {
                         newAnswers[q.id] = vals; // Array
                     } else if (q.type === 'MATCHING') {
                         const matched = [];
-                        (q.pairs || []).forEach((_, i) => {
+                        const terms = q.matchingTerms || (q.pairs || []);
+                        terms.forEach((_, i) => {
                             matched.push(formData.get(`q-${q.id}-pair-${i}`) || '');
                         });
                         newAnswers[q.id] = matched;
                     } else if (q.type === 'ORDERING') {
                         const ordered = [];
-                        (q.items || []).forEach((_, i) => {
+                        const items = q.orderingItems || (q.items || []);
+                        items.forEach((_, i) => {
                             ordered.push(formData.get(`q-${q.id}-order-${i}`) || '');
                         });
                         newAnswers[q.id] = ordered;
