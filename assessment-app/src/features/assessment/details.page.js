@@ -65,6 +65,7 @@ export const DetailsPage = async () => {
                             <div class="flex flex-wrap items-center gap-4 mb-6">
                                 ${statusBadge}
                                 <span class="text-[10px] font-black text-purple-600 uppercase tracking-[0.2em] bg-purple-50/50 px-3 py-1.5 rounded-lg border border-purple-100/50">Module ID: ${id.substring(0, 8)}...</span>
+                                ${assignedClasses.map(c => `<span class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] bg-indigo-50/50 px-3 py-1.5 rounded-lg border border-indigo-100/50">${c.name} [${c.section}]</span>`).join('')}
                                 ${assessment.settings?.oneAtATime ? '<span class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] bg-indigo-50/50 px-3 py-1.5 rounded-lg border border-indigo-100/50">Discrete Delivery</span>' : ''}
                                 ${assessment.settings?.randomizeOrder ? '<span class="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] bg-amber-50/50 px-3 py-1.5 rounded-lg border border-amber-100/50">Random Order</span>' : ''}
                             </div>

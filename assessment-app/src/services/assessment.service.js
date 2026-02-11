@@ -48,9 +48,11 @@ export const generateAssessment = async (config) => {
 
             // --- Difficulty Distribution Logic ---
             let selectedForSection = [];
-            const dist = section.distribution || { EASY: 5, MODERATE: 0, DIFFICULT: 0 };
+            const dist = section.distribution || { ANY: 5, EASY: 0, MODERATE: 0, DIFFICULT: 0 };
             const diffs = ['EASY', 'MODERATE', 'DIFFICULT'];
+            const selectedIds = new Set();
 
+            // 1. Fixed Difficulties
             for (const diff of diffs) {
                 const countNeeded = dist[diff] || 0;
                 if (countNeeded <= 0) continue;
@@ -62,7 +64,23 @@ export const generateAssessment = async (config) => {
                 }
 
                 diffCandidates.sort(() => Math.random() - 0.5);
-                selectedForSection = [...selectedForSection, ...diffCandidates.slice(0, countNeeded)];
+                const chosen = diffCandidates.slice(0, countNeeded);
+                selectedForSection = [...selectedForSection, ...chosen];
+                chosen.forEach(c => selectedIds.add(c.id));
+            }
+
+            // 2. MIXED / ANY Difficulty
+            const anyNeeded = dist.ANY || 0;
+            if (anyNeeded > 0) {
+                const remainingPool = candidates.filter(c => !selectedIds.has(c.id));
+
+                if (remainingPool.length < anyNeeded) {
+                    throw new Error(`Insufficient pool for Mixed Difficulty in ${section.course || 'selected domain'}. Requested: ${anyNeeded}, Available: ${remainingPool.length}`);
+                }
+
+                remainingPool.sort(() => Math.random() - 0.5);
+                const chosenAny = remainingPool.slice(0, anyNeeded);
+                selectedForSection = [...selectedForSection, ...chosenAny];
             }
 
             // Global Answer Bank Logic
@@ -134,7 +152,7 @@ export const generateAssessment = async (config) => {
         const keysPayload = {
             assessmentId: null,
             answers: allSelectedQuestions.reduce((acc, q) => {
-                let keyAnswer = q.correct_answers || q.correct_answer;
+                let keyAnswer = q.correct_answers || q.correct_answer || q.pairs || q.items;
 
                 if (Array.isArray(keyAnswer)) {
                     if (q.type === 'MCQ' || q.type === 'TRUE_FALSE') {

@@ -1,5 +1,5 @@
-import { renderButton } from '../../shared/button.js';
 import { getAssessments, deleteAssessment, updateAssessmentTitle } from '../../services/assessment.service.js';
+import { getClassesByTeacher } from '../../services/class.service.js';
 import { getUser } from '../../core/store.js';
 
 export const AssessmentBankPage = async () => {
@@ -59,10 +59,16 @@ export const AssessmentBankPage = async () => {
     const listContainer = document.getElementById('as-list');
     const searchInput = document.getElementById('as-search');
     let assessments = [];
+    let classes = [];
 
     const fetchAndRender = async () => {
         try {
-            assessments = await getAssessments(user.user.uid);
+            const [assessmentsData, classesData] = await Promise.all([
+                getAssessments(user.user.uid),
+                getClassesByTeacher(user.user.uid)
+            ]);
+            assessments = assessmentsData;
+            classes = classesData;
             renderList();
         } catch (err) {
             listContainer.innerHTML = `<div class="text-center py-20 text-red-500 font-bold glass-panel rounded-[40px]">Telemetry load failed.</div>`;
@@ -93,6 +99,12 @@ export const AssessmentBankPage = async () => {
                      Draft
                    </span>`;
 
+            const assignedIds = a.assignedClassIds || (a.assignedClassId ? [a.assignedClassId] : []);
+            const assignedClasses = classes.filter(c => assignedIds.includes(c.id));
+            const sectionChips = assignedClasses.length > 0
+                ? assignedClasses.map(c => `<span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg border border-purple-100/50 text-[9px] font-black uppercase tracking-widest">${c.name} [${c.section}]</span>`).join('')
+                : '<span class="text-gray-400">Universal Access</span>';
+
             return `
             <div class="group relative bg-white p-8 rounded-[40px] border border-white shadow-xl shadow-purple-50/40 hover:shadow-2xl hover:shadow-purple-100 hover:border-purple-200 transition-all overflow-hidden">
                 <div class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-purple-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -104,11 +116,11 @@ export const AssessmentBankPage = async () => {
                             <span class="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">${new Date(a.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                         </div>
                         <h3 onclick="location.hash='#details?id=${a.id}'" class="text-2xl font-black text-gray-900 truncate tracking-tight group-hover:text-purple-600 transition-colors uppercase cursor-pointer">${a.title}</h3>
-                        <p class="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
-                             ${a.questionCount} Validated Items 
+                        <div class="flex items-center flex-wrap gap-2 mt-4">
+                             <span class="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">${a.questionCount} Items</span> 
                              <span class="w-1 h-1 bg-gray-200 rounded-full"></span> 
-                             Universal Section
-                        </p>
+                             ${sectionChips}
+                        </div>
                     </div>
                     
                     <div class="flex items-center gap-4 mt-4 md:mt-0">

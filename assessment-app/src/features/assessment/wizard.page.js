@@ -143,7 +143,7 @@ export const WizardPage = async () => {
         course: '',
         topics: [],
         type: 'ALL',
-        distribution: { EASY: 5, MODERATE: 0, DIFFICULT: 0 },
+        distribution: { ANY: 5, EASY: 0, MODERATE: 0, DIFFICULT: 0 },
         pointsPerQuestion: 1
     });
 
@@ -249,17 +249,21 @@ export const WizardPage = async () => {
                                     <input type="number" value="${s.pointsPerQuestion}" min="1" data-field="pointsPerQuestion" data-idx="${i}" class="sec-input w-8 text-center text-xs font-black text-purple-600 outline-none">
                                 </div>
                             </div>
-                            <div class="grid grid-cols-3 gap-6">
+                            <div class="grid grid-cols-4 gap-4">
                                 <div class="flex flex-col gap-3">
-                                    <span class="text-[9px] font-black text-green-500 uppercase tracking-widest text-center">Standard</span>
+                                    <span class="text-[9px] font-black text-purple-500 uppercase tracking-widest text-center">Mixed</span>
+                                    <input type="number" value="${s.distribution.ANY || 0}" min="0" data-diff="ANY" data-idx="${i}" class="dist-input p-4 text-center font-black text-gray-700 bg-white border border-gray-100 rounded-2xl focus:border-purple-400 outline-none shadow-sm text-lg">
+                                </div>
+                                <div class="flex flex-col gap-3">
+                                    <span class="text-[9px] font-black text-green-500 uppercase tracking-widest text-center">Std</span>
                                     <input type="number" value="${s.distribution.EASY}" min="0" data-diff="EASY" data-idx="${i}" class="dist-input p-4 text-center font-black text-gray-700 bg-white border border-gray-100 rounded-2xl focus:border-green-400 outline-none shadow-sm text-lg">
                                 </div>
                                 <div class="flex flex-col gap-3">
-                                    <span class="text-[9px] font-black text-amber-500 uppercase tracking-widest text-center">Refined</span>
+                                    <span class="text-[9px] font-black text-amber-500 uppercase tracking-widest text-center">Ref</span>
                                     <input type="number" value="${s.distribution.MODERATE}" min="0" data-diff="MODERATE" data-idx="${i}" class="dist-input p-4 text-center font-black text-gray-700 bg-white border border-gray-100 rounded-2xl focus:border-amber-400 outline-none shadow-sm text-lg">
                                 </div>
                                 <div class="flex flex-col gap-3">
-                                    <span class="text-[9px] font-black text-red-500 uppercase tracking-widest text-center">Extreme</span>
+                                    <span class="text-[9px] font-black text-red-500 uppercase tracking-widest text-center">Ext</span>
                                     <input type="number" value="${s.distribution.DIFFICULT}" min="0" data-diff="DIFFICULT" data-idx="${i}" class="dist-input p-4 text-center font-black text-gray-700 bg-white border border-gray-100 rounded-2xl focus:border-red-400 outline-none shadow-sm text-lg">
                                 </div>
                             </div>
