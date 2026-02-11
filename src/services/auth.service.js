@@ -24,6 +24,7 @@ export const registerUser = async (email, password, role, displayName, course) =
         await setDoc(doc(db, "users", user.uid), {
             email: email,
             role: role || 'student', // Default fallback
+            isAuthorized: role === 'teacher' ? false : true,
             displayName: displayName || '',
             course: course || '',
             createdAt: new Date().toISOString()
@@ -75,12 +76,39 @@ export const loginWithGoogle = async (role = 'student') => {
             const newUser = {
                 email: user.email,
                 role: role,
+                isAuthorized: role === 'teacher' ? false : true,
                 createdAt: new Date().toISOString()
             };
             await setDoc(userDocRef, newUser);
             return { user, ...newUser };
         }
     } catch (error) {
+        throw error;
+    }
+};
+
+export const getPendingInstructors = async () => {
+    try {
+        const { collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const q = query(collection(db, "users"), where("role", "==", "teacher"), where("isAuthorized", "==", false));
+        const querySnapshot = await getDocs(q);
+        const pending = [];
+        querySnapshot.forEach((doc) => {
+            pending.push({ uid: doc.id, ...doc.data() });
+        });
+        return pending;
+    } catch (error) {
+        console.error("Error fetching pending instructors:", error);
+        throw error;
+    }
+};
+
+export const authorizeInstructor = async (uid) => {
+    try {
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, { isAuthorized: true });
+    } catch (error) {
+        console.error("Error authorizing instructor:", error);
         throw error;
     }
 };

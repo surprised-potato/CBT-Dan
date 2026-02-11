@@ -21,6 +21,7 @@ import { PrintablePage } from './src/features/printable/printable.page.js';
 import { ClassManagerPage } from './src/features/dashboard/class-manager.page.js';
 import { UITestPage } from './src/features/test/ui-test.page.js';
 import { observeAuthChanges } from './src/services/auth.service.js';
+import { PendingAuthorizationPage } from './src/features/auth/pending-authorization.page.js';
 
 // --- Register Routes ---
 addRoute('#login', LoginPage);
@@ -38,6 +39,7 @@ addRoute('#bank', BankPage);
 addRoute('#bulk-import', BulkImportPage);
 addRoute('#printable', PrintablePage);
 addRoute('#class-manager', ClassManagerPage);
+addRoute('#pending-authorization', PendingAuthorizationPage);
 addRoute('#test-ui', UITestPage);
 // Add a default route or alias
 addRoute('', LoginPage);

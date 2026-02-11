@@ -61,9 +61,32 @@ export const RegisterPage = () => {
         err.classList.add('hidden');
 
         try {
-            await registerUser(email, password, role, name, course);
-            alert('Account Initialised! Proceed to Gateway.');
-            window.location.hash = '#login';
+            const { role: userRole } = await registerUser(email, password, role, name, course);
+
+            if (userRole === 'teacher') {
+                app.innerHTML = `
+                    <div class="flex items-center justify-center min-h-screen px-4">
+                        <div class="bg-white p-10 rounded-[40px] shadow-2xl shadow-blue-200/50 w-full max-w-md text-center animate-in fade-in zoom-in duration-500 border border-white">
+                            <div class="w-20 h-20 bg-yellow-400 rounded-[28px] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-yellow-100">
+                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <h1 class="text-3xl font-black text-gray-900 tracking-tight uppercase mb-4">Step 2: Authorization</h1>
+                            <p class="text-gray-600 mb-8 text-sm font-medium leading-relaxed">
+                                Your instructor account has been created, but requires <b>Authorization</b> by existing personnel before you can access the Teacher Console.
+                            </p>
+                            <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100 mb-8">
+                                <p class="text-[10px] font-black text-blue-800 uppercase tracking-widest leading-loose">
+                                    Please inform your department head or a senior instructor to approve your registry entry via their dashboard.
+                                </p>
+                            </div>
+                            <a href="#login" class="inline-block w-full bg-blue-premium text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-blue-200 hover:shadow-2xl transition-all">Return to Gateway</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                alert('Account Initialised! Proceed to Gateway.');
+                window.location.hash = '#login';
+            }
         } catch (error) {
             console.error(error);
             err.textContent = error.message.toUpperCase();

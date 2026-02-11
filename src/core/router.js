@@ -1,4 +1,7 @@
+import { getUser } from './store.js';
+
 const routes = {};
+const teacherRoutes = ['#editor', '#teacher-dash', '#assessment-bank', '#wizard', '#bank', '#bulk-import', '#class-manager'];
 
 export const initRouter = () => {
     window.addEventListener('hashchange', handleRoute);
@@ -15,6 +18,7 @@ export const navigateTo = (hash) => {
 
 const handleRoute = async () => {
     let hash = window.location.hash;
+    const user = getUser();
 
     // Default to #login if empty
     if (!hash) {
@@ -22,8 +26,19 @@ const handleRoute = async () => {
         window.history.replaceState(null, null, '#login');
     }
 
-    // Strip query parameters for matching
+    // Middleware: Authorization Check for Teachers
     const baseRoute = hash.split('?')[0];
+
+    if (teacherRoutes.includes(baseRoute)) {
+        if (!user) {
+            window.location.hash = '#login';
+            return;
+        }
+        if (user.role === 'teacher' && user.isAuthorized === false) {
+            window.location.hash = '#pending-authorization';
+            return;
+        }
+    }
     const handler = routes[baseRoute];
     const app = document.getElementById('app');
 
