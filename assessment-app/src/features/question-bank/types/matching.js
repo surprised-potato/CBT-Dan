@@ -1,7 +1,12 @@
 export const renderMatching = (question, index = 1) => {
-    // Determine the pool of definitions (shuffled)
-    const definitions = (question.pairs || []).map(p => p.definition);
-    const shuffledDefs = [...definitions].sort(() => Math.random() - 0.5);
+    // Student context (from assessment_content): matchingTerms and matchingDefinitions exist
+    // Editor context (from question-bank): pairs exists
+    const terms = question.matchingTerms || (question.pairs || []).map(p => p.term);
+    const definitions = question.matchingDefinitions || (question.pairs || []).map(p => p.definition);
+
+    // Shuffled pool for the dropdowns
+    // If matchingDefinitions exists, it's already shuffled by the service
+    const shuffledDefs = question.matchingDefinitions || [...definitions].sort(() => Math.random() - 0.5);
 
     // Figure Rendering
     const figures = (question.figures || []).map(f => `
@@ -25,11 +30,11 @@ export const renderMatching = (question, index = 1) => {
             ${figures}
 
             <div class="space-y-4 pt-4">
-                ${(question.pairs || []).map((pair, i) => `
+                ${terms.map((term, i) => `
                     <div class="flex flex-col sm:flex-row gap-4 items-stretch group/pair">
                         <div class="flex-1 p-6 bg-white border border-gray-100 rounded-3xl flex items-center shadow-sm group-hover/pair:border-cyan-200 transition-all">
                             <span class="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-500 flex items-center justify-center font-black text-[10px] mr-4 shadow-inner">${i + 1}</span>
-                            <span class="text-xs font-black text-gray-700 uppercase tracking-tight">${pair.term}</span>
+                            <span class="text-xs font-black text-gray-700 uppercase tracking-tight">${term}</span>
                         </div>
                         <div class="flex-1 relative">
                             <select name="q-${question.id}-pair-${i}" 

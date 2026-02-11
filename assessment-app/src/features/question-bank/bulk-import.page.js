@@ -318,6 +318,7 @@ export const BulkImportPage = async () => {
         els.previewGrid.innerHTML = parsedQuestions.map((q, i) => {
             const qType = q.type || 'UNKNOWN';
             const qCourse = q.course || 'UNSET';
+            const qDifficulty = q.difficulty || 'EASY';
             const qText = q.text || '(No question text)';
             const qChoices = q.choices || [];
             const qAnswers = Array.isArray(q.correct_answers) ? q.correct_answers : [q.correct_answer];
@@ -366,9 +367,10 @@ export const BulkImportPage = async () => {
                     </div>
                 `;
             } else {
+                const isEmpty = !q.correct_answers || (Array.isArray(q.correct_answers) && q.correct_answers.length === 0);
                 answerUI = `
-                    <div class="p-5 bg-gray-900 text-white rounded-[24px] font-mono text-[11px] uppercase tracking-wider shadow-inner">
-                        ${JSON.stringify(q.correct_answers)}
+                    <div class="p-5 ${isEmpty ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-gray-900 text-white'} rounded-[24px] font-mono text-[11px] uppercase tracking-wider shadow-inner">
+                        ${isEmpty ? 'NO ANSWER PROTOCOL DETECTED' : JSON.stringify(q.correct_answers)}
                     </div>
                 `;
             }
@@ -380,6 +382,7 @@ export const BulkImportPage = async () => {
                     <div class="relative z-10 flex flex-col h-full">
                         <div class="flex gap-3 mb-8">
                             <span class="text-[9px] font-black px-4 py-1.5 rounded-full bg-blue-premium text-white uppercase tracking-widest shadow-lg shadow-blue-100">${qType}</span>
+                            <span class="text-[9px] font-black px-4 py-1.5 rounded-full ${qDifficulty === 'DIFFICULT' ? 'bg-red-50 text-red-600 border border-red-100' : qDifficulty === 'MODERATE' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-green-50 text-green-600 border border-green-100'} uppercase tracking-widest">${qDifficulty}</span>
                             <span class="text-[9px] font-black px-4 py-1.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 uppercase tracking-widest">${qCourse}</span>
                         </div>
                         <div class="text-gray-900 font-black text-lg leading-tight uppercase tracking-tight mb-8">${qText}</div>
@@ -408,12 +411,22 @@ export const BulkImportPage = async () => {
     });
 
     els.commitBtn.addEventListener('click', async () => {
+        const hasMissingAnswers = parsedQuestions.some(q =>
+            !q.correct_answers ||
+            (Array.isArray(q.correct_answers) && q.correct_answers.length === 0)
+        );
+
+        if (hasMissingAnswers) {
+            const proceed = confirm("WARNING: Some questions are missing an answer protocol. This may disrupt automatic grading. Continue with incomplete registry write?");
+            if (!proceed) return;
+        }
+
         try {
             els.commitBtn.disabled = true;
             els.commitBtn.textContent = "COMMITTING DATA...";
             await bulkAddQuestions(parsedQuestions);
             alert(`SUCCESS: ${parsedQuestions.length} Items Written to Registry.`);
-            location.hash = '#bank';
+            location.hash = '#assessment-bank';
         } catch (e) {
             alert("Commit Failure: Network interrupt or protocol rejection.");
             els.commitBtn.disabled = false;

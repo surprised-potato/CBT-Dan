@@ -110,8 +110,23 @@ export const generateAssessment = async (config) => {
                 answerBankMode: s.answerBankMode || false
             })),
             questions: allSelectedQuestions.map(q => {
-                // Remove all sensitive data
-                const { correct_answers, correct_answer, pairs, items, ...safeQ } = q;
+                // Remove sensitive data (correct answers)
+                const { correct_answers, correct_answer, ...safeQ } = q;
+
+                // For MATCHING, we need the terms and definitions but shoudn't reveal the pairs
+                if (q.type === 'MATCHING') {
+                    const pairs = q.pairs || [];
+                    safeQ.matchingTerms = pairs.map(p => p.term);
+                    safeQ.matchingDefinitions = pairs.map(p => p.definition).sort(() => Math.random() - 0.5);
+                    delete safeQ.pairs; // Remove the correlated pairs
+                }
+
+                // For ORDERING, we need the items but should shuffle them
+                if (q.type === 'ORDERING') {
+                    safeQ.orderingItems = [...(q.items || [])].sort(() => Math.random() - 0.5);
+                    delete safeQ.items; // Remove the ordered items
+                }
+
                 return safeQ;
             })
         };
@@ -119,17 +134,17 @@ export const generateAssessment = async (config) => {
         const keysPayload = {
             assessmentId: null,
             answers: allSelectedQuestions.reduce((acc, q) => {
-                // Selection logic for the "Reference Answer" in keys
-                let keyAnswer = q.correct_answers;
+                let keyAnswer = q.correct_answers || q.correct_answer;
 
-                // If it's a list but only 1 element, flatten it for simpler grading in basic cases
-                // But generally keepers are arrays now to support multi-variants
                 if (Array.isArray(keyAnswer)) {
                     if (q.type === 'MCQ' || q.type === 'TRUE_FALSE') {
-                        keyAnswer = keyAnswer[0]; // Pick first variant
+                        keyAnswer = keyAnswer[0];
                     }
-                } else if (keyAnswer === undefined) {
-                    keyAnswer = q.correct_answer; // Fallback for legacy items
+                }
+
+                if (keyAnswer === undefined) {
+                    console.warn(`[Assessment Engine] Question ${q.id} (${q.type}) has no defined correct answer. Defaulting to NULL.`);
+                    keyAnswer = null;
                 }
 
                 acc[q.id] = keyAnswer;
@@ -308,6 +323,25 @@ export const cloneAssessment = async (id, assignedClassIds = null) => {
 
     } catch (error) {
         console.error("Error cloning assessment:", error);
+        throw error;
+    }
+};
+
+export const getAssessmentWithKeys = async (id) => {
+    try {
+        const [contentSnap, keySnap] = await Promise.all([
+            getDoc(doc(db, COL_CONTENT, id)),
+            getDoc(doc(db, COL_KEYS, id))
+        ]);
+
+        if (!contentSnap.exists()) throw new Error("Assessment content not found");
+
+        const content = { id: contentSnap.id, ...contentSnap.data() };
+        const keys = keySnap.exists() ? keySnap.data().answers : null;
+
+        return { ...content, keys };
+    } catch (error) {
+        console.error("Error fetching assessment with keys:", error);
         throw error;
     }
 };

@@ -17,6 +17,7 @@ import { ResultsPage } from './src/features/assessment/results.page.js';
 import { ReportPage } from './src/features/assessment/report.page.js';
 import { BankPage } from './src/features/question-bank/bank.page.js';
 import { BulkImportPage } from './src/features/question-bank/bulk-import.page.js';
+import { PrintablePage } from './src/features/printable/printable.page.js';
 import { ClassManagerPage } from './src/features/dashboard/class-manager.page.js';
 import { UITestPage } from './src/features/test/ui-test.page.js';
 import { observeAuthChanges } from './src/services/auth.service.js';
@@ -35,6 +36,7 @@ addRoute('#results', ResultsPage);
 addRoute('#report', ReportPage);
 addRoute('#bank', BankPage);
 addRoute('#bulk-import', BulkImportPage);
+addRoute('#printable', PrintablePage);
 addRoute('#class-manager', ClassManagerPage);
 addRoute('#test-ui', UITestPage);
 // Add a default route or alias
