@@ -59,7 +59,12 @@ export const gradeSubmission = async (submissionId) => {
         for (const [qId, correctAnswer] of Object.entries(keys)) {
             const studentAnswer = studentAnswers[qId];
             const qObj = startData.questions.find(q => q.id === qId);
-            const points = pointsMap[qId] || 1;
+
+            // FIX: Prioritize Section Points (Wizard Config) over Question Default
+            // q.sectionPoints comes from the Wizard. q.points comes from the Bank.
+            const p = qObj.sectionPoints !== undefined ? qObj.sectionPoints : (qObj.points !== undefined ? qObj.points : 1);
+            const points = parseInt(p);
+
             totalPoints += points;
 
             let isCorrect = false;
@@ -105,6 +110,7 @@ export const gradeSubmission = async (submissionId) => {
             gradedAt: new Date().toISOString()
         });
 
+        console.log(`[Grading] Submission ${submissionId} graded. Score: ${score}/${totalPoints}`);
         return { score, totalPoints };
 
     } catch (error) {
@@ -148,3 +154,74 @@ export const getSubmissionsForAssessment = async (assessmentId) => {
         throw error;
     }
 };
+
+// --- Retroactive Fix Tools ---
+
+export const regradeAssessment = async (assessmentId) => {
+    try {
+        console.log(`[Regrade] Starting regrade for Assessment: ${assessmentId}`);
+        // Fetch ALL submissions, regardless of status
+        const q = query(
+            collection(db, COL_SUBS),
+            where("assessmentId", "==", assessmentId)
+        );
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            console.log(`[Regrade] No submissions found for ${assessmentId}`);
+            return 0;
+        }
+
+        console.log(`[Regrade] Found ${snapshot.size} submissions. Processing...`);
+
+        // Process in chunks to avoid overwhelming the network/browser
+        const chunks = [];
+        const chunkSize = 5;
+        for (let i = 0; i < snapshot.docs.length; i += chunkSize) {
+            chunks.push(snapshot.docs.slice(i, i + chunkSize));
+        }
+
+        let totalProcessed = 0;
+        for (const chunk of chunks) {
+            await Promise.all(chunk.map(doc => gradeSubmission(doc.id)));
+            totalProcessed += chunk.length;
+            console.log(`[Regrade] Processed ${totalProcessed}/${snapshot.size}`);
+        }
+
+        console.log(`[Regrade] Completed for ${assessmentId}`);
+        return totalProcessed;
+
+    } catch (error) {
+        console.error(`Error regrading assessment ${assessmentId}:`, error);
+        throw error;
+    }
+};
+
+export const regradeAllAssessments = async () => {
+    try {
+        console.log("[Regrade All] Starting global regrade...");
+
+        // 1. Get all assessments
+        const snapshot = await getDocs(collection(db, COL_CONTENT));
+        const assessments = snapshot.docs.map(d => d.id);
+
+        console.log(`[Regrade All] Found ${assessments.length} assessments.`);
+
+        let totalSubmissions = 0;
+        for (const assessmentId of assessments) {
+            const count = await regradeAssessment(assessmentId);
+            totalSubmissions += count;
+        }
+
+        console.log(`[Regrade All] COMPLETE. Total submissions updated: ${totalSubmissions}`);
+        return totalSubmissions;
+
+    } catch (error) {
+        console.error("Error in global regrade:", error);
+        throw error;
+    }
+};
+
+// Expose to window for manual triggering via console
+window.regradeAllAssessments = regradeAllAssessments;
+window.regradeAssessment = regradeAssessment;
