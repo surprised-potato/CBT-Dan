@@ -72,6 +72,9 @@ export const ReportPage = async () => {
                             <button id="grade-all-btn" class="bg-purple-premium text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all">
                                 Execute Batch Validation
                             </button>
+                            <button onclick="window.location.hash='#item-analysis?id=${id}'" class="ml-4 bg-white text-purple-600 border-2 border-purple-100 px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-sm hover:border-purple-300 hover:text-purple-800 transition-all">
+                                View Item Analysis
+                            </button>
                         </div>
                     </div>
                 </div>

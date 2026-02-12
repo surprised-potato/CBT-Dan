@@ -23,6 +23,8 @@ import { UITestPage } from './src/features/test/ui-test.page.js';
 import { observeAuthChanges } from './src/services/auth.service.js';
 import { PendingAuthorizationPage } from './src/features/auth/pending-authorization.page.js';
 
+import { ItemAnalysisPage } from './src/features/reports/item-analysis.page.js';
+
 // --- Register Routes ---
 addRoute('#login', LoginPage);
 addRoute('#register', RegisterPage);
@@ -35,6 +37,7 @@ addRoute('#wizard', WizardPage);
 addRoute('#taker', TakerPage);
 addRoute('#results', ResultsPage);
 addRoute('#report', ReportPage);
+addRoute('#item-analysis', ItemAnalysisPage);
 addRoute('#bank', BankPage);
 addRoute('#bulk-import', BulkImportPage);
 addRoute('#printable', PrintablePage);

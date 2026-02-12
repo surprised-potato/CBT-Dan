@@ -1,6 +1,7 @@
 import { db } from '../../core/config.js';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getUser } from '../../core/store.js';
+import { calculateStudentTopicPerformance } from '../../services/analytics.service.js';
 
 export const ResultsPage = async () => {
     const app = document.getElementById('app');
@@ -44,6 +45,9 @@ export const ResultsPage = async () => {
 
         const percentage = Math.round((submission.score / submission.totalPoints) * 100);
 
+        // 3. Topic Analysis
+        const topicStats = calculateStudentTopicPerformance(submission, assessment, keys);
+
         app.innerHTML = `
             <div class="min-h-screen pb-24 bg-gray-50/50">
                 <header class="sticky top-0 z-50 glass-header border-b border-white backdrop-blur-xl p-8">
@@ -70,7 +74,31 @@ export const ResultsPage = async () => {
                     </div>
                 </header>
 
-                <main class="max-w-3xl mx-auto p-4 mt-12 space-y-12">
+                <main class="max-w-3xl mx-auto p-4 mt-8 space-y-12">
+                    
+                    <!-- Topic Breakdown -->
+                    <div class="bg-white p-10 rounded-[40px] border border-white shadow-2xl shadow-blue-50/50">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </div>
+                            <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Knowledge Domain Breakdown</h3>
+                        </div>
+
+                        <div class="space-y-6">
+                            ${topicStats.map(stat => `
+                                <div>
+                                    <div class="flex justify-between items-end mb-2">
+                                        <span class="text-xs font-black text-gray-800 uppercase tracking-tight">${stat.topic}</span>
+                                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${stat.earned}/${stat.total} (${stat.percentage}%)</span>
+                                    </div>
+                                    <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="h-full bg-blue-premium rounded-full transition-all duration-1000 ease-out" style="width: ${stat.percentage}%"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
                     ${assessment.questions.map((q, i) => {
             const studentAns = studentAnswers[q.id];
             const keyAns = keys[q.id];
@@ -90,7 +118,7 @@ export const ResultsPage = async () => {
                                             <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">${isCorrect ? 'VALID' : 'INVALID'} TELEMETRY</span>
                                         </div>
                                         <span class="px-4 py-1.5 ${isCorrect ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'} rounded-full text-[9px] font-black uppercase tracking-widest border">
-                                            ${isCorrect ? '+ ' + (q.points || 1) : '0'} PTS
+                                            ${isCorrect ? '+ ' + (q.sectionPoints !== undefined ? q.sectionPoints : (q.points !== undefined ? q.points : 1)) : '0'} PTS
                                         </span>
                                     </div>
 
@@ -174,7 +202,10 @@ const formatAnswer = (q, ans) => {
         }
         if (q.type === 'MATCHING') {
             const terms = q.matchingTerms || (q.pairs || []).map(p => p.term);
-            return ans.map((v, i) => `${terms[i] || '?'} → ${v}`).join('<br>');
+            return ans.map((v, i) => {
+                const val = typeof v === 'object' && v !== null ? (v.definition || v.text || JSON.stringify(v)) : v;
+                return `${terms[i] || '?'} → ${val}`;
+            }).join('<br>');
         }
         if (q.type === 'ORDERING') {
             return ans.map((v, i) => `${i + 1}. ${v}`).join(', ');

@@ -294,7 +294,7 @@ export const getAssessmentsByClass = async (classId) => {
 export const updateAssessmentConfig = async (id, updates) => {
     // updates: { sections?, settings?, assignedClassIds?, title? }
     try {
-        const allowedFields = ['sections', 'settings', 'assignedClassIds', 'title'];
+        const allowedFields = ['sections', 'settings', 'assignedClassIds', 'title', 'questions'];
         const sanitized = {};
         for (const key of allowedFields) {
             if (updates[key] !== undefined) sanitized[key] = updates[key];
