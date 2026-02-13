@@ -1,6 +1,9 @@
 export const renderOrdering = (question, index = 1) => {
     // Determine the pool of items (shuffled)
-    const shuffledItems = [...(question.items || [])].sort(() => Math.random() - 0.5);
+    // If orderingItems exists, it means it's already shuffled by the service
+    const isStable = !!question.orderingItems;
+    const items = question.orderingItems || question.items || [];
+    const shuffledItems = isStable ? items : [...items].sort(() => Math.random() - 0.5);
 
     // Figure Rendering
     const figures = (question.figures || []).map(f => `

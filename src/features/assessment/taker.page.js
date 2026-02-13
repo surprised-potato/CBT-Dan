@@ -230,7 +230,7 @@ export const TakerPage = async () => {
                     val.forEach(v => {
                         if (typeof v === 'string') {
                             // Multi-choice or identification bank
-                            const cb = document.querySelector(`input[name="q-${qId}"][value="${v}"]`);
+                            const cb = document.querySelector(`input[name="q-${CSS.escape(qId)}"][value="${CSS.escape(v)}"]`);
                             if (cb) cb.checked = true;
                         }
                     });
@@ -238,20 +238,26 @@ export const TakerPage = async () => {
                     const qObj = questions.find(item => item.id === qId);
                     if (qObj?.type === 'MATCHING') {
                         val.forEach((pairVal, i) => {
-                            const sel = document.querySelector(`select[name="q-${qId}-pair-${i}"]`);
+                            const sel = document.querySelector(`select[name="q-${CSS.escape(qId)}-pair-${i}"]`);
                             if (sel) sel.value = pairVal;
                         });
                     } else if (qObj?.type === 'ORDERING') {
                         val.forEach((orderVal, i) => {
-                            const inp = document.querySelector(`input[name="q-${qId}-order-${i}"]`);
+                            const inp = document.querySelector(`input[name="q-${CSS.escape(qId)}-order-${i}"]`);
                             if (inp) inp.value = orderVal;
                         });
                     }
                 } else {
-                    const radio = document.querySelector(`input[name="q-${qId}"][value="${val}"]`);
-                    if (radio) radio.checked = true;
-                    const input = document.querySelector(`input[name="q-${qId}"]`);
+                    const selector = `input[name="q-${CSS.escape(qId)}"][value="${CSS.escape(val)}"]`;
+                    try {
+                        const radio = document.querySelector(selector);
+                        if (radio) radio.checked = true;
+                    } catch (e) { }
+
+                    const input = document.querySelector(`input[name="q-${CSS.escape(qId)}"]`);
                     if (input && input.type !== 'radio') input.value = val;
+                    const select = document.querySelector(`select[name="q-${CSS.escape(qId)}"]`);
+                    if (select) select.value = val;
                 }
             });
 
@@ -311,16 +317,18 @@ export const TakerPage = async () => {
 
             if (settings.oneAtATime) {
                 document.getElementById('prev-btn')?.addEventListener('click', () => {
+                    collectAnswers();
                     if (currentIdx > 0) { currentIdx--; updateUI(); }
                 });
                 document.getElementById('next-btn')?.addEventListener('click', () => {
+                    collectAnswers();
                     if (currentIdx < questions.length - 1) { currentIdx++; updateUI(); }
                 });
                 document.getElementById('submit-trigger')?.addEventListener('click', () => {
                     form.requestSubmit();
                 });
                 document.querySelectorAll('[data-jump]').forEach(btn => {
-                    btn.onclick = () => { currentIdx = parseInt(btn.dataset.jump); updateUI(); };
+                    btn.onclick = () => { collectAnswers(); currentIdx = parseInt(btn.dataset.jump); updateUI(); };
                 });
             }
 
