@@ -242,9 +242,15 @@ export const TakerPage = async () => {
                             if (sel) sel.value = pairVal;
                         });
                     } else if (qObj?.type === 'ORDERING') {
-                        val.forEach((orderVal, i) => {
+                        // val is item text in student's intended order
+                        // Reverse-map to numeric ranks for each shuffled item input
+                        const shuffledItems = qObj.orderingItems || qObj.items || [];
+                        shuffledItems.forEach((item, i) => {
                             const inp = document.querySelector(`input[name="q-${CSS.escape(qId)}-order-${i}"]`);
-                            if (inp) inp.value = orderVal;
+                            if (inp) {
+                                const rank = val.indexOf(item);
+                                inp.value = rank >= 0 ? rank + 1 : '';
+                            }
                         });
                     }
                 } else {
@@ -284,12 +290,18 @@ export const TakerPage = async () => {
                         });
                         newAnswers[q.id] = matched;
                     } else if (q.type === 'ORDERING') {
-                        const ordered = [];
                         const items = q.orderingItems || (q.items || []);
-                        items.forEach((_, i) => {
-                            ordered.push(formData.get(`q-${q.id}-order-${i}`) || '');
-                        });
-                        newAnswers[q.id] = ordered;
+                        // Build pairs of (item text, rank) and sort by rank
+                        // so the stored answer is item text in the student's intended order
+                        const pairs = items.map((item, i) => ({
+                            item,
+                            rank: parseInt(formData.get(`q-${q.id}-order-${i}`)) || 0
+                        }));
+                        // Only store if at least one rank was entered
+                        if (pairs.some(p => p.rank > 0)) {
+                            pairs.sort((a, b) => a.rank - b.rank);
+                            newAnswers[q.id] = pairs.map(p => p.item);
+                        }
                     }
                 });
 
