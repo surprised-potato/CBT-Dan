@@ -4,7 +4,6 @@ import { joinClass, getStudentClasses } from '../../services/class.service.js';
 import { getActiveAssessments, getAssessment } from '../../services/assessment.service.js';
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
-import { renderModal, setupModalListeners } from '../../shared/modal.js';
 import { updateUserProfile, logoutUser } from '../../services/auth.service.js';
 import { getSubmissionsByStudent, checkSubmission } from '../../services/submission.service.js';
 import { enforceProfileCompletion } from '../../core/utils.js';
