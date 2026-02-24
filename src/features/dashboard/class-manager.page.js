@@ -19,6 +19,7 @@ export const ClassManagerPage = async () => {
     let currentClasses = [];
     let selectedClass = null; // for Level 2
     let selectedStudent = null; // for Level 3
+    let activeTab = 'requests'; // 'requests' or 'cohort'
 
     const renderLevel1 = () => {
         app.innerHTML = `
@@ -116,28 +117,47 @@ export const ClassManagerPage = async () => {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <!-- Pending Requests -->
-                        <section>
-                            <div class="flex items-center gap-4 mb-8 pl-2">
-                                <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Access Requests</h2>
-                                <span class="bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full shadow-lg shadow-orange-200 animation-pulse">${pendingCount}</span>
-                            </div>
-                            <div id="pending-list" class="space-y-5">
-                                ${renderPendingList(cls)}
-                            </div>
-                        </section>
+                    <div class="space-y-10">
+                        <!-- Tab Navigation -->
+                        <div class="flex p-2 bg-gray-50 rounded-[32px] border border-gray-100 max-w-2xl mx-auto">
+                            <button id="tab-requests" class="flex-1 flex items-center justify-center gap-4 py-4 px-6 rounded-[24px] text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'requests' ? 'bg-white text-orange-600 shadow-xl shadow-orange-100 ring-1 ring-orange-100' : 'text-gray-400 hover:text-gray-600'}">
+                                Access Requests
+                                <span class="${activeTab === 'requests' ? 'bg-orange-500' : 'bg-gray-200'} text-white text-[9px] px-3 py-1 rounded-full shadow-lg shadow-orange-200">
+                                    ${pendingCount}
+                                </span>
+                            </button>
+                            <button id="tab-cohort" class="flex-1 flex items-center justify-center gap-4 py-4 px-6 rounded-[24px] text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'cohort' ? 'bg-white text-green-600 shadow-xl shadow-green-100 ring-1 ring-green-100' : 'text-gray-400 hover:text-gray-600'}">
+                                Authorized Cohort
+                                <span class="${activeTab === 'cohort' ? 'bg-green-500' : 'bg-gray-200'} text-white text-[9px] px-3 py-1 rounded-full">
+                                    ${studentCount}
+                                </span>
+                            </button>
+                        </div>
 
-                        <!-- Student List -->
-                        <section>
-                            <div class="flex items-center gap-4 mb-8 pl-2">
-                                <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Authorized Cohort</h2>
-                                <span class="bg-gray-200 text-gray-600 text-[10px] font-black px-4 py-1.5 rounded-full">${studentCount}</span>
-                            </div>
-                            <div id="student-list" class="space-y-4">
-                                ${renderStudentList(cls)}
-                            </div>
-                        </section>
+                        <!-- Tab Content -->
+                        <div class="max-w-3xl mx-auto">
+                            ${activeTab === 'requests' ? `
+                                <section class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div class="flex items-center gap-4 mb-8 pl-4">
+                                        <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Pending Validation</h2>
+                                        <div class="h-px flex-1 bg-gradient-to-r from-orange-100 to-transparent"></div>
+                                    </div>
+                                    <div id="pending-list" class="space-y-5">
+                                        ${renderPendingList(cls)}
+                                    </div>
+                                </section>
+                            ` : `
+                                <section class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div class="flex items-center gap-4 mb-8 pl-4">
+                                        <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Active Personnel</h2>
+                                        <div class="h-px flex-1 bg-gradient-to-r from-green-100 to-transparent"></div>
+                                    </div>
+                                    <div id="student-list" class="space-y-4">
+                                        ${renderStudentList(cls)}
+                                    </div>
+                                </section>
+                            `}
+                        </div>
                     </div>
                 </main>
             </div>
@@ -145,6 +165,16 @@ export const ClassManagerPage = async () => {
         `;
 
         document.getElementById('back-to-list').onclick = renderLevel1;
+
+        // Tab Event Listeners
+        document.getElementById('tab-requests').onclick = () => {
+            activeTab = 'requests';
+            renderLevel2(cls);
+        };
+        document.getElementById('tab-cohort').onclick = () => {
+            activeTab = 'cohort';
+            renderLevel2(cls);
+        };
     };
 
     const renderLevel3 = async (student) => {
@@ -389,7 +419,12 @@ export const ClassManagerPage = async () => {
     };
 
     // Global Handlers
-    window.drillDown = (idx) => renderLevel2(currentClasses[idx]);
+    window.drillDown = (idx) => {
+        const cls = currentClasses[idx];
+        // Default to requests if there are any, otherwise cohort
+        activeTab = (cls.pendingStudents?.length > 0) ? 'requests' : 'cohort';
+        renderLevel2(cls);
+    };
     window.viewScores = (idx) => renderLevel3(selectedClass.students[idx]);
     window.copyJoinCode = (code, btn) => {
         navigator.clipboard.writeText(code);

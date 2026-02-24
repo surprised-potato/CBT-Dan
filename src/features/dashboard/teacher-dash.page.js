@@ -7,6 +7,7 @@ import { getAssessments } from '../../services/assessment.service.js';
 import { getQuestions } from '../../services/question-bank.service.js';
 import { getClassesByTeacher } from '../../services/class.service.js';
 import { getPendingInstructors, authorizeInstructor } from '../../services/auth.service.js';
+import { enforceProfileCompletion } from '../../core/utils.js';
 
 export const TeacherDashPage = async () => {
     const app = document.getElementById('app');
@@ -271,4 +272,5 @@ export const TeacherDashPage = async () => {
     };
 
     loadDashboardData();
+    enforceProfileCompletion(user, 'profile-modal');
 };

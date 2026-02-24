@@ -6,6 +6,7 @@ import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
 import { updateUserProfile } from '../../services/auth.service.js';
 import { getSubmissionsByStudent, checkSubmission } from '../../services/submission.service.js';
+import { enforceProfileCompletion } from '../../core/utils.js';
 
 export const StudentDashPage = async () => {
     const app = document.getElementById('app');
@@ -325,4 +326,5 @@ export const StudentDashPage = async () => {
 
     setupListeners();
     loadAssessments();
+    enforceProfileCompletion(user, 'profile-modal');
 };
