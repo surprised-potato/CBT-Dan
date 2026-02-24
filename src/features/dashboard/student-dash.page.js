@@ -4,7 +4,8 @@ import { joinClass, getStudentClasses } from '../../services/class.service.js';
 import { getActiveAssessments, getAssessment } from '../../services/assessment.service.js';
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
-import { updateUserProfile } from '../../services/auth.service.js';
+import { renderModal, setupModalListeners } from '../../shared/modal.js';
+import { updateUserProfile, logoutUser } from '../../services/auth.service.js';
 import { getSubmissionsByStudent, checkSubmission } from '../../services/submission.service.js';
 import { enforceProfileCompletion } from '../../core/utils.js';
 
@@ -113,7 +114,10 @@ export const StudentDashPage = async () => {
     // --- Logic ---
 
     const setupListeners = () => {
-        document.getElementById('logout-btn').onclick = () => window.location.hash = '#login';
+        document.getElementById('logout-btn').onclick = async () => {
+            await logoutUser();
+            window.location.hash = '#login';
+        };
         setupModalListeners('profile-modal');
         document.getElementById('edit-profile-btn').onclick = () => document.getElementById('profile-modal').classList.remove('hidden');
 
@@ -164,7 +168,14 @@ export const StudentDashPage = async () => {
             try {
                 await updateUserProfile(user.user.uid, { displayName: newName });
                 document.getElementById('profile-modal').classList.add('hidden');
-                location.reload();
+
+                // Surgical UI Update: update the display name in the header
+                const nameDisplay = document.querySelector('header div p.text-xs.font-bold');
+                if (nameDisplay) nameDisplay.textContent = newName;
+
+                // Update local userName state for subsequent uses if needed, 
+                // but since we reference user.displayName which is now updated in the store...
+                console.log("Profile updated successfully");
             } catch (err) {
                 alert("Update failed");
             } finally {

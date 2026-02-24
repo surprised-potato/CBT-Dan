@@ -1,7 +1,8 @@
 // Simple centralized store
 const state = {
     currentUser: null,
-    theme: 'light'
+    theme: 'light',
+    isAuthInitialized: false
 };
 
 const listeners = [];
@@ -19,6 +20,13 @@ export const setUser = (user) => {
 export const getState = () => {
     return { ...state };
 };
+
+export const setAuthInitialized = (val) => {
+    state.isAuthInitialized = val;
+    notify();
+};
+
+export const isAuthReady = () => state.isAuthInitialized;
 
 export const subscribe = (listener) => {
     listeners.push(listener);

@@ -1,4 +1,4 @@
-import { getUser } from './store.js';
+import { getUser, isAuthReady } from './store.js';
 
 const routes = {};
 const teacherRoutes = ['#editor', '#teacher-dash', '#assessment-bank', '#wizard', '#bank', '#bulk-import', '#class-manager'];
@@ -31,6 +31,9 @@ const handleRoute = async () => {
 
     if (teacherRoutes.includes(baseRoute)) {
         if (!user) {
+            // Don't redirect if auth is still initializing
+            if (!isAuthReady()) return;
+
             window.location.hash = '#login';
             return;
         }

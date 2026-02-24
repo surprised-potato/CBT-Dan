@@ -13,7 +13,7 @@ import {
     getDoc,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { setUser, getUser } from '../core/store.js';
+import { setUser, getUser, setAuthInitialized } from '../core/store.js';
 import { setCookie, deleteCookie } from '../core/cookies.js';
 
 export const registerUser = async (email, password, role, displayName, course) => {
@@ -123,28 +123,19 @@ export const logoutUser = async () => {
 export const updateUserProfile = async (uid, data) => {
     try {
         const userRef = doc(db, "users", uid);
-        await updateDoc(userRef, data);
+
+        // Use setDoc with merge: true instead of updateDoc for higher reliability.
+        // This handles cases where the document might not exist yet.
+        await setDoc(userRef, data, { merge: true });
 
         // Update local store
         const currentUser = getUser();
-        if (currentUser && currentUser.user.uid === uid) {
+        if (currentUser && (currentUser.uid === uid || currentUser.user?.uid === uid)) {
             setUser({ ...currentUser, ...data });
         }
     } catch (error) {
-        // If doc doesn't exist (e.g. older user), set it
-        if (error.code === 'not-found' || error.message.includes('No document to update')) {
-            await setDoc(doc(db, "users", uid), {
-                email: getUser()?.user.email, // Try to preserve email
-                ...data
-            }, { merge: true });
-
-            const currentUser = getUser();
-            if (currentUser && currentUser.user.uid === uid) {
-                setUser({ ...currentUser, ...data });
-            }
-        } else {
-            throw error;
-        }
+        console.error("Profile synchronization failure:", error);
+        throw error;
     }
 };
 
@@ -156,7 +147,7 @@ export const observeAuthChanges = (callback) => {
             if (userDoc.exists()) {
                 const userData = { user, ...userDoc.data() };
                 setUser(userData);
-                setCookie('cbt_session', user.uid, 7); // Persistent login cookie
+                setCookie('cbt_session', user.uid, 7);
                 if (callback) callback(userData);
             } else {
                 setUser({ user, role: 'student' });
@@ -168,5 +159,6 @@ export const observeAuthChanges = (callback) => {
             setUser(null);
             if (callback) callback(null);
         }
+        setAuthInitialized(true);
     });
 };

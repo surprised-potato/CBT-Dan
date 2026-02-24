@@ -2,7 +2,7 @@ import { renderButton } from '../../shared/button.js';
 import { renderInput } from '../../shared/input.js';
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
-import { updateUserProfile } from '../../services/auth.service.js';
+import { updateUserProfile, logoutUser } from '../../services/auth.service.js';
 import { getAssessments } from '../../services/assessment.service.js';
 import { getQuestions } from '../../services/question-bank.service.js';
 import { getClassesByTeacher } from '../../services/class.service.js';
@@ -184,7 +184,10 @@ export const TeacherDashPage = async () => {
     `;
 
     // --- Logic ---
-    document.getElementById('logout-btn').onclick = () => window.location.hash = '#login';
+    document.getElementById('logout-btn').onclick = async () => {
+        await logoutUser();
+        window.location.hash = '#login';
+    };
 
     setupModalListeners('profile-modal');
     document.getElementById('edit-profile-btn').onclick = () => document.getElementById('profile-modal').classList.remove('hidden');
@@ -198,7 +201,11 @@ export const TeacherDashPage = async () => {
         try {
             await updateUserProfile(user.user.uid, { displayName: newName });
             document.getElementById('profile-modal').classList.add('hidden');
-            location.reload();
+
+            // Surgical UI Update
+            const nameDisplay = document.querySelector('header div p.text-xs.font-bold');
+            if (nameDisplay) nameDisplay.textContent = newName;
+
         } catch (err) {
             alert("Update failed");
         } finally {
