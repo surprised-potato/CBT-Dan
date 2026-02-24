@@ -154,6 +154,23 @@ export const StudentDashPage = async () => {
                 }
             };
         }
+
+        document.getElementById('profile-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const newName = document.getElementById('profile-name').value;
+            const btn = e.target.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            try {
+                await updateUserProfile(user.user.uid, { displayName: newName });
+                document.getElementById('profile-modal').classList.add('hidden');
+                location.reload();
+            } catch (err) {
+                alert("Update failed");
+            } finally {
+                btn.disabled = false;
+            }
+        };
     };
 
     const loadAssessments = async () => {
