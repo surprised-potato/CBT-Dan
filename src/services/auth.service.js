@@ -14,6 +14,7 @@ import {
     updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { setUser, getUser } from '../core/store.js';
+import { setCookie, deleteCookie } from '../core/cookies.js';
 
 export const registerUser = async (email, password, role, displayName, course) => {
     try {
@@ -115,6 +116,7 @@ export const authorizeInstructor = async (uid) => {
 
 export const logoutUser = async () => {
     await signOut(auth);
+    deleteCookie('cbt_session');
     setUser(null);
 };
 
@@ -154,12 +156,15 @@ export const observeAuthChanges = (callback) => {
             if (userDoc.exists()) {
                 const userData = { user, ...userDoc.data() };
                 setUser(userData);
+                setCookie('cbt_session', user.uid, 7); // Persistent login cookie
                 if (callback) callback(userData);
             } else {
                 setUser({ user, role: 'student' });
+                setCookie('cbt_session', user.uid, 7);
                 if (callback) callback({ user, role: 'student' });
             }
         } else {
+            deleteCookie('cbt_session');
             setUser(null);
             if (callback) callback(null);
         }

@@ -19,7 +19,7 @@ const firebaseConfig = {
 
 // Import Firebase from CDN (Modular SDK)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let app, auth, db;
@@ -27,6 +27,7 @@ let app, auth, db;
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
+    setPersistence(auth, browserLocalPersistence); // Ensure local persistence
     db = getFirestore(app);
 } catch (error) {
     console.error("Firebase Initialization Error (Did you set the keys?):", error);
