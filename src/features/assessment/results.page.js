@@ -76,6 +76,22 @@ export const ResultsPage = async () => {
 
                 <main class="max-w-3xl mx-auto p-4 mt-8 space-y-12">
                     
+                    ${submission.terminatedDueToCheating || submission.unlockAttempts > 0 ? `
+                        <div class="bg-red-50 p-6 rounded-3xl border-2 border-red-200 flex items-start gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                             <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600 flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                             </div>
+                             <div>
+                                 <h3 class="text-xs font-black text-red-800 uppercase tracking-[0.2em] mb-1">Integrity Protocol Flag</h3>
+                                 <p class="text-[11px] font-bold text-red-600 tracking-widest leading-relaxed">
+                                    ${submission.terminatedDueToCheating ? `FORCE SUBMITTED: ${submission.cheatingReason || 'Environment compromised.'}` : ''}
+                                    ${submission.terminatedDueToCheating && submission.unlockAttempts > 0 ? '<br>' : ''}
+                                    ${submission.unlockAttempts > 0 ? `PROCTOR UNLOCKS: ${submission.unlockAttempts} (Student left secure environment)` : ''}
+                                 </p>
+                             </div>
+                        </div>
+                    ` : ''}
+
                     <!-- Topic Breakdown -->
                     <div class="bg-white p-10 rounded-[40px] border border-white shadow-2xl shadow-blue-50/50">
                         <div class="flex items-center gap-4 mb-8">

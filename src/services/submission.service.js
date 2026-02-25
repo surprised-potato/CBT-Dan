@@ -10,7 +10,7 @@ import {
 
 const COLLECTION = 'submissions';
 
-export const submitTest = async (assessmentId, studentId, answers, studentProfile) => {
+export const submitTest = async (assessmentId, studentId, answers, studentProfile, flags = {}) => {
     try {
         const payload = {
             assessmentId,
@@ -21,7 +21,8 @@ export const submitTest = async (assessmentId, studentId, answers, studentProfil
             submittedAt: new Date().toISOString(),
             serverTimestamp: serverTimestamp(),
             score: null, // Will be graded later
-            status: 'submitted'
+            status: 'submitted',
+            ...flags // Merge in any anti-cheat flags
         };
 
         const docRef = await addDoc(collection(db, COLLECTION), payload);

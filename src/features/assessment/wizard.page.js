@@ -112,6 +112,56 @@ export const WizardPage = async () => {
                                 <span class="text-[9px] font-black text-gray-400 uppercase">MIN</span>
                             </div>
                         </div>
+
+                        <div class="flex flex-col gap-4 p-6 bg-gray-50 rounded-3xl border border-gray-100 transition-all group lg:col-span-2">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-gray-900 uppercase tracking-widest text-red-600">Strict Lockout Protocol</span>
+                                    <p class="text-[9px] font-bold text-gray-400 uppercase">Require fullscreen and prevent tab switching</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full shadow-inner">
+                                    <input type="checkbox" id="require-fullscreen" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                    <span class="absolute left-0 w-6 h-6 bg-white rounded-full shadow border border-gray-100 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-red-500"></span>
+                                </div>
+                            </label>
+                            
+                            <div id="lockout-settings" class="hidden flex-col gap-2 mt-2 pt-4 border-t border-gray-200">
+                                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Proctor Override Password</label>
+                                <input type="text" id="proctor-password" placeholder="e.g. unlock123" class="w-full p-3 bg-white border border-red-200 rounded-xl font-black text-red-600 focus:border-red-500 outline-none text-sm placeholder:opacity-50">
+                                <p class="text-[8px] font-bold text-gray-400 uppercase">Required to unlock exam if student leaves the app</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-4 p-6 bg-gray-50 rounded-3xl border border-gray-100 transition-all group lg:col-span-2">
+                             <label class="flex items-center justify-between cursor-pointer">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-gray-900 uppercase tracking-widest text-blue-600">Geospatial Perimeter</span>
+                                    <p class="text-[9px] font-bold text-gray-400 uppercase">Restrict access to a physical location</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full shadow-inner">
+                                    <input type="checkbox" id="require-geofence" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                    <span class="absolute left-0 w-6 h-6 bg-white rounded-full shadow border border-gray-100 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-blue-500"></span>
+                                </div>
+                            </label>
+
+                            <div id="geofence-settings" class="hidden flex-col gap-4 mt-2 pt-4 border-t border-gray-200">
+                                <div class="flex flex-wrap items-end gap-4">
+                                    <button type="button" id="capture-location-btn" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 border border-blue-200 transition-colors flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        Use Current Location
+                                    </button>
+                                    <div class="flex items-center gap-2">
+                                        <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Radius</label>
+                                        <input type="number" id="geofence-radius" value="100" min="10" step="10" class="w-20 p-2 text-center bg-white border border-blue-200 rounded-xl font-black text-blue-600 focus:border-blue-500 outline-none text-sm">
+                                        <span class="text-[9px] font-black text-gray-400 uppercase">METERS</span>
+                                    </div>
+                                </div>
+                                
+                                <div id="geofence-map" class="w-full h-48 rounded-2xl border-2 border-blue-200 overflow-hidden relative z-0"></div>
+                                <div class="text-[8px] font-black text-blue-400 uppercase tracking-widest text-center" id="coords-display">LAT: -- | LNG: --</div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -377,6 +427,18 @@ export const WizardPage = async () => {
         const selectedClassIds = Array.from(document.querySelectorAll('.class-check:checked')).map(cb => cb.dataset.classid);
 
         try {
+            const requireFullscreen = document.getElementById('require-fullscreen').checked;
+            const proctorPassword = document.getElementById('proctor-password').value.trim();
+            const requireGeofence = document.getElementById('require-geofence').checked;
+
+            if (requireFullscreen && !proctorPassword) {
+                throw new Error("PROCTOR PASSWORD REQUIRED FOR LOCKOUT PROTOCOL.");
+            }
+
+            if (requireGeofence && (currentGeofence.lat === null || currentGeofence.lng === null)) {
+                throw new Error("SET GEOFENCE COORDINATES VIA MAP OR CURRENT LOCATION.");
+            }
+
             const config = {
                 title: titleInput.value.trim(),
                 sections: sections,
@@ -386,7 +448,13 @@ export const WizardPage = async () => {
                     oneAtATime: document.getElementById('one-at-a-time').checked,
                     randomizeOrder: document.getElementById('random-order').checked,
                     shuffleChoices: document.getElementById('shuffle-choices').checked,
-                    timeLimit: parseInt(document.getElementById('time-limit').value) || 0
+                    timeLimit: parseInt(document.getElementById('time-limit').value) || 0,
+                    requireFullscreen: requireFullscreen,
+                    proctorPassword: requireFullscreen ? proctorPassword : null,
+                    requireGeofence: requireGeofence,
+                    geofenceLat: requireGeofence ? currentGeofence.lat : null,
+                    geofenceLng: requireGeofence ? currentGeofence.lng : null,
+                    geofenceRadius: requireGeofence ? parseInt(document.getElementById('geofence-radius').value) || 100 : null
                 }
             };
 
@@ -419,4 +487,107 @@ export const WizardPage = async () => {
             }
         };
     });
+
+    // --- Anti-Cheat Setup ---
+    const reqFullscreenToggle = document.getElementById('require-fullscreen');
+    const lockoutSettings = document.getElementById('lockout-settings');
+    reqFullscreenToggle.onchange = (e) => {
+        if (e.target.checked) {
+            lockoutSettings.style.display = 'flex';
+        } else {
+            lockoutSettings.style.display = 'none';
+        }
+    };
+
+    const reqGeofenceToggle = document.getElementById('require-geofence');
+    const geofenceSettings = document.getElementById('geofence-settings');
+
+    let map = null;
+    let marker = null;
+    let circle = null;
+    let currentGeofence = { lat: null, lng: null };
+
+    const updateMapUI = (lat, lng, radius) => {
+        document.getElementById('coords-display').innerText = `LAT: ${lat.toFixed(5)} | LNG: ${lng.toFixed(5)}`;
+        currentGeofence = { lat, lng };
+
+        if (!marker) {
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.on('dragend', function (event) {
+                const position = marker.getLatLng();
+                updateMapUI(position.lat, position.lng, parseInt(document.getElementById('geofence-radius').value) || 100);
+            });
+        } else {
+            marker.setLatLng([lat, lng]);
+        }
+
+        if (!circle) {
+            circle = L.circle([lat, lng], {
+                color: '#3b82f6',
+                fillColor: '#3b82f6',
+                fillOpacity: 0.2,
+                radius: radius
+            }).addTo(map);
+        } else {
+            circle.setLatLng([lat, lng]);
+            circle.setRadius(radius);
+        }
+    };
+
+    const initMap = () => {
+        if (map) return; // already init
+
+        // Default to Manila if no location
+        const defaultLat = 14.5995;
+        const defaultLng = 120.9842;
+
+        // Timeout to ensure DOM is fully rendered before leaflet tries to attach
+        setTimeout(() => {
+            map = L.map('geofence-map').setView([defaultLat, defaultLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            map.on('click', function (e) {
+                const radius = parseInt(document.getElementById('geofence-radius').value) || 100;
+                updateMapUI(e.latlng.lat, e.latlng.lng, radius);
+            });
+        }, 100);
+    };
+
+    reqGeofenceToggle.onchange = (e) => {
+        if (e.target.checked) {
+            geofenceSettings.style.display = 'flex';
+            initMap();
+        } else {
+            geofenceSettings.style.display = 'none';
+        }
+    };
+
+    document.getElementById('geofence-radius').onchange = (e) => {
+        if (currentGeofence.lat && currentGeofence.lng) {
+            updateMapUI(currentGeofence.lat, currentGeofence.lng, parseInt(e.target.value) || 100);
+        }
+    };
+
+    document.getElementById('capture-location-btn').onclick = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const radius = parseInt(document.getElementById('geofence-radius').value) || 100;
+                    updateMapUI(position.coords.latitude, position.coords.longitude, radius);
+                    map.setView([position.coords.latitude, position.coords.longitude], 16);
+                },
+                (error) => {
+                    console.error("Geolocation error:", error);
+                    alert("Unable to retrieve location. Please check browser permissions.");
+                },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    };
+
 };

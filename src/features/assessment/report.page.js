@@ -109,7 +109,11 @@ export const ReportPage = async () => {
                                                         ${s.studentName?.[0] || '?'}
                                                     </div>
                                                     <div>
-                                                        <p class="font-black text-gray-900 uppercase tracking-tight">${s.studentName || 'Unknown Asset'}</p>
+                                                        <p class="font-black text-gray-900 uppercase tracking-tight flex items-center gap-2">
+                                                            ${s.studentName || 'Unknown Asset'}
+                                                            ${s.terminatedDueToCheating ? '<span class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-[8px] font-black uppercase tracking-widest border border-red-200" title="' + (s.cheatingReason || 'Force submitted during lockout') + '">COMPROMISED</span>' : ''}
+                                                            ${s.unlockAttempts > 0 ? '<span class="px-2 py-0.5 bg-orange-100 text-orange-600 rounded text-[8px] font-black uppercase tracking-widest border border-orange-200" title="Student left environment and required proctor unlock">UNLOCKED (' + s.unlockAttempts + ')</span>' : ''}
+                                                        </p>
                                                         <p class="text-[10px] font-bold text-gray-600 tracking-wider">${s.studentEmail}</p>
                                                     </div>
                                                 </div>

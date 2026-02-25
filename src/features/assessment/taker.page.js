@@ -9,6 +9,22 @@ import { renderMultiAnswer } from '../question-bank/types/multi-answer.js';
 import { renderMatching } from '../question-bank/types/matching.js';
 import { renderOrdering } from '../question-bank/types/ordering.js';
 
+// Haversine formula to calculate distance between two lat/lng coordinates in meters
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; // Earth radius in meters
+    const rs = Math.PI / 180;
+    const φ1 = lat1 * rs;
+    const φ2 = lat2 * rs;
+    const Δφ = (lat2 - lat1) * rs;
+    const Δλ = (lon2 - lon1) * rs;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
+
 export const TakerPage = async () => {
     const app = document.getElementById('app');
     const user = getUser();
@@ -57,9 +73,80 @@ export const TakerPage = async () => {
         }
 
         const assessment = await getAssessment(assessmentId);
-        const { questions: rawQuestions, settings = { oneAtATime: false, randomizeOrder: false, shuffleChoices: false, timeLimit: 0 }, sections = [] } = assessment;
+        const { questions: rawQuestions, settings = { oneAtATime: false, randomizeOrder: false, shuffleChoices: false, timeLimit: 0, requireFullscreen: false, requireGeofence: false }, sections = [] } = assessment;
         const storageKey = `test_${assessmentId}_${user.user.uid}`;
         const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+        // --- ANTI-CHEAT PRE-CHECKS ---
+        if (!isTeacher && settings.requireGeofence) {
+            app.innerHTML = `
+                <div class="min-h-screen flex flex-col items-center justify-center p-6">
+                    <div class="w-16 h-1 bg-blue-500 rounded-full animate-pulse mb-8"></div>
+                    <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Verifying Geospatial Permiter...</p>
+                </div>
+            `;
+
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+
+                const studentLat = position.coords.latitude;
+                const studentLng = position.coords.longitude;
+                const distance = calculateDistance(studentLat, studentLng, settings.geofenceLat, settings.geofenceLng);
+
+                if (distance > settings.geofenceRadius) {
+                    throw new Error(`Location outside authorized perimeter (Distance: ${Math.round(distance)}m > Allowed: ${settings.geofenceRadius}m)`);
+                }
+            } catch (err) {
+                app.innerHTML = `
+                    <div class="min-h-screen flex flex-col items-center justify-center p-6">
+                        <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-blue-100 border border-white max-w-md w-full text-center">
+                            <h2 class="text-3xl font-black text-gray-900 mb-4 uppercase tracking-tight text-blue-600">Geospatial Lock</h2>
+                            <p class="text-xs font-black text-gray-600 mb-10 uppercase tracking-widest leading-loose">Access Denied: ${err.message || 'Location access required'}</p>
+                            <button onclick="window.location.hash='#student-dash'" class="w-full bg-blue-500 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em]">Return to Dashboard</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+        }
+
+        let isFullscreenArmed = false;
+        let isLockedOut = false;
+        let unlockAttempts = 0;
+
+        if (!isTeacher && settings.requireFullscreen) {
+            app.innerHTML = `
+                <div class="min-h-screen flex flex-col items-center justify-center p-6">
+                    <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-red-100 border border-white max-w-md w-full text-center">
+                        <div class="w-20 h-20 bg-red-50 rounded-[28px] flex items-center justify-center mx-auto mb-8">
+                            <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <h2 class="text-xl font-black text-gray-900 mb-4 uppercase tracking-tight">STRICT LOCKOUT PROTOCOL</h2>
+                        <p class="text-xs font-black text-red-500 mb-10 uppercase tracking-widest leading-loose">Leaving fullscreen or switching tabs will result in an immediate test lockout.</p>
+                        <button id="enter-fs-btn" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all">Agree & Enter Fullscreen</button>
+                    </div>
+                </div>
+            `;
+
+            await new Promise(resolve => {
+                document.getElementById('enter-fs-btn').onclick = async () => {
+                    try {
+                        await document.documentElement.requestFullscreen();
+                        isFullscreenArmed = true;
+                        resolve();
+                    } catch (e) {
+                        alert("Fullscreen required to proceed.");
+                    }
+                };
+            });
+        }
+        // --- END ANTI-CHEAT PRE-CHECKS ---
 
         let questions = rawQuestions;
         let answers = saved.answers || {};
@@ -220,6 +307,24 @@ export const TakerPage = async () => {
                     </main>
                     ${renderNavigation()}
                 </div>
+
+                <!-- Lockout Overlay -->
+                <div id="lockout-overlay" class="hidden fixed inset-0 z-[100] bg-red-900/95 backdrop-blur-3xl flex-col items-center justify-center p-6">
+                    <div class="bg-white p-12 rounded-[50px] shadow-2xl max-w-md w-full text-center">
+                        <div class="w-20 h-20 bg-red-50 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-red-100">
+                            <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        <h2 class="text-2xl font-black text-gray-900 mb-4 uppercase tracking-tight text-red-600">ENVIRONMENT COMPROMISED</h2>
+                        <p class="text-xs font-black text-gray-600 mb-8 uppercase tracking-widest leading-loose">You left the secure testing environment. Ask your Proctor to unlock.</p>
+                        
+                        <div class="space-y-4 mb-8">
+                            <input type="password" id="proctor-auth" placeholder="Proctor Password" class="w-full p-5 text-center bg-gray-50 border border-gray-200 rounded-2xl font-black focus:border-red-500 outline-none">
+                            <button id="unlock-btn" class="w-full bg-gray-900 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all hover:bg-black">Authorize Resume</button>
+                        </div>
+                        
+                        <button id="force-submit-btn" class="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline">Or Force Submit Assessment Now</button>
+                    </div>
+                </div>
             `;
 
             // Re-hydrate answers
@@ -359,6 +464,9 @@ export const TakerPage = async () => {
                     await submitTest(assessmentId, user.user.uid, answers, {
                         displayName: user.displayName,
                         email: user.email || user.user.email
+                    }, {
+                        unlockAttempts,
+                        terminatedDueToCheating: false // It was a normal submit
                     });
                     localStorage.removeItem(storageKey);
                     if (user.role === 'teacher') {
@@ -432,6 +540,71 @@ export const TakerPage = async () => {
         updateUI();
         setInterval(tick, 1000);
         tick();
+
+        // --- ANTI-CHEAT WATCHERS ---
+        const handleLockout = (reason) => {
+            if (!isFullscreenArmed || isLockedOut || isTeacher) return;
+            isLockedOut = true;
+            document.getElementById('lockout-overlay').classList.remove('hidden');
+            document.getElementById('lockout-overlay').classList.add('flex');
+            console.warn("LOCKOUT TRIGGERED:", reason);
+        };
+
+        const handleResume = async () => {
+            const pwdInput = document.getElementById('proctor-auth').value;
+            if (pwdInput === settings.proctorPassword) {
+                document.getElementById('proctor-auth').value = '';
+                unlockAttempts++;
+                isLockedOut = false;
+                document.getElementById('lockout-overlay').classList.add('hidden');
+                document.getElementById('lockout-overlay').classList.remove('flex');
+                try {
+                    await document.documentElement.requestFullscreen();
+                } catch (e) { }
+            } else {
+                alert("INCORRECT PROCTOR OVERRIDE");
+            }
+        };
+
+        const handleForceSubmit = async () => {
+            const btn = document.getElementById('force-submit-btn');
+            btn.textContent = "TRANSMITTING...";
+            try {
+                await submitTest(assessmentId, user.user.uid, answers, {
+                    displayName: user.displayName,
+                    email: user.email || user.user.email
+                }, {
+                    terminatedDueToCheating: true,
+                    cheatingReason: "Force submitted during lockout",
+                    unlockAttempts
+                });
+                localStorage.removeItem(storageKey);
+                window.location.hash = '#student-dash';
+                // Try to exit fullscreen if possible
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                }
+            } catch (err) {
+                alert("TRANSMISSION FAILURE: " + err.message);
+                btn.textContent = "Or Force Submit Assessment Now";
+            }
+        };
+
+        if (!isTeacher && settings.requireFullscreen) {
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement === null) handleLockout("Exited Fullscreen");
+            });
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') handleLockout("Switched Tabs/Background");
+            });
+
+            // Because UI is re-rendered, we must attach listeners to the body/document or dynamically
+            // But since they are static overlays, we can attach when UI updates or globally delegate:
+            document.addEventListener('click', (e) => {
+                if (e.target.id === 'unlock-btn') handleResume();
+                if (e.target.id === 'force-submit-btn') handleForceSubmit();
+            });
+        }
 
     } catch (error) {
         console.error(error);
