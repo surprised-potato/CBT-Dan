@@ -1,7 +1,7 @@
 import { getUser, isAuthReady } from './store.js';
 
 const routes = {};
-const teacherRoutes = ['#editor', '#teacher-dash', '#assessment-bank', '#wizard', '#bank', '#bulk-import', '#class-manager'];
+const teacherRoutes = ['#editor', '#teacher-dash', '#assessment-bank', '#wizard', '#bank', '#bulk-import', '#class-manager', '#teacher-list'];
 
 export const initRouter = () => {
     window.addEventListener('hashchange', handleRoute);

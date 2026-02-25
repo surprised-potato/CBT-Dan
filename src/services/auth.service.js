@@ -114,6 +114,32 @@ export const authorizeInstructor = async (uid) => {
     }
 };
 
+export const getApprovedInstructors = async () => {
+    try {
+        const { collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const q = query(collection(db, "users"), where("role", "==", "teacher"), where("isAuthorized", "==", true));
+        const querySnapshot = await getDocs(q);
+        const approved = [];
+        querySnapshot.forEach((doc) => {
+            approved.push({ uid: doc.id, ...doc.data() });
+        });
+        return approved;
+    } catch (error) {
+        console.error("Error fetching approved instructors:", error);
+        throw error;
+    }
+};
+
+export const demoteToStudent = async (uid) => {
+    try {
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, { role: 'student', isAuthorized: true });
+    } catch (error) {
+        console.error("Error demoting instructor:", error);
+        throw error;
+    }
+};
+
 export const logoutUser = async () => {
     await signOut(auth);
     deleteCookie('cbt_session');

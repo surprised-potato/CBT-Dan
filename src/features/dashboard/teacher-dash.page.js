@@ -6,7 +6,6 @@ import { updateUserProfile, logoutUser } from '../../services/auth.service.js';
 import { getAssessments } from '../../services/assessment.service.js';
 import { getQuestions } from '../../services/question-bank.service.js';
 import { getClassesByTeacher } from '../../services/class.service.js';
-import { getPendingInstructors, authorizeInstructor } from '../../services/auth.service.js';
 import { enforceProfileCompletion } from '../../core/utils.js';
 
 export const TeacherDashPage = async () => {
@@ -141,23 +140,22 @@ export const TeacherDashPage = async () => {
                             </div>
                         </div>
 
-                        <!-- Card: Pending Authorizations -->
-                        <div id="pending-auth-card" class="hidden animate-in zoom-in duration-500">
-                             <div class="group relative bg-amber-50 p-10 rounded-[40px] shadow-xl shadow-amber-500/10 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/40 border-2 border-amber-200">
-                                <div class="absolute top-0 right-0 w-64 h-64 bg-amber-100 rounded-full -mr-20 -mt-20 blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
-                                <div class="relative z-10">
-                                    <div class="flex items-center gap-8 mb-6">
-                                        <div class="w-20 h-20 bg-amber-500 rounded-[28px] flex items-center justify-center shadow-lg shadow-amber-200 group-hover:scale-110 transition-transform text-white">
-                                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <h3 class="font-black text-gray-900 text-3xl">Pending Approvals</h3>
-                                            <p class="text-amber-800 text-xs font-black uppercase tracking-[0.2em] mt-2">New Instructor Enrollment Requests</p>
-                                        </div>
+                        <!-- Card: Faculty Registry -->
+                        <div onclick="location.hash='#teacher-list'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-amber-500/10 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/40 active:scale-[0.98]">
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                                <div class="flex items-center gap-8">
+                                    <div class="w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-[28px] flex items-center justify-center shadow-lg shadow-amber-200 group-hover:scale-110 transition-transform">
+                                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                     </div>
-                                    <div id="pending-list" class="space-y-4">
-                                        <!-- List of pending users injected here -->
+                                    <div>
+                                        <h3 class="font-black text-gray-900 text-3xl group-hover:text-amber-600 transition-colors">Faculty Registry</h3>
+                                        <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Manage Instructors & Approvals</p>
                                     </div>
+                                </div>
+                                <div class="mt-8 flex items-center justify-between p-5 bg-gray-50 rounded-[28px] text-gray-400 group-hover:bg-amber-500 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(245,158,11,0.4)] transition-all shadow-inner border border-transparent group-hover:border-amber-400">
+                                    <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Administration</span>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </div>
                             </div>
                         </div>
@@ -216,50 +214,11 @@ export const TeacherDashPage = async () => {
     const loadDashboardData = async () => {
         const statsContainer = document.getElementById('stats-container');
         try {
-            const [classes, assessments, questions, pending] = await Promise.all([
+            const [classes, assessments, questions] = await Promise.all([
                 getClassesByTeacher(user.user.uid),
                 getAssessments(user.user.uid),
-                getQuestions(),
-                getPendingInstructors()
+                getQuestions()
             ]);
-
-            // Handle Pending UI
-            if (pending.length > 0) {
-                const pendingCard = document.getElementById('pending-auth-card');
-                const pendingList = document.getElementById('pending-list');
-                pendingCard.classList.remove('hidden');
-                pendingList.innerHTML = pending.map(p => `
-                    <div class="flex items-center justify-between p-4 bg-white/60 rounded-2xl border border-amber-200 backdrop-blur-sm">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 font-black">
-                                ${p.displayName?.charAt(0) || 'U'}
-                            </div>
-                            <div>
-                                <p class="text-xs font-black text-gray-900 uppercase tracking-wider">${p.displayName || 'Unknown Personnel'}</p>
-                                <p class="text-[10px] text-gray-500 font-bold">${p.course || 'No Department'}</p>
-                            </div>
-                        </div>
-                        <button data-uid="${p.uid}" class="approve-btn bg-amber-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 active:scale-95 transition-all shadow-md shadow-amber-200">Approve</button>
-                    </div>
-                `).join('');
-
-                pendingList.querySelectorAll('.approve-btn').forEach(btn => {
-                    btn.onclick = async (e) => {
-                        const uid = e.target.dataset.uid;
-                        e.target.disabled = true;
-                        e.target.textContent = '...';
-                        try {
-                            await authorizeInstructor(uid);
-                            loadDashboardData(); // Refresh
-                        } catch (err) {
-                            alert("Approval failed");
-                            e.target.disabled = false;
-                        }
-                    };
-                });
-            } else {
-                document.getElementById('pending-auth-card').classList.add('hidden');
-            }
 
             const totalStudents = classes.reduce((sum, c) => sum + (c.students?.length || 0), 0);
             statsContainer.innerHTML = `
