@@ -3,7 +3,7 @@ console.log("App starting...");
 // Import config (optional, ensures firebase init)
 import './src/core/config.js';
 
-import { initRouter, addRoute, navigateTo } from './src/core/router.js';
+import { initRouter, addRoute, navigateTo, handleRoute } from './src/core/router.js';
 import { LoginPage } from './src/features/auth/login.page.js';
 import { RegisterPage } from './src/features/auth/register.page.js';
 import { EditorPage } from './src/features/question-bank/editor.page.js';
@@ -50,6 +50,7 @@ addRoute('', LoginPage);
 // --- Start the App ---
 observeAuthChanges((user) => {
     console.log("Auth State Changed:", user);
+    handleRoute(); // Process route once auth finishes
 });
 
 initRouter();

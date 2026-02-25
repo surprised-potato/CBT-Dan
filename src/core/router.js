@@ -16,7 +16,7 @@ export const navigateTo = (hash) => {
     window.location.hash = hash;
 };
 
-const handleRoute = async () => {
+export const handleRoute = async () => {
     let hash = window.location.hash;
     const user = getUser();
 
@@ -26,18 +26,35 @@ const handleRoute = async () => {
         window.history.replaceState(null, null, '#login');
     }
 
-    // Middleware: Authorization Check for Teachers
     const baseRoute = hash.split('?')[0];
+    const publicRoutes = ['#login', '#register', '#test-ui'];
 
-    if (teacherRoutes.includes(baseRoute)) {
+    // Auth Middleware: Wait for initial Auth to resolve before showing protected pages
+    if (!isAuthReady() && baseRoute !== '#test-ui') {
+        return; // Wait on loading screen
+    }
+
+    // Redirect logged-in users away from auth pages
+    if ((baseRoute === '#login' || baseRoute === '#register') && user) {
+        window.location.hash = user.role === 'teacher' ? '#teacher-dash' : '#student-dash';
+        return;
+    }
+
+    // Protect all non-public routes centrally
+    if (!publicRoutes.includes(baseRoute)) {
         if (!user) {
-            // Don't redirect if auth is still initializing
-            if (!isAuthReady()) return;
-
             window.location.hash = '#login';
             return;
         }
-        if (user.role === 'teacher' && user.isAuthorized === false) {
+    }
+
+    // Role-based protection
+    if (teacherRoutes.includes(baseRoute)) {
+        if (user && user.role !== 'teacher') {
+            window.location.hash = '#student-dash';
+            return;
+        }
+        if (user && user.role === 'teacher' && user.isAuthorized === false) {
             window.location.hash = '#pending-authorization';
             return;
         }
