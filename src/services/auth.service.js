@@ -148,17 +148,19 @@ export const observeAuthChanges = (callback) => {
                 const userData = { user, ...userDoc.data() };
                 setUser(userData);
                 setCookie('cbt_session', user.uid, 7);
+                setAuthInitialized(true);
                 if (callback) callback(userData);
             } else {
                 setUser({ user, role: 'student' });
                 setCookie('cbt_session', user.uid, 7);
+                setAuthInitialized(true);
                 if (callback) callback({ user, role: 'student' });
             }
         } else {
             deleteCookie('cbt_session');
             setUser(null);
+            setAuthInitialized(true);
             if (callback) callback(null);
         }
-        setAuthInitialized(true);
     });
 };
