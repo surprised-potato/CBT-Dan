@@ -148,7 +148,35 @@ export const getSubmissionsForAssessment = async (assessmentId) => {
             where("assessmentId", "==", assessmentId)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        const submissions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Dynamically fetch最新 user profiles to override frozen 'Unknown' names
+        const userCache = {};
+        await Promise.all(submissions.map(async (sub) => {
+            if (sub.studentId && !userCache[sub.studentId]) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', sub.studentId));
+                    userCache[sub.studentId] = userDoc.exists() ? userDoc.data() : null;
+                } catch (e) {
+                    userCache[sub.studentId] = null;
+                }
+            }
+        }));
+
+        return submissions.map(sub => {
+            const userData = userCache[sub.studentId];
+            if (userData) {
+                sub.studentName = userData.displayName || sub.studentName;
+                sub.studentEmail = userData.email || sub.studentEmail;
+            }
+
+            // Fallback strategy if name is still unresolved
+            if (!sub.studentName || sub.studentName === 'Unknown' || sub.studentName.trim() === '') {
+                sub.studentName = sub.studentEmail ? sub.studentEmail.split('@')[0] : 'Unknown';
+            }
+            return sub;
+        });
+
     } catch (error) {
         console.error("Error fetching submissions:", error);
         throw error;
