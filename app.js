@@ -25,6 +25,8 @@ import { PendingAuthorizationPage } from './src/features/auth/pending-authorizat
 
 import { ItemAnalysisPage } from './src/features/reports/item-analysis.page.js';
 import { TeacherListPage } from './src/features/dashboard/teacher-list.page.js';
+import { AttendanceTerminalPage } from './src/features/attendance/terminal.page.js';
+import { CheckinPage } from './src/features/attendance/checkin.page.js';
 
 // --- Register Routes ---
 addRoute('#login', LoginPage);
@@ -44,6 +46,8 @@ addRoute('#bulk-import', BulkImportPage);
 addRoute('#printable', PrintablePage);
 addRoute('#class-manager', ClassManagerPage);
 addRoute('#teacher-list', TeacherListPage);
+addRoute('#attendance-terminal', AttendanceTerminalPage);
+addRoute('#checkin', CheckinPage);
 addRoute('#pending-authorization', PendingAuthorizationPage);
 addRoute('#test-ui', UITestPage);
 // Add a default route or alias
