@@ -157,7 +157,7 @@ export const WizardPage = async () => {
                                     </div>
                                 </div>
                                 
-                                <div id="geofence-map" class="w-full h-48 rounded-2xl border-2 border-blue-200 overflow-hidden relative z-0"></div>
+                                <div id="geofence-map" class="w-full h-[400px] rounded-2xl border-2 border-blue-200 overflow-hidden relative z-0"></div>
                                 <div class="text-[8px] font-black text-blue-400 uppercase tracking-widest text-center" id="coords-display">LAT: -- | LNG: --</div>
                             </div>
                         </div>

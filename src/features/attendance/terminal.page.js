@@ -90,7 +90,7 @@ export const AttendanceTerminalPage = async () => {
                                 <span class="text-[9px] font-black text-gray-400 uppercase">M</span>
                             </div>
                         </div>
-                        <div id="att-map" class="w-full h-48 rounded-2xl border-2 border-green-200 overflow-hidden relative z-0"></div>
+                        <div id="att-map" class="w-full h-[400px] rounded-2xl border-2 border-green-200 overflow-hidden relative z-0"></div>
                         <div class="text-[8px] font-black text-green-400 uppercase tracking-widest text-center" id="att-coords">LAT: -- | LNG: --</div>
                     </div>
 
