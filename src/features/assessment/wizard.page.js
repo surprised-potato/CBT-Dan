@@ -348,8 +348,9 @@ export const WizardPage = async () => {
                 if (['pointsPerQuestion'].includes(field)) val = parseInt(val) || 0;
                 sections[idx][field] = val;
 
-                if (field === 'course') {
-                    sections[idx].topics = [];
+                // Re-render when dependencies of 'available count' change
+                if (field === 'course' || field === 'type') {
+                    if (field === 'course') sections[idx].topics = [];
                     renderSections();
                 }
             };
@@ -373,6 +374,9 @@ export const WizardPage = async () => {
                     chip.classList.add('bg-white', 'text-gray-400', 'border-gray-100');
                     chip.classList.remove('bg-purple-premium', 'text-white', 'border-purple-400', 'shadow-lg', 'shadow-purple-100');
                 }
+
+                // Refresh counts when topics change
+                renderSections();
             };
         });
 
