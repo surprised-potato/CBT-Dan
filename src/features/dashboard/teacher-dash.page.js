@@ -159,6 +159,27 @@ export const TeacherDashPage = async () => {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Card: Attendance Terminal -->
+                        <div onclick="location.hash='#attendance-terminal'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-green-500/10 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-green-500/40 active:scale-[0.98]">
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-green-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                                <div class="flex items-center gap-8">
+                                    <div class="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-700 rounded-[28px] flex items-center justify-center shadow-lg shadow-green-200 group-hover:scale-110 transition-transform">
+                                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v0m6 0v0m6 0v0M5 16h2m10 0h2m-4-6h2m-4 0h2m-4 0h2m-4 0h2m-4 0h2m-4 0h2m-8 8v2m0-10V4m0 0h2M5 4h2M5 4h2"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-black text-gray-900 text-3xl group-hover:text-green-600 transition-colors">Dynamic Attendance</h3>
+                                        <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Rotating QR & Geofence Terminals</p>
+                                    </div>
+                                </div>
+                                <div class="mt-8 flex items-center justify-between p-5 bg-gray-50 rounded-[28px] text-gray-400 group-hover:bg-green-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(22,163,74,0.4)] transition-all shadow-inner border border-transparent group-hover:border-green-400">
+                                    <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Operator Terminal</span>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </section>
 
