@@ -6,7 +6,8 @@ import {
     closeSession,
     listenToSession,
     getSessionsByClass,
-    exportAttendanceCSV
+    exportAttendanceCSV,
+    getActiveSessionsByTeacher
 } from '../../services/attendance.service.js';
 
 export const AttendanceTerminalPage = async () => {
@@ -325,5 +326,28 @@ export const AttendanceTerminalPage = async () => {
         if (unsubscribe) unsubscribe();
     }, { once: true });
 
-    renderSetup();
+    // --- Initial Entry Logic ---
+    const checkActiveSessions = async () => {
+        app.innerHTML = `
+        <div class="flex items-center justify-center min-h-screen bg-premium-gradient">
+            <div class="w-16 h-1 bg-green-500 rounded-full animate-pulse mb-8"></div>
+            <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Syncing Active Sessions...</p>
+        </div>`;
+
+        try {
+            const activeSessions = await getActiveSessionsByTeacher(user.user.uid);
+            if (activeSessions.length > 0) {
+                // If multiple, pick the most recent
+                activeSession = activeSessions.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+                renderTerminal();
+            } else {
+                renderSetup();
+            }
+        } catch (e) {
+            console.error('Session recovery error:', e);
+            renderSetup();
+        }
+    };
+
+    checkActiveSessions();
 };

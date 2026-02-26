@@ -157,6 +157,19 @@ export const getSessionsByClass = async (classId) => {
 };
 
 /**
+ * Find all active sessions for a specific teacher.
+ */
+export const getActiveSessionsByTeacher = async (teacherId) => {
+    const q = query(
+        collection(db, COLLECTION),
+        where('teacherId', '==', teacherId),
+        where('status', '==', 'active')
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+/**
  * Get active session for a class (if any).
  */
 export const getActiveSession = async (classId) => {
