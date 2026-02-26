@@ -7,6 +7,7 @@ The software follows a strict **Service-Component-Page (SCP)** pattern, which is
 
 - **Services (`/src/services`)**: The "Data Layer". These molecules are pure JavaScript and handle all interactions with Firebase Firestore and Authentication. They return Promises and do not touch the DOM.
 - **Components (`/src/shared`, `/src/features/**/types`)**: The "UI Layer". These are pure functions that take data as input and return an HTML string. This allows the same question renderer (e.g., `mcq.js`) to be used in both the Teacher's Editor and the Student's Test Taker.
+- **Harmonized Logic Provider**: A centralized singleton within `grading.service.js` that exports `checkCorrectness`, `formatAnswer`, and `normalize`. This ensures that scoring and formatting are consistent across the Taker, Results, and Analytics modules.
 - **Pages/Controllers (`/src/features/**/page.js`)**: The "Glue Layer". Pages fetch data via Services, pass it to Components for rendering, inject the resulting HTML into the `#app` container, and attach event listeners.
 
 ## 2. Security Model: "Split-Brain" Data Architecture
@@ -17,7 +18,7 @@ A standout feature of this system is its approach to assessment security. To pre
 
 **Grading Flow:**
 - The student submits their answers to a `submissions` collection.
-- The `grading.service.js` (triggered by the teacher or a cloud function) fetches the submission and the secure key, performs the comparison, and updates the score. This ensures the integrity of the results.
+- The `grading.service.js` (triggered by the teacher or a sub-process) fetches the submission and the secure key. It uses a **Harmonized Grader** to compare responses. This prevents false-positives from miskeyed entries or empty inputs, ensuring a reliable source of truth for student performance.
 
 ## 3. Core Infrastructure
 - **Router (`core/router.js`)**: A custom hash-based router (`#login`, `#dashboard`). it includes "middleware" capability to prevent students from accessing teacher-only routes.

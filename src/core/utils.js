@@ -5,8 +5,10 @@
  */
 export const isProfileIncomplete = (user) => {
     if (!user) return false;
-    const name = user.displayName || '';
-    return name.trim() === '';
+    const name = String(user.displayName || '').trim().toLowerCase();
+
+    const placeholders = ['', 'unknown', 'null', 'undefined', 'n/a', 'student', 'teacher'];
+    return placeholders.includes(name);
 };
 
 /**
@@ -21,10 +23,17 @@ export const enforceProfileCompletion = (user, modalId) => {
             modal.classList.remove('hidden');
 
             // Add custom visual cue to the modal header/content
-            const title = modal.querySelector('h2');
+            const title = modal.querySelector('h3'); // Modal header is usually h3
             if (title && !title.dataset.enforced) {
-                title.innerHTML += '<span class="block text-[10px] text-orange-500 mt-2 uppercase tracking-widest animate-pulse">Action Required: Protocol requires personnel name</span>';
+                title.classList.add('flex', 'flex-col');
+                title.innerHTML += '<span class="block text-[10px] text-orange-600 mt-2 p-3 bg-orange-50 rounded-xl border border-orange-100 font-black uppercase tracking-widest animate-pulse">Action Required: Registry Requires Personnel Name</span>';
                 title.dataset.enforced = "true";
+            }
+
+            // Disable close button if profile is incomplete to force action
+            const closeBtn = document.getElementById(`${modalId}-close-btn`);
+            if (closeBtn) {
+                closeBtn.classList.add('hidden');
             }
         }
     }

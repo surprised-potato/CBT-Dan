@@ -2,6 +2,7 @@ import { db } from '../../core/config.js';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getUser } from '../../core/store.js';
 import { calculateStudentTopicPerformance } from '../../services/analytics.service.js';
+import { checkCorrectness, formatAnswer } from '../../services/grading.service.js';
 
 export const ResultsPage = async () => {
     const app = document.getElementById('app');
@@ -175,63 +176,5 @@ export const ResultsPage = async () => {
         console.error(error);
         app.innerHTML = `<div class="p-20 text-center glass-panel rounded-[40px] font-black text-red-500 uppercase tracking-widest m-8">RETRIEVAL ERROR: ${error.message}</div>`;
     }
-};
 
-const normalize = (str) => String(str || '').trim().toLowerCase();
-
-const checkCorrectness = (q, studentAns, keyAns) => {
-    if (Array.isArray(keyAns)) {
-        if (Array.isArray(studentAns)) {
-            if (studentAns.length !== keyAns.length) return false;
-            if (q.type === 'MULTI_ANSWER') {
-                return studentAns.every(v => keyAns.includes(v)) && keyAns.every(v => studentAns.includes(v));
-            } else if (q.type === 'MATCHING') {
-                return studentAns.every((v, idx) => {
-                    const def = keyAns[idx]?.definition;
-                    return def && normalize(v) === normalize(def);
-                });
-            } else if (q.type === 'ORDERING') {
-                return studentAns.every((v, idx) => {
-                    const key = keyAns[idx];
-                    return key && normalize(v) === normalize(key);
-                });
-            }
-            return studentAns.every((v, idx) => {
-                const key = keyAns[idx];
-                return key && normalize(v) === normalize(key);
-            });
-        } else if (typeof studentAns === 'string') {
-            return keyAns.some(v => normalize(studentAns) === normalize(v));
-        }
-    }
-    return normalize(studentAns) === normalize(keyAns);
-};
-
-const formatAnswer = (q, ans) => {
-    if (!ans) return '<span class="italic opacity-50">NO DATA TRANSMITTED</span>';
-    if (Array.isArray(ans)) {
-        if (q.type === 'MULTI_ANSWER') {
-            return ans.map(v => {
-                const choice = q.choices.find(c => c.id === v);
-                return choice ? choice.text : v;
-            }).join(', ');
-        }
-        if (q.type === 'MATCHING') {
-            const terms = q.matchingTerms || (q.pairs || []).map(p => p.term);
-            return ans.map((v, i) => {
-                const val = typeof v === 'object' && v !== null ? (v.definition || v.text || JSON.stringify(v)) : v;
-                return `${terms[i] || '?'} → ${val}`;
-            }).join('<br>');
-        }
-        if (q.type === 'ORDERING') {
-            return ans.map((v, i) => `${i + 1}. ${v}`).join(', ');
-        }
-        return ans.join(', ');
-    }
-    if (q.type === 'MCQ') {
-        const choice = q.choices ? q.choices.find(c => c.id === ans) : null;
-        return choice ? choice.text : ans;
-    }
-    if (q.type === 'TRUE_FALSE') return ans === 'true' ? 'TRUE' : 'FALSE';
-    return ans;
 };

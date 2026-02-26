@@ -166,14 +166,25 @@ export const StudentDashPage = async () => {
             btn.textContent = 'Saving...';
             try {
                 await updateUserProfile(user.user.uid, { displayName: newName });
+
+                // If now complete, restore UI
+                const modal = document.getElementById('profile-modal');
+                const closeBtn = document.getElementById('profile-modal-close-btn');
+                const title = modal?.querySelector('h3');
+
+                if (closeBtn) closeBtn.classList.remove('hidden');
+                if (title) {
+                    const notice = title.querySelector('span'); // The pulse notice
+                    if (notice) notice.remove();
+                    delete title.dataset.enforced;
+                }
+
                 document.getElementById('profile-modal').classList.add('hidden');
 
                 // Surgical UI Update: update the display name in the header
                 const nameDisplay = document.querySelector('header div p.text-xs.font-bold');
                 if (nameDisplay) nameDisplay.textContent = newName;
 
-                // Update local userName state for subsequent uses if needed, 
-                // but since we reference user.displayName which is now updated in the store...
                 console.log("Profile updated successfully");
             } catch (err) {
                 alert("Update failed");

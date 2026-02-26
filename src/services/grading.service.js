@@ -15,8 +15,68 @@ const COL_SUBS = 'submissions';
 const COL_CONTENT = 'assessment_content';
 
 // Helper: Normalize strings for comparison (Identification)
-const normalize = (str) => {
+export const normalize = (str) => {
     return String(str || '').trim().toLowerCase();
+};
+
+export const checkCorrectness = (q, studentAns, keyAns) => {
+    // If student answer is empty, it's immediately wrong (prevents matching null keys)
+    if (studentAns === undefined || studentAns === null || (typeof studentAns === 'string' && studentAns.trim() === '')) {
+        return false;
+    }
+
+    if (Array.isArray(keyAns)) {
+        if (Array.isArray(studentAns)) {
+            if (studentAns.length !== keyAns.length) return false;
+            if (q.type === 'MULTI_ANSWER') {
+                return studentAns.every(v => keyAns.includes(v)) && keyAns.every(v => studentAns.includes(v));
+            } else if (q.type === 'MATCHING') {
+                return studentAns.every((v, idx) => {
+                    const def = keyAns[idx]?.definition;
+                    return def && normalize(v) === normalize(def);
+                });
+            } else if (q.type === 'ORDERING') {
+                return studentAns.every((v, idx) => {
+                    const key = keyAns[idx];
+                    return key && normalize(v) === normalize(key);
+                });
+            }
+            return studentAns.every((val, idx) => normalize(val) === normalize(keyAns[idx]));
+        } else if (typeof studentAns === 'string') {
+            // Identification with variants
+            return keyAns.some(variant => normalize(studentAns) === normalize(variant));
+        }
+    }
+    return normalize(studentAns) === normalize(keyAns);
+};
+
+export const formatAnswer = (q, ans) => {
+    if (!ans) return '<span class="italic opacity-50 text-red-400">NO DATA TRANSMITTED</span>';
+    if (Array.isArray(ans)) {
+        if (q.type === 'MULTI_ANSWER') {
+            return ans.map(v => {
+                const choice = q.choices.find(c => c.id === v);
+                return choice ? choice.text : v;
+            }).join(', ');
+        }
+        if (q.type === 'MATCHING') {
+            const terms = q.matchingTerms || (q.pairs || []).map(p => p.term);
+            return ans.map((v, i) => {
+                const val = typeof v === 'object' && v !== null ? (v.definition || v.text || JSON.stringify(v)) : v;
+                return `${terms[i] || '?'} → ${val}`;
+            }).join('<br>');
+        }
+        if (q.type === 'ORDERING') {
+            return ans.map((v, i) => `${i + 1}. ${v}`).join(', ');
+        }
+        return ans.join(', ');
+    }
+    if (q.type === 'MCQ') {
+        const choice = q.choices ? q.choices.find(c => c.id === ans) : null;
+        return choice ? choice.text : ans;
+    }
+    if (q.type === 'TRUE_FALSE') return ans === 'true' ? 'TRUE' : 'FALSE';
+    return ans;
 };
 
 export const gradeSubmission = async (submissionId) => {
@@ -24,32 +84,19 @@ export const gradeSubmission = async (submissionId) => {
         // 1. Fetch Submission
         const subRef = doc(db, COL_SUBS, submissionId);
         const subSnap = await getDoc(subRef);
-
         if (!subSnap.exists()) throw new Error("Submission not found");
         const submission = subSnap.data();
 
         // 2. Fetch Answer Key
-        // The key doc ID is the same as the assessment ID (we set it that way in assessment.service.js)
         const keyRef = doc(db, COL_KEYS, submission.assessmentId);
         const keySnap = await getDoc(keyRef);
-
         if (!keySnap.exists()) throw new Error("Answer key not found");
-        const keys = keySnap.data().answers; // { qId: correct_answer, ... }
+        const keys = keySnap.data().answers;
 
-        // 3. Fetch Assessment Content (to get points per question if needed, or total questions)
-        // For now assuming 1 point per question or we can fetch content to get specific points.
-        // Let's simple fetch content to be robust about points.
+        // 3. Fetch Assessment Content
         const contentRef = doc(db, COL_CONTENT, submission.assessmentId);
         const contentSnap = await getDoc(contentRef);
         const startData = contentSnap.exists() ? contentSnap.data() : { questions: [] };
-
-        // Build a map of points: { qId: 5, ... }
-        const pointsMap = {};
-        startData.questions.forEach(q => {
-            // Priority: Question Point -> Section/Wizard Config -> Default 1
-            const p = q.points !== undefined ? q.points : (q.sectionPoints !== undefined ? q.sectionPoints : 1);
-            pointsMap[q.id] = parseInt(p);
-        });
 
         // 4. Calculate Score
         let score = 0;
@@ -59,47 +106,15 @@ export const gradeSubmission = async (submissionId) => {
         for (const [qId, correctAnswer] of Object.entries(keys)) {
             const studentAnswer = studentAnswers[qId];
             const qObj = startData.questions.find(q => q.id === qId);
+            if (!qObj) continue;
 
-            // FIX: Prioritize Section Points (Wizard Config) over Question Default
-            // q.sectionPoints comes from the Wizard. q.points comes from the Bank.
             const p = qObj.sectionPoints !== undefined ? qObj.sectionPoints : (qObj.points !== undefined ? qObj.points : 1);
             const points = parseInt(p);
-
             totalPoints += points;
 
-            let isCorrect = false;
-
-            if (Array.isArray(correctAnswer)) {
-                if (Array.isArray(studentAnswer)) {
-                    // MULTI_ANSWER, MATCHING, ORDERING
-                    if (studentAnswer.length === correctAnswer.length) {
-                        if (qObj?.type === 'MULTI_ANSWER') {
-                            // Order independent
-                            isCorrect = studentAnswer.every(val => correctAnswer.includes(val)) &&
-                                correctAnswer.every(val => studentAnswer.includes(val));
-                        } else if (qObj?.type === 'MATCHING') {
-                            // Must match the definition in each pair
-                            isCorrect = studentAnswer.every((val, idx) => normalize(val) === normalize(correctAnswer[idx].definition));
-                        } else if (qObj?.type === 'ORDERING') {
-                            // Must match the item in sequence
-                            isCorrect = studentAnswer.every((val, idx) => normalize(val) === normalize(correctAnswer[idx]));
-                        } else {
-                            // General list fallback
-                            isCorrect = studentAnswer.every((val, idx) => normalize(val) === normalize(correctAnswer[idx]));
-                        }
-                    }
-                } else if (typeof studentAnswer === 'string') {
-                    // Identification with variants
-                    isCorrect = correctAnswer.some(variant => normalize(studentAnswer) === normalize(variant));
-                }
-            } else {
-                // Standard Single Match (MCQ Choice ID, True/False, or Legacy Identification)
-                if (normalize(studentAnswer) === normalize(correctAnswer)) {
-                    isCorrect = true;
-                }
+            if (checkCorrectness(qObj, studentAnswer, correctAnswer)) {
+                score += points;
             }
-
-            if (isCorrect) score += points;
         }
 
         // 5. Update Submission
@@ -112,12 +127,12 @@ export const gradeSubmission = async (submissionId) => {
 
         console.log(`[Grading] Submission ${submissionId} graded. Score: ${score}/${totalPoints}`);
         return { score, totalPoints };
-
     } catch (error) {
         console.error("Grading Error:", error);
         throw error;
     }
 };
+
 
 export const gradeAllSubmissions = async (assessmentId) => {
     try {

@@ -198,6 +198,19 @@ export const TeacherDashPage = async () => {
         btn.textContent = 'Saving...';
         try {
             await updateUserProfile(user.user.uid, { displayName: newName });
+
+            // If now complete, restore UI
+            const modal = document.getElementById('profile-modal');
+            const closeBtn = document.getElementById('profile-modal-close-btn');
+            const title = modal?.querySelector('h3');
+
+            if (closeBtn) closeBtn.classList.remove('hidden');
+            if (title) {
+                const notice = title.querySelector('span'); // The pulse notice
+                if (notice) notice.remove();
+                delete title.dataset.enforced;
+            }
+
             document.getElementById('profile-modal').classList.add('hidden');
 
             // Surgical UI Update

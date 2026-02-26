@@ -1,4 +1,4 @@
-import { createClass, getClassesByTeacher, approveStudent, rejectStudent, softDeleteClass } from '../../services/class.service.js';
+import { createClass, getClassesByTeacher, approveStudent, rejectStudent, softDeleteClass, removeFromClass } from '../../services/class.service.js';
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
 import { getSubmissionsByStudent } from '../../services/submission.service.js';
@@ -305,8 +305,8 @@ export const ClassManagerPage = async () => {
         return cls.students.map((s, idx) => {
             const email = s.email || 'No Email';
             return `
-                <div onclick="window.viewScores(${idx})" class="bg-white p-6 rounded-[32px] border border-white flex items-center justify-between group hover:border-green-500 hover:shadow-2xl hover:shadow-green-50/50 cursor-pointer transition-all active:scale-[0.98]">
-                    <div class="flex items-center gap-6">
+                <div class="bg-white p-6 rounded-[32px] border border-white flex items-center justify-between group hover:border-green-500 hover:shadow-2xl hover:shadow-green-50/50 transition-all active:scale-[0.98]">
+                    <div onclick="window.viewScores(${idx})" class="flex items-center gap-6 cursor-pointer flex-1">
                         <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-green-500 group-hover:bg-green-50 group-hover:text-green-700 transition-all shadow-inner">
                             ${email.charAt(0).toUpperCase()}
                         </div>
@@ -315,8 +315,13 @@ export const ClassManagerPage = async () => {
                             <p class="text-[10px] text-gray-600 font-mono tracking-widest mt-1">${s.uid.substring(0, 16).toUpperCase()}</p>
                         </div>
                     </div>
-                    <div class="text-gray-200 group-hover:text-green-500 group-hover:bg-green-50 p-2 rounded-xl transition-all group-hover:translate-x-1">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.removeFromRegistry('${cls.id}', ${idx})" class="p-3 rounded-2xl bg-gray-50 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all" title="Remove Access">
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                        <div onclick="window.viewScores(${idx})" class="cursor-pointer text-gray-200 group-hover:text-green-500 group-hover:bg-green-50 p-2 rounded-xl transition-all group-hover:translate-x-1">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
                     </div>
                 </div>
             `;
@@ -447,6 +452,20 @@ export const ClassManagerPage = async () => {
             renderLevel2(selectedClass);
         } catch (err) {
             alert("Workflow fail.");
+        }
+    };
+
+    window.removeFromRegistry = async (classId, studentIdx) => {
+        const student = selectedClass.students[studentIdx];
+        if (!confirm(`Are you sure you want to remove access for ${student.email}?`)) return;
+
+        try {
+            await removeFromClass(classId, student);
+            selectedClass.students.splice(studentIdx, 1);
+            renderLevel2(selectedClass);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to remove student from registry.");
         }
     };
 

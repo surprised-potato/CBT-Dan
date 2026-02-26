@@ -76,6 +76,7 @@ export const loginWithGoogle = async (role = 'student') => {
             // or we could prompt. For now assuming 'student' default for safety unless logic changes.
             const newUser = {
                 email: user.email,
+                displayName: user.displayName || '',
                 role: role,
                 isAuthorized: role === 'teacher' ? false : true,
                 createdAt: new Date().toISOString()

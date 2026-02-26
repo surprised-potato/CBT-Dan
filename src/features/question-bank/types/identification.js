@@ -22,7 +22,7 @@ export const renderIdentification = (question, index = 1) => {
 
             <div class="relative pt-4">
                 <input type="text" 
-                       name="q-${question.id || index}" 
+                       name="q-${question.id}" 
                        placeholder="INPUT TELEMETRY DATA..."
                        autocomplete="off"
                        class="w-full p-8 bg-gray-50 border-2 border-transparent rounded-[40px] text-lg font-black text-purple-900 uppercase tracking-tight placeholder:text-gray-300 outline-none focus:bg-white focus:border-purple-500 transition-all shadow-inner">

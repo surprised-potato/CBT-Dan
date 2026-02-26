@@ -381,7 +381,7 @@ export const TakerPage = async () => {
                 const activeQs = settings.oneAtATime ? [questions[currentIdx]] : questions;
 
                 activeQs.forEach(q => {
-                    if (q.type === 'MCQ' || q.type === 'TRUE_FALSE') {
+                    if (q.type === 'MCQ' || q.type === 'TRUE_FALSE' || q.type === 'IDENTIFICATION') {
                         const val = formData.get(`q-${q.id}`);
                         if (val !== null) newAnswers[q.id] = val;
                     } else if (q.type === 'MULTI_ANSWER') {

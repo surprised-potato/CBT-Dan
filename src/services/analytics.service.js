@@ -1,5 +1,4 @@
-
-// src/services/analytics.service.js
+import { checkCorrectness } from './grading.service.js';
 
 /**
  * Calculates item analysis statistics for a set of submissions.
@@ -50,8 +49,7 @@ export const calculateItemStatistics = (submissions, questions) => {
     });
 };
 
-// Helper: Normalize
-const normalize = (str) => String(str || '').trim().toLowerCase();
+
 
 /**
  * We need the Answer Keys to determine if an answer is correct for statistics.
@@ -200,31 +198,4 @@ export const calculateStudentTopicPerformance = (submission, assessment, keys) =
     }));
 };
 
-// --- Logic from results.page.js / grading.service.js ---
-const checkCorrectness = (q, studentAns, keyAns) => {
-    if (Array.isArray(keyAns)) {
-        if (Array.isArray(studentAns)) {
-            if (studentAns.length !== keyAns.length) return false;
-            if (q.type === 'MULTI_ANSWER') {
-                return studentAns.every(v => keyAns.includes(v)) && keyAns.every(v => studentAns.includes(v));
-            } else if (q.type === 'MATCHING') {
-                return studentAns.every((v, idx) => {
-                    const def = keyAns[idx]?.definition;
-                    return def && normalize(v) === normalize(def);
-                });
-            } else if (q.type === 'ORDERING') {
-                return studentAns.every((v, idx) => {
-                    const key = keyAns[idx];
-                    return key && normalize(v) === normalize(key);
-                });
-            }
-            return studentAns.every((v, idx) => {
-                const key = keyAns[idx];
-                return key && normalize(v) === normalize(key);
-            });
-        } else if (typeof studentAns === 'string') {
-            return keyAns.some(v => normalize(studentAns) === normalize(v));
-        }
-    }
-    return normalize(studentAns) === normalize(keyAns);
-};
+

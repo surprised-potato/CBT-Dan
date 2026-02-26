@@ -141,3 +141,14 @@ export const getStudentClasses = async (studentId) => {
         return [];
     }
 };
+
+export const removeFromClass = async (classId, student) => {
+    try {
+        const classRef = doc(db, COLLECTION, classId);
+        await updateDoc(classRef, {
+            students: arrayRemove(student)
+        });
+    } catch (error) {
+        throw error;
+    }
+};
