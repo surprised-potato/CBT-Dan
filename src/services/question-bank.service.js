@@ -56,19 +56,26 @@ export const getQuestions = async (filters = {}) => {
 };
 
 /**
- * Fetches all questions to derive unique Courses and Topics.
- * Returns: { courses: ['CE101', 'Math'], topics: {'CE101': ['Vectors', 'Truss'], 'Math': [...] } }
+ * Fetches all questions to derive unique Courses, Topics, and counts by difficulty.
+ * Returns: {
+ *   courses: ['CE101', 'Math'],
+ *   topics: {'CE101': ['Vectors', 'Truss'], 'Math': [...] },
+ *   counts: { 'CE101|Vectors|MCQ|EASY': 3, 'CE101|Vectors|MCQ|MODERATE': 2, ... }
+ * }
  */
 export const getHierarchy = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
         const courses = new Set();
         const hierarchy = {}; // { 'CourseName': Set('Topic1', 'Topic2') }
+        const counts = {}; // { 'course|topic|type|difficulty': count }
 
         querySnapshot.forEach(doc => {
             const data = doc.data();
             const course = data.course || 'Uncategorized';
             const topic = data.topic || 'General';
+            const type = data.type || 'ALL';
+            const difficulty = data.difficulty || 'ANY';
 
             courses.add(course);
 
@@ -76,6 +83,15 @@ export const getHierarchy = async () => {
                 hierarchy[course] = new Set();
             }
             hierarchy[course].add(topic);
+
+            // Build composite count keys
+            const keys = [
+                `${course}|${topic}|${type}|${difficulty}`,
+                `${course}|${topic}|ALL|${difficulty}`,
+                `${course}|${topic}|${type}|ANY`,
+                `${course}|${topic}|ALL|ANY`,
+            ];
+            keys.forEach(k => { counts[k] = (counts[k] || 0) + 1; });
         });
 
         // Convert Sets to Arrays for easier consumption
@@ -86,11 +102,12 @@ export const getHierarchy = async () => {
 
         return {
             courses: Array.from(courses).sort(),
-            topics: topicsByCourse
+            topics: topicsByCourse,
+            counts: counts
         };
     } catch (error) {
         console.error("Error fetching hierarchy:", error);
-        return { courses: [], topics: {} };
+        return { courses: [], topics: {}, counts: {} };
     }
 };
 
