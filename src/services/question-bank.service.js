@@ -45,10 +45,15 @@ export const getQuestions = async (filters = {}) => {
         // q = query(q, orderBy("createdAt", "desc")); 
 
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        return querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            // Normalize legacy 'MEDIUM' difficulty
+            if (data.difficulty === 'MEDIUM') data.difficulty = 'MODERATE';
+            return {
+                id: doc.id,
+                ...data
+            };
+        });
     } catch (error) {
         console.error("Error fetching questions: ", error);
         throw error;
@@ -75,7 +80,10 @@ export const getHierarchy = async () => {
             const course = data.course || 'Uncategorized';
             const topic = data.topic || 'General';
             const type = data.type || 'ALL';
-            const difficulty = data.difficulty || 'ANY';
+            let difficulty = data.difficulty || 'ANY';
+
+            // Normalize legacy 'MEDIUM' difficulty
+            if (difficulty === 'MEDIUM') difficulty = 'MODERATE';
 
             courses.add(course);
 
@@ -138,7 +146,10 @@ export const getQuestionById = async (id) => {
         const docRef = doc(db, COLLECTION_NAME, id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            return { id: docSnap.id, ...docSnap.data() };
+            const data = docSnap.data();
+            // Normalize legacy 'MEDIUM' difficulty
+            if (data.difficulty === 'MEDIUM') data.difficulty = 'MODERATE';
+            return { id: docSnap.id, ...data };
         } else {
             throw new Error("No such document!");
         }
@@ -159,8 +170,11 @@ export const bulkAddQuestions = async (questions) => {
 
             chunk.forEach(q => {
                 const newDocRef = doc(colRef);
+                const normalizedQ = { ...q };
+                if (normalizedQ.difficulty === 'MEDIUM') normalizedQ.difficulty = 'MODERATE';
+
                 batch.set(newDocRef, {
-                    ...q,
+                    ...normalizedQ,
                     createdAt: timestamp
                 });
             });
