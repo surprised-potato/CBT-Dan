@@ -242,9 +242,15 @@ export const AttendanceTerminalPage = async () => {
         let currentCode = activeSession.currentCode;
         const renderQR = (code) => {
             const canvas = document.getElementById('qr-canvas');
-            if (!canvas) return;
+            const qrlib = window.QRCode || QRCode;
+            if (!canvas || !qrlib) {
+                console.error('QR Library or Canvas not found');
+                return;
+            }
             const payload = JSON.stringify({ s: activeSession.id, c: code });
-            QRCode.toCanvas(canvas, payload, { width: 256, margin: 2, color: { dark: '#1a1a2e', light: '#ffffff' } });
+            qrlib.toCanvas(canvas, payload, { width: 256, margin: 2, color: { dark: '#1a1a2e', light: '#ffffff' } }, (error) => {
+                if (error) console.error('QR Render Error:', error);
+            });
             const display = document.getElementById('current-code-display');
             if (display) display.textContent = code;
         };
