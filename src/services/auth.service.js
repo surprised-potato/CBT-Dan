@@ -5,7 +5,8 @@ import {
     signOut,
     onAuthStateChanged,
     GoogleAuthProvider,
-    signInWithPopup
+    signInWithPopup,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
     doc,
@@ -84,6 +85,15 @@ export const loginWithGoogle = async (role = 'student') => {
             await setDoc(userDocRef, newUser);
             return { user, ...newUser };
         }
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const resetPassword = async (email) => {
+    try {
+        await sendPasswordResetEmail(auth, email);
+        return true;
     } catch (error) {
         throw error;
     }

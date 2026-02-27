@@ -40,7 +40,7 @@ export const AttendanceTerminalPage = async () => {
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         </button>
                         <div>
-                            <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight uppercase">Attendance Terminal</h1>
+                            <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight uppercase">Cognita Attendance</h1>
                             <p class="text-[9px] font-black text-green-600 uppercase tracking-[0.3em] mt-0.5">Configure & Broadcast</p>
                         </div>
                     </div>
