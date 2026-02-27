@@ -5,7 +5,7 @@ export const renderLoginUI = () => {
     return `
         <div class="relative flex items-center justify-center min-h-screen px-4 py-12 overflow-hidden bg-[#020617]">
             <!-- Dynamic Mesh Background -->
-            <div class="bg-premium-gradient"></div>
+            <div class="bg-premium-gradient-fixed"></div>
             <div class="mesh-blob top-[-10%] left-[-10%] bg-blue-600/10"></div>
             <div class="mesh-blob bottom-[-20%] right-[-10%] bg-indigo-600/10 animate-[mesh-float_25s_infinite_alternate]"></div>
             
@@ -20,7 +20,7 @@ export const renderLoginUI = () => {
                         <svg class="w-12 h-12 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                     </div>
                     <h1 class="text-4xl font-black text-white tracking-tighter uppercase mb-1">Cognita</h1>
-                    <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.5em] opacity-80">Secure Knowledge Portal</p>
+                    <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.5em] opacity-80">Learning Portal</p>
                 </div>
                 
                 <form id="login-form" class="space-y-8 relative z-10">
@@ -28,8 +28,8 @@ export const renderLoginUI = () => {
                         ${renderInput({
         id: 'email',
         type: 'email',
-        label: 'Registry Identifier',
-        placeholder: 'associate@cognita.io',
+        label: 'Email Address',
+        placeholder: 'you@school.edu',
         required: true,
         classes: 'bg-white/5 border-white/5 text-white placeholder:text-white/20'
     })}
@@ -38,14 +38,14 @@ export const renderLoginUI = () => {
                             ${renderInput({
         id: 'password',
         type: 'password',
-        label: 'Operational Key',
+        label: 'Password',
         placeholder: '••••••••',
         required: true,
         showToggle: true,
         classes: 'bg-white/5 border-white/5 text-white placeholder:text-white/20'
     })}
                             <div class="flex justify-end px-4">
-                                <button type="button" id="forgot-password-link" class="text-[10px] font-black text-blue-400/60 hover:text-blue-400 uppercase tracking-widest transition-all">Restore Access</button>
+                                <button type="button" id="forgot-password-link" class="text-[10px] font-black text-blue-400/60 hover:text-blue-400 uppercase tracking-widest transition-all">Forgot Password?</button>
                             </div>
                         </div>
                     </div>
@@ -54,7 +54,7 @@ export const renderLoginUI = () => {
                     <div id="forgot-password-status" class="hidden text-center py-3 px-6 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest backdrop-blur-md animate-in fade-in slide-in-from-top-1"></div>
 
                     <button type="submit" id="login-submit-btn" class="w-full bg-blue-600 text-white p-6 rounded-[28px] font-black uppercase text-xs tracking-[0.3em] shadow-[0_20px_40px_-10px_rgba(37,99,235,0.5)] hover:shadow-[0_25px_50px_-12px_rgba(37,99,235,0.6)] hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-3 border border-white/20">
-                        <span>Authenticate</span>
+                        <span>Sign In</span>
                     </button>
                 </form>
 
@@ -63,7 +63,7 @@ export const renderLoginUI = () => {
                         <div class="w-full border-t border-white/5"></div>
                     </div>
                     <div class="relative flex justify-center text-[10px] font-black uppercase tracking-[0.5em]">
-                        <span class="px-6 bg-transparent text-white/20">Verification</span>
+                        <span class="px-6 bg-transparent text-white/20">Or continue with</span>
                     </div>
                 </div>
 
@@ -75,12 +75,12 @@ export const renderLoginUI = () => {
                             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
                             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                         </svg>
-                        Cloud Registry
+                        Sign in with Google
                     </button>
                 </div>
 
                 <p class="mt-12 text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/20 relative z-10 leading-loose">
-                    Unauthorized Personnel? <a href="#register" class="text-blue-400 hover:text-blue-300 transition-colors ml-2 underline underline-offset-8 decoration-blue-500/30">Connect Here</a>
+                    New here? <a href="#register" class="text-blue-400 hover:text-blue-300 transition-colors ml-2 underline underline-offset-8 decoration-blue-500/30">Create Account</a>
                 </p>
             </div>
         </div>

@@ -5,8 +5,18 @@ body {
     /* Darker Slate for premium contrast */
 }
 
-/* Extreme Mesh Gradient Background */
+/* Premium Gradient Background (safe for containers like #app) */
 .bg-premium-gradient {
+    background-color: #020617;
+    background-image:
+        radial-gradient(at 0% 0%, hsla(225, 100%, 15%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 0%, hsla(217, 91%, 60%, 0.15) 0, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(225, 100%, 15%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 100%, hsla(217, 91%, 60%, 0.15) 0, transparent 50%);
+}
+
+/* Fixed decorative overlay version (only for auth pages) */
+.bg-premium-gradient-fixed {
     position: fixed;
     inset: 0;
     z-index: -1;
@@ -20,13 +30,14 @@ body {
     overflow: hidden;
 }
 
-.bg-premium-gradient::after {
+.bg-premium-gradient-fixed::after {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+    pointer-events: none;
     background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(2, 4, 15, 0.4) 100%);
 }
 

@@ -153,6 +153,40 @@
 *   [ ] **7.3. Submission**
     *   "Submit" button writes `localStorage` data to `submissions` collection.
     *   Clears `localStorage`.
+## Proposed Changes
+
+### [Administrative Views Overhaul]
+
+Overhaul the remaining core teacher management views to align with the premium dark glassmorphism aesthetic.
+
+#### [MODIFY] [bank.page.js](file:///home/daniel/programming/CBT-Dan/src/features/question-bank/bank.page.js)
+- Redesign Course, Topic, and Question list views.
+- Implement dark glassmorphism grid and search interface.
+- Add vibrant blue accent mesh backgrounds.
+
+#### [MODIFY] [assessment-bank.page.js](file:///home/daniel/programming/CBT-Dan/src/features/assessment/assessment-bank.page.js)
+- Redesign assessment list with glowing status indicators.
+- Implement glassmorphism module cards.
+- Add deep purple accent mesh backgrounds.
+
+#### [MODIFY] [class-manager.page.js](file:///home/daniel/programming/CBT-Dan/src/features/dashboard/class-manager.page.js)
+- Redesign the multi-level registry interface (Class list -> Student list -> Student profile).
+- Implement vibrant emerald accent mesh backgrounds.
+- Redesign the "Join Code" card with a high-impact glowing dark aesthetic.
+- Refactor tabs to use the new glassmorphism navigation style.
+
+#### [MODIFY] [teacher-list.page.js](file:///home/daniel/programming/CBT-Dan/src/features/dashboard/teacher-list.page.js)
+- Redesign the Faculty Registry with the same premium dark style.
+- Implement clear distinct states for "Authorized" vs "Pending" using glass panels.
+
+## Verification Plan
+
+### Automated Tests
+- Capture screenshots of all overhauled pages using `browser_subagent`.
+
+### Manual Verification
+- Review the visual consistency across all administrative sections.
+- Test mobile responsiveness of the dense grid and list layouts.
 
 **✅ Manual Test:** Start test. Select "Option A". Refresh Page. "Option A" should still be selected. Open Console -> Network Tab -> Verify no answer keys were sent in the JSON response.
 

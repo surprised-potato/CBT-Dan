@@ -8,49 +8,56 @@ export const AssessmentBankPage = async () => {
     if (!user) { window.location.hash = '#login'; return; }
 
     app.innerHTML = `
-        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4">
-            <div class="bg-white w-full max-w-4xl rounded-[50px] shadow-2xl shadow-purple-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
-                <div class="absolute top-0 right-0 w-96 h-96 bg-purple-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-30"></div>
-                
-                <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center transition-all">
-                    <div class="flex items-center gap-5">
-                        <button onclick="location.hash='#teacher-dash'" class="p-3 glass-panel rounded-2xl text-purple-600 hover:text-purple-800 transition-colors shadow-sm">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                        </button>
-                        <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight">Assessments</h1>
-                    </div>
-                    <button onclick="location.hash='#wizard'" class="bg-purple-premium text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-purple-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        New Assessment
-                    </button>
-                </header>
+        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+            <!-- Dynamic Mesh Background -->
+            <div class="bg-premium-gradient-fixed"></div>
+            <div class="mesh-blob top-[-10%] left-[-10%] bg-purple-600/10 scale-150"></div>
+            <div class="mesh-blob bottom-[-20%] right-[-10%] bg-indigo-500/10"></div>
 
-                <main class="p-8 space-y-12 relative z-10">
-                    <div class="relative group">
-                        <input type="text" id="as-search" placeholder="Search operational modules..." class="w-full p-6 pl-16 rounded-[28px] glass-panel border-white/40 shadow-xl shadow-purple-50/20 focus:ring-2 focus:ring-purple-500/20 text-lg font-bold tracking-tight outline-none transition-all">
-                        <div class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-600 transition-colors">
+            <div class="relative z-10 flex flex-col items-center py-4 md:py-8 px-4">
+                <div class="w-full max-w-4xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    
+                    <!-- Header -->
+                    <header class="glass-panel px-6 py-5 md:px-8 md:py-6 rounded-[35px] border border-white/10 flex flex-wrap justify-between items-center gap-4 shadow-xl">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <button id="main-back-btn" class="p-3 bg-white/5 border border-white/5 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90 shadow-lg shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            </button>
+                            <div class="min-w-0">
+                                <h1 class="text-xl md:text-2xl font-black text-white leading-tight tracking-tight truncate uppercase">Assessment Bank</h1>
+                                <p class="text-[10px] text-purple-400 font-black uppercase tracking-[0.3em] mt-0.5 truncate opacity-80">Operational Controls</p>
+                            </div>
+                        </div>
+                        <button onclick="location.hash='#wizard'" class="bg-purple-600 text-white px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[0_10px_25px_rgba(147,51,234,0.3)] hover:shadow-[0_15px_35px_rgba(147,51,234,0.4)] hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2 border border-white/20">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            New Assessment
+                        </button>
+                    </header>
+
+                    <!-- Search -->
+                    <div class="mb-10 relative group bg-white/5 border border-white/10 rounded-[28px] overflow-hidden focus-within:border-purple-500/50 transition-colors shadow-2xl">
+                        <input type="text" id="as-search" placeholder="Search assessments..." class="w-full p-6 pl-16 bg-transparent text-white text-lg font-bold tracking-tight outline-none placeholder:text-white/20 uppercase">
+                        <div class="absolute left-6 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-purple-400 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
                     </div>
 
-                    <div id="as-list" class="grid grid-cols-1 gap-6">
+                    <main id="as-list" class="space-y-6 md:space-y-8 pb-12">
                         <div class="animate-pulse glass-panel p-8 rounded-[40px] h-32"></div>
                         <div class="animate-pulse glass-panel p-8 rounded-[40px] h-32"></div>
-                    </div>
-                </main>
+                    </main>
+                </div>
             </div>
         </div>
 
         <!-- Edit Title Modal -->
         <div id="edit-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-md">
-            <div class="bg-white w-full max-w-md rounded-[40px] shadow-2xl overflow-hidden border border-white/40">
-                <div class="p-10">
-                    <h3 class="text-2xl font-black text-gray-900 mb-6 tracking-tight">Rename Module</h3>
-                    <input type="text" id="edit-title-input" class="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-purple-500/40 focus:bg-white outline-none transition-all mb-8 font-black text-lg">
-                    <div class="flex gap-4">
-                        <button id="save-title-btn" class="flex-1 bg-purple-premium text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-purple-200 hover:bg-purple-700 transition-colors">Commit Change</button>
-                        <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="px-8 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase text-xs tracking-widest">Abort</button>
-                    </div>
+            <div class="glass-panel w-full max-w-md rounded-[40px] border border-white/10 p-10 relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+                <h3 class="text-2xl font-black text-white mb-6 uppercase tracking-tight">Rename Assessment</h3>
+                <input type="text" id="edit-title-input" class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold outline-none focus:border-purple-500/50 transition-colors mb-8 uppercase tracking-tight">
+                <div class="flex gap-4">
+                    <button id="save-title-btn" class="flex-1 bg-purple-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-purple-500/20 border border-white/20 hover:-translate-y-0.5 transition-all">Save</button>
+                    <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="px-8 py-4 bg-white/5 text-white/40 rounded-2xl font-black uppercase text-xs tracking-widest border border-white/5">Cancel</button>
                 </div>
             </div>
         </div>
@@ -71,7 +78,7 @@ export const AssessmentBankPage = async () => {
             classes = classesData;
             renderList();
         } catch (err) {
-            listContainer.innerHTML = `<div class="text-center py-20 text-red-500 font-bold glass-panel rounded-[40px]">Telemetry load failed.</div>`;
+            listContainer.innerHTML = `<div class="text-center py-20 text-red-500 font-bold glass-panel border border-white/10 rounded-[40px]">Failed to load assessments.</div>`;
         }
     };
 
@@ -81,9 +88,9 @@ export const AssessmentBankPage = async () => {
 
         if (filtered.length === 0) {
             listContainer.innerHTML = `
-                <div class="text-center py-24 glass-panel rounded-[50px] border-2 border-dashed border-white">
-                    <p class="text-gray-600 font-black uppercase tracking-widest text-xs opacity-70 mb-6">No operational modules found</p>
-                    <button onclick="location.hash='#wizard'" class="text-purple-600 font-black uppercase text-[10px] tracking-[0.3em] border-b-2 border-purple-600 pb-1">Initialise New Module</button>
+                <div class="text-center py-24 glass-panel rounded-[50px] border-2 border-dashed border-white/10">
+                    <p class="text-white/30 font-black uppercase tracking-widest text-xs mb-6">No assessments match query</p>
+                    <button onclick="location.hash='#wizard'" class="text-purple-400 font-black uppercase text-[10px] tracking-[0.3em] border-b-2 border-purple-400 pb-1">Create New Assessment</button>
                 </div>
             `;
             return;
@@ -91,64 +98,65 @@ export const AssessmentBankPage = async () => {
 
         listContainer.innerHTML = filtered.map(a => {
             const isActive = a.status === 'active';
-            const statusBadge = isActive
-                ? `<span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-50 text-green-600 border border-green-100">
-                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Active
-                   </span>`
-                : `<span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-600 border border-gray-200">
-                     Draft
-                   </span>`;
-
             const assignedIds = a.assignedClassIds || (a.assignedClassId ? [a.assignedClassId] : []);
             const assignedClasses = classes.filter(c => assignedIds.includes(c.id));
-            const sectionChips = assignedClasses.length > 0
-                ? assignedClasses.map(c => `<span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg border border-purple-100/50 text-[9px] font-black uppercase tracking-widest">${c.name} [${c.section}]</span>`).join('')
-                : '<span class="text-gray-400">Universal Access</span>';
 
             return `
-            <div class="group relative bg-white p-8 rounded-[40px] border border-white shadow-xl shadow-purple-50/40 hover:shadow-2xl hover:shadow-purple-100 hover:border-purple-200 transition-all overflow-hidden">
-                <div class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-purple-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="group relative glass-panel p-8 rounded-[40px] border border-white/5 hover:border-purple-500/30 hover:-translate-y-1 transition-all overflow-hidden shadow-2xl">
+                <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-4 mb-4">
-                            ${statusBadge}
-                            <span class="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">${new Date(a.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                            ${isActive
+                    ? `<span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-400 border border-green-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                                     <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Active
+                                   </span>`
+                    : `<span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 text-white/40 border border-white/10">
+                                     Draft
+                                   </span>`
+                }
+                            <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">${new Date(a.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                         </div>
-                        <h3 onclick="location.hash='#details?id=${a.id}'" class="text-2xl font-black text-gray-900 truncate tracking-tight group-hover:text-purple-600 transition-colors uppercase cursor-pointer">${a.title}</h3>
+                        <h3 onclick="location.hash='#details?id=${a.id}'" class="text-2xl font-black text-white truncate tracking-tight group-hover:text-purple-400 transition-colors uppercase cursor-pointer">${a.title}</h3>
                         <div class="flex items-center flex-wrap gap-2 mt-4">
-                             <span class="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">${a.questionCount} Items</span> 
-                             <span class="w-1 h-1 bg-gray-200 rounded-full"></span> 
-                             ${sectionChips}
+                             <span class="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em]">${a.questionCount} Items</span> 
+                             <span class="w-1 h-1 bg-white/10 rounded-full"></span> 
+                             ${assignedClasses.length > 0
+                    ? assignedClasses.map(c => `<span class="px-3 py-1 bg-purple-500/10 text-purple-400 rounded-lg border border-purple-500/20 text-[9px] font-black uppercase tracking-widest">${c.name} [${c.section}]</span>`).join('')
+                    : '<span class="text-white/20 text-[9px] font-black uppercase tracking-widest italic">Universal Access</span>'}
                         </div>
                     </div>
                     
                     <div class="flex items-center gap-4 mt-4 md:mt-0">
                         <div class="flex gap-2">
-                            <button onclick="window.editAsTitle('${a.id}', '${a.title.replace(/'/g, "\\'")}')" class="w-12 h-12 glass-panel rounded-2xl text-purple-600 hover:text-purple-800 hover:bg-purple-50 transition-all flex items-center justify-center shadow-sm border border-transparent hover:border-purple-100" title="Modify Registry">
+                            <button onclick="window.editAsTitle('${a.id}', '${a.title.replace(/'/g, "\\'")}')" class="w-12 h-12 bg-white/5 border border-white/5 rounded-2xl text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 transition-all flex items-center justify-center shadow-lg ring-1 ring-white/5" title="Modify Registry">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                             </button>
-                            <button onclick="window.delAs('${a.id}')" class="w-12 h-12 glass-panel rounded-2xl text-gray-500 hover:text-red-500 transition-all flex items-center justify-center shadow-sm" title="Purge Records">
+                            <button onclick="window.delAs('${a.id}')" class="w-12 h-12 bg-white/5 border border-white/5 rounded-2xl text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center justify-center shadow-lg ring-1 ring-white/5" title="Purge Record">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                         
-                        <button onclick="location.hash='#details?id=${a.id}'" class="flex items-center gap-3 px-8 py-4 text-xs font-black uppercase tracking-widest text-white bg-purple-premium rounded-2xl transition-all shadow-xl shadow-purple-100 hover:shadow-2xl hover:shadow-purple-200 hover:-translate-y-0.5 active:scale-95">
-                            Operational Panel
+                        <button onclick="location.hash='#details?id=${a.id}'" class="flex items-center gap-3 px-8 py-4 text-xs font-black uppercase tracking-widest text-white bg-purple-600 rounded-2xl transition-all shadow-[0_10px_25px_rgba(147,51,234,0.3)] hover:shadow-[0_15px_35px_rgba(147,51,234,0.4)] hover:-translate-y-0.5 active:scale-95 border border-white/20">
+                            Manage
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </button>
                     </div>
                 </div>
-                <div onclick="location.hash='#details?id=${a.id}'" class="mt-8 flex items-center justify-between p-5 bg-gray-50 rounded-[28px] text-gray-400 group-hover:bg-purple-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(147,51,234,0.4)] transition-all shadow-inner border border-transparent group-hover:border-purple-400 cursor-pointer">
-                    <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Manage Module</span>
+                <div onclick="location.hash='#details?id=${a.id}'" class="mt-8 flex items-center justify-between p-5 bg-white/5 rounded-[28px] text-white/30 group-hover:bg-purple-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(147,51,234,0.4)] transition-all border border-white/5 group-hover:border-purple-400 cursor-pointer">
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Open Operational Panel</span>
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </div>
-            </div>
-            `;
+            </div>`;
         }).join('');
     };
 
     searchInput.oninput = renderList;
+
+    document.getElementById('main-back-btn').onclick = () => {
+        window.location.hash = '#teacher-dash';
+    };
 
     window.editAsTitle = (id, title) => {
         const modal = document.getElementById('edit-modal');
@@ -170,16 +178,16 @@ export const AssessmentBankPage = async () => {
                 modal.classList.add('hidden');
                 fetchAndRender(); // Refresh
             } catch (err) {
-                alert("Committal failed.");
+                alert("Save failed.");
             } finally {
                 saveBtn.disabled = false;
-                saveBtn.textContent = 'Commit Change';
+                saveBtn.textContent = 'Save';
             }
         };
     };
 
     window.delAs = async (id) => {
-        if (!confirm("Purge this operational module from registry? Students will lose access.")) return;
+        if (!confirm("Delete this assessment permanently? Students will lose access.")) return;
         try {
             await deleteAssessment(id);
             fetchAndRender();

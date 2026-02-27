@@ -30,77 +30,86 @@ export const AttendanceTerminalPage = async () => {
     // ────────── Setup View ──────────
     const renderSetup = () => {
         app.innerHTML = `
-        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4 pb-32">
-            <div class="bg-white w-full max-w-2xl rounded-[50px] shadow-2xl shadow-purple-200/50 border border-white relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-96 h-96 bg-green-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-30"></div>
+        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+            <!-- Dynamic Mesh Background -->
+            <div class="bg-premium-gradient-fixed"></div>
+            <div class="mesh-blob top-[-10%] left-[-10%] bg-emerald-600/10 scale-150"></div>
+            <div class="mesh-blob bottom-[-20%] right-[-10%] bg-green-500/10 animate-[mesh-float_25s_infinite_alternate]"></div>
 
-                <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center">
-                    <div class="flex items-center gap-5">
-                        <button onclick="location.hash='#teacher-dash'" class="p-3 glass-panel rounded-2xl text-green-600 hover:text-green-800 transition-colors shadow-sm">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                        </button>
-                        <div>
-                            <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight uppercase">Cognita Attendance</h1>
-                            <p class="text-[9px] font-black text-green-600 uppercase tracking-[0.3em] mt-0.5">Configure & Broadcast</p>
+            <div class="relative z-10 flex flex-col items-center py-4 md:py-8 px-4">
+                <div class="w-full max-w-4xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    
+                    <!-- Header -->
+                    <header class="glass-panel px-6 py-5 md:px-8 md:py-7 rounded-[35px] border border-white/10 flex justify-between items-center shadow-xl">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_10px_25px_rgba(16,185,129,0.3)] relative">
+                                <div class="absolute inset-0 bg-green-400 rounded-xl md:rounded-2xl animate-pulse opacity-20 blur-lg"></div>
+                                <svg class="w-6 h-6 md:w-7 md:h-7 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v0m6 0v0m6 0v0M5 16h2m10 0h2m-4-6h2m-4 0h2m-4 0h2m-4 0h2m-8 8v2m0-10V4m0 0h2M5 4h2M5 4h2"></path></svg>
+                            </div>
+                            <div>
+                                <h1 class="text-lg md:text-xl font-black text-white leading-tight tracking-tight uppercase">Terminal</h1>
+                                <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.3em] opacity-80 mt-0.5">Dynamic Attendance</p>
+                            </div>
                         </div>
-                    </div>
-                </header>
+                        <button onclick="location.hash='#teacher-dash'" class="p-3 bg-white/5 border border-white/5 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90 shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        </button>
+                    </header>
 
-                <main class="p-8 space-y-8 relative z-10">
                     <!-- Class Selection -->
-                    <div class="bg-white p-8 rounded-[40px] shadow-xl shadow-green-50/50 border border-white space-y-6">
-                        <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em] block">Select Class</label>
-                        <select id="att-class" class="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-green-500 outline-none transition-all font-bold text-gray-600 appearance-none shadow-inner">
+                    <div class="glass-panel p-6 md:p-8 rounded-[35px] border border-white/10 space-y-6 shadow-xl">
+                        <label class="text-[10px] font-black text-white/70 uppercase tracking-[0.3em] block">Select Class</label>
+                        <select id="att-class" class="w-full p-4 md:p-5 bg-white/5 border border-white/10 rounded-2xl focus:bg-white/10 focus:border-emerald-500 outline-none transition-all font-bold text-white/80 appearance-none shadow-inner">
                             <option value="">— SELECT CLASS —</option>
                             ${classes.map(c => `<option value="${c.id}" data-name="${c.name} [${c.section}]" data-students="${(c.students || []).length}">${c.name} [${c.section}] (${(c.students || []).length} students)</option>`).join('')}
                         </select>
                     </div>
 
                     <!-- Session Config -->
-                    <div class="bg-white p-8 rounded-[40px] shadow-xl shadow-green-50/50 border border-white space-y-6">
-                        <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em] block">Session Settings</label>
+                    <div class="glass-panel p-6 md:p-8 rounded-[35px] border border-white/10 space-y-6 shadow-xl">
+                        <label class="text-[10px] font-black text-white/70 uppercase tracking-[0.3em] block">Session Settings</label>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-2">
-                                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Late After (min)</label>
-                                <input type="number" id="late-threshold" value="15" min="0" class="p-4 bg-gray-50 border border-gray-100 rounded-2xl text-center font-black text-gray-700 focus:border-green-400 outline-none shadow-inner">
+                                <label class="text-[9px] font-black text-white/50 uppercase tracking-widest">Late After (min)</label>
+                                <input type="number" id="late-threshold" value="15" min="0" class="p-4 bg-white/5 border border-white/10 rounded-2xl text-center font-black text-white/80 focus:border-emerald-400 outline-none shadow-inner">
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Auto Close (min)</label>
-                                <input type="number" id="auto-close" value="0" min="0" placeholder="0 = manual" class="p-4 bg-gray-50 border border-gray-100 rounded-2xl text-center font-black text-gray-700 focus:border-green-400 outline-none shadow-inner">
+                                <label class="text-[9px] font-black text-white/50 uppercase tracking-widest">Auto Close (min)</label>
+                                <input type="number" id="auto-close" value="0" min="0" placeholder="0 = manual" class="p-4 bg-white/5 border border-white/10 rounded-2xl text-center font-black text-white/80 focus:border-emerald-400 outline-none shadow-inner placeholder:opacity-30">
                             </div>
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Session Note (Optional)</label>
-                            <input type="text" id="session-note" placeholder="e.g. Lab class, Room 302" class="p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-gray-600 focus:border-green-400 outline-none shadow-inner placeholder:opacity-30">
+                            <label class="text-[9px] font-black text-white/50 uppercase tracking-widest">Session Note (Optional)</label>
+                            <input type="text" id="session-note" placeholder="e.g. Lab class, Room 302" class="p-4 bg-white/5 border border-white/10 rounded-2xl font-bold text-white/80 focus:border-emerald-400 outline-none shadow-inner placeholder:opacity-30">
                         </div>
                     </div>
 
                     <!-- Geofence -->
-                    <div class="bg-white p-8 rounded-[40px] shadow-xl shadow-green-50/50 border border-white space-y-6">
-                        <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em] block">Location Perimeter</label>
+                    <div class="glass-panel p-6 md:p-8 rounded-[35px] border border-white/10 space-y-6 shadow-xl">
+                        <label class="text-[10px] font-black text-white/70 uppercase tracking-[0.3em] block">Location Perimeter</label>
                         <div class="flex flex-wrap items-end gap-4">
-                            <button type="button" id="capture-loc-btn" class="bg-green-50 text-green-600 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-100 border border-green-200 transition-colors flex items-center gap-2">
+                            <button type="button" id="capture-loc-btn" class="bg-emerald-600/10 text-emerald-400 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600/20 border border-emerald-500/20 transition-colors flex items-center gap-2 shadow-lg">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 Use Current Location
                             </button>
                             <div class="flex items-center gap-2">
-                                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Radius</label>
-                                <input type="number" id="geo-radius" value="100" min="10" step="10" class="w-20 p-2 text-center bg-white border border-green-200 rounded-xl font-black text-green-600 focus:border-green-500 outline-none text-sm">
-                                <span class="text-[9px] font-black text-gray-400 uppercase">M</span>
+                                <label class="text-[9px] font-black text-white/50 uppercase tracking-widest">Radius</label>
+                                <input type="number" id="geo-radius" value="100" min="10" step="10" class="w-20 p-2 text-center bg-white/5 border border-white/10 rounded-xl font-black text-emerald-400 focus:border-emerald-500 outline-none text-sm shadow-inner">
+                                <span class="text-[9px] font-black text-white/40 uppercase">M</span>
                             </div>
                         </div>
-                        <div id="att-map" class="w-full h-[400px] rounded-2xl border-2 border-green-200 overflow-hidden relative z-0"></div>
-                        <div class="text-[8px] font-black text-green-400 uppercase tracking-widest text-center" id="att-coords">LAT: -- | LNG: --</div>
+                        <div id="att-map" class="w-full h-[300px] md:h-[400px] rounded-2xl border-2 border-white/10 overflow-hidden relative z-0 shadow-inner"></div>
+                        <div class="text-[8px] font-black text-emerald-400 uppercase tracking-widest text-center" id="att-coords">LAT: -- | LNG: --</div>
                     </div>
 
-                    <div id="setup-error" class="text-red-500 text-[10px] font-black uppercase tracking-widest hidden text-center bg-red-50 py-4 rounded-2xl border border-red-100"></div>
+                    <div id="setup-error" class="text-red-400 text-[10px] font-black uppercase tracking-widest hidden text-center bg-red-900/20 py-4 rounded-2xl border border-red-800/50 shadow-lg"></div>
 
-                    <button id="start-session-btn" class="w-full bg-green-600 text-white p-6 rounded-3xl font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-green-200/50 hover:shadow-green-300 hover:-translate-y-1 active:scale-[0.98] transition-all">
+                    <button id="start-session-btn" class="w-full bg-emerald-600 text-white p-6 rounded-3xl font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:-translate-y-1 active:scale-[0.98] transition-all">
                         Start Broadcasting
                     </button>
-                </main>
+                </div>
             </div>
         </div>`;
 
@@ -192,49 +201,80 @@ export const AttendanceTerminalPage = async () => {
         const classId = activeSession.classId;
 
         app.innerHTML = `
-        <div class="flex items-start justify-center min-h-screen bg-gray-950 py-8 px-4">
-            <div class="w-full max-w-4xl space-y-6">
-                <!-- Header -->
-                <div class="flex items-center justify-between bg-gray-900 p-6 rounded-3xl border border-gray-800">
-                    <div>
-                        <h1 class="text-xl font-black text-white uppercase tracking-tight">${activeSession.className}</h1>
-                        <p class="text-[9px] font-black text-green-400 uppercase tracking-[0.3em] mt-1">LIVE SESSION — QR ROTATING</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <button id="export-csv-btn" class="px-5 py-3 bg-gray-800 text-gray-300 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-700 hover:text-white transition-all border border-gray-700">Export CSV</button>
-                        <button id="close-session-btn" class="px-5 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all">End Session</button>
-                    </div>
-                </div>
+        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+            <!-- Dynamic Mesh Background -->
+            <div class="bg-premium-gradient-fixed"></div>
+            <div class="mesh-blob top-[-10%] left-[-10%] bg-emerald-600/10 scale-150"></div>
+            <div class="mesh-blob bottom-[-20%] right-[-10%] bg-green-500/10 animate-[mesh-float_25s_infinite_alternate]"></div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                    <!-- QR Panel -->
-                    <div class="lg:col-span-3 bg-white p-10 rounded-[40px] flex flex-col items-center justify-center shadow-2xl">
-                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6">Scan to Check In</p>
-                        <div id="qr-canvas-container" class="w-72 h-72 flex items-center justify-center bg-gray-50 rounded-3xl border border-gray-100 shadow-inner mb-6">
-                            <canvas id="qr-canvas"></canvas>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
-                            <span id="current-code-display" class="text-xs font-black text-gray-400 uppercase tracking-[0.3em] font-mono">---</span>
-                        </div>
-                    </div>
-
-                    <!-- Live Feed -->
-                    <div class="lg:col-span-2 bg-gray-900 rounded-[40px] border border-gray-800 overflow-hidden flex flex-col max-h-[600px]">
-                        <div class="p-6 border-b border-gray-800 flex items-center justify-between">
-                            <p class="text-[10px] font-black text-green-400 uppercase tracking-[0.3em]">Live Feed</p>
-                            <div class="flex items-center gap-2">
-                                <span id="checkin-count" class="text-lg font-black text-white">0</span>
-                                <span class="text-[9px] font-black text-gray-500 uppercase">checked in</span>
+            <div class="relative z-10 flex flex-col items-center py-4 md:py-8 px-4">
+                <div class="w-full max-w-4xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    
+                    <!-- Header -->
+                    <header class="glass-panel px-6 py-5 md:px-8 md:py-7 rounded-[35px] border border-white/10 flex justify-between items-center shadow-xl">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_10px_25px_rgba(16,185,129,0.3)] relative">
+                                <div class="absolute inset-0 bg-green-400 rounded-xl md:rounded-2xl animate-pulse opacity-20 blur-lg"></div>
+                                <svg class="w-6 h-6 md:w-7 md:h-7 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v0m6 0v0m6 0v0M5 16h2m10 0h2m-4-6h2m-4 0h2m-4 0h2m-4 0h2m-8 8v2m0-10V4m0 0h2M5 4h2M5 4h2"></path></svg>
+                            </div>
+                            <div>
+                                <h1 class="text-lg md:text-xl font-black text-white leading-tight tracking-tight uppercase">${activeSession.className}</h1>
+                                <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.3em] opacity-80 mt-0.5">Live Session</p>
                             </div>
                         </div>
-                        <div id="live-feed" class="flex-1 overflow-y-auto p-4 space-y-2">
-                            <p class="text-[10px] font-black text-gray-600 uppercase tracking-widest text-center py-8 italic">Waiting for students...</p>
+                        <button onclick="location.hash='#teacher-dash'" class="p-3 bg-white/5 border border-white/5 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90 shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        </button>
+                    </header>
+
+                    ${activeSession.note ? `<div class="glass-panel p-4 rounded-2xl border border-white/10 text-center shadow-xl"><span class="text-[9px] font-black text-white/50 uppercase tracking-widest">${activeSession.note}</span></div>` : ''}
+
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                        <!-- QR Display Panel -->
+                        <div class="lg:col-span-3 space-y-8">
+                            <div class="glass-panel p-10 md:p-14 rounded-[50px] border border-white/5 shadow-[0_30px_100px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center text-center relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-gradient-to-br from-green-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                
+                                <div class="relative mb-12">
+                                    <div class="absolute inset-0 scale-125 bg-white blur-[60px] opacity-10 animate-pulse"></div>
+                                    <div id="qr-container" class="bg-white p-10 rounded-[45px] shadow-[0_40px_80px_rgba(255,255,255,0.1)] relative z-10 transform transition-transform group-hover:scale-[1.02]">
+                                        <canvas id="qr-canvas"></canvas>
+                                    </div>
+                                    <div id="qr-timer" class="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-emerald-600 px-6 py-2 rounded-full text-[10px] font-black text-white uppercase tracking-widest shadow-xl ring-2 ring-white/20 whitespace-nowrap">Rotates in 30s</div>
+                                </div>
+                                
+                                <div class="space-y-4 relative z-10 w-full">
+                                    <h3 id="terminal-status" class="text-3xl font-black text-white tracking-tighter uppercase leading-none">Broadcasting Mode</h3>
+                                    <p class="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2">
+                                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+                                        Identity Verification Active
+                                    </p>
+                                    <div id="csv-export-btn-container" class="pt-6">
+                                        <button id="export-csv-btn" class="bg-white/5 border border-white/10 hover:bg-white/10 text-white/60 hover:text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Download Log (.csv)</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Feed Panel -->
+                        <div class="lg:col-span-2 flex flex-col h-full space-y-6">
+                            <div class="glass-panel rounded-[40px] border border-white/5 flex flex-col flex-1 shadow-xl overflow-hidden">
+                                <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
+                                    <h2 class="text-[10px] font-black text-white uppercase tracking-[0.4em]">Checkpoint Feed</h2>
+                                    <span id="checkin-count" class="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg shadow-emerald-900/20">0 Entry</span>
+                                </div>
+                                <div id="checkins-feed" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar min-h-[400px]">
+                                    <div class="h-full flex flex-col items-center justify-center text-center p-10 opacity-30 italic font-medium text-xs text-white uppercase tracking-widest">
+                                        <svg class="w-12 h-12 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                                        Awaiting Initial Signals...
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="end-session-btn" class="bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 p-6 rounded-[30px] font-black uppercase text-[10px] tracking-[0.3em] transition-all shadow-xl active:scale-95">Decommission Terminal</button>
                         </div>
                     </div>
                 </div>
-
-                ${activeSession.note ? `<div class="bg-gray-900 p-4 rounded-2xl border border-gray-800 text-center"><span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">${activeSession.note}</span></div>` : ''}
             </div>
         </div>`;
 
@@ -280,22 +320,28 @@ export const AttendanceTerminalPage = async () => {
             count.textContent = checkedIn.length;
 
             if (checkedIn.length === 0) {
-                feed.innerHTML = '<p class="text-[10px] font-black text-gray-600 uppercase tracking-widest text-center py-8 italic">Waiting for students...</p>';
+                feed.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-center p-10 opacity-30 italic font-medium text-xs text-white uppercase tracking-widest"><svg class="w-12 h-12 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>Awaiting Initial Signals...</div>';
                 return;
             }
 
-            feed.innerHTML = checkedIn.slice().reverse().map(s => `
-                <div class="flex items-center justify-between bg-gray-800 p-4 rounded-2xl border border-gray-700 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-green-600 rounded-xl flex items-center justify-center text-[10px] font-black text-white">${(s.name || '?')[0].toUpperCase()}</div>
-                        <div>
-                            <p class="text-xs font-black text-white">${s.name || s.email}</p>
-                            <p class="text-[9px] font-bold text-gray-500">${new Date(s.time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</p>
-                        </div>
+            const renderFeedRow = (c) => {
+                const isLate = c.status === 'LATE'; // Changed 'late' to 'LATE' to match existing data structure
+                return `
+            <div class="glass-panel p-5 rounded-[22px] border border-white/5 flex items-center justify-between group animate-in slide-in-from-right-4 duration-300">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 ${isLate ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'} rounded-xl flex items-center justify-center ring-1 ring-white/5 group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${s.status === 'LATE' ? 'bg-amber-900/50 text-amber-400 border border-amber-700' : 'bg-green-900/50 text-green-400 border border-green-700'}">${s.status}</span>
+                    <div>
+                        <p class="text-xs font-black text-white tracking-tight uppercase">${c.name || c.email}</p>
+                        <p class="text-[9px] font-black ${isLate ? 'text-amber-400' : 'text-emerald-400'} uppercase tracking-widest mt-0.5">${isLate ? 'Late Entry' : 'Present'}</p>
+                    </div>
                 </div>
-            `).join('');
+                <span class="text-[14px] font-mono text-white/30 tracking-widest">${new Date(c.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+        `;
+            };
+            feed.innerHTML = checkedIn.slice().reverse().map(s => renderFeedRow(s)).join('');
         });
 
         // Close session handler

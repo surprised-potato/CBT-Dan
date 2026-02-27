@@ -3,24 +3,26 @@ export const renderModal = ({ id, title, content, footer, onClose }) => {
     // For simplicity with string templates, we'll assume the consumer attaches listeners or uses global handlers if provided as string
 
     return `
-        <div id="${id}" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50 transition-opacity">
-            <div class="bg-white rounded-xl shadow-xl w-full max-w-md transform transition-all scale-100">
+        <div id="${id}" class="fixed inset-0 bg-black/60 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 transition-opacity">
+            <div class="glass-panel w-full max-w-md transform transition-all scale-100 rounded-[40px] ring-1 ring-white/10 overflow-hidden">
                 <!-- Header -->
-                <div class="flex justify-between items-center p-4 border-b border-gray-100">
-                    <h3 class="text-xl font-bold text-gray-800">${title}</h3>
-                    <button class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors" id="${id}-close-btn">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <div class="flex justify-between items-center p-8 border-b border-white/5">
+                    <h3 class="text-xl font-black text-white uppercase tracking-tight">${title}</h3>
+                    <button class="text-white/40 hover:text-white w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-white/10 transition-colors" id="${id}-close-btn">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
                 
                 <!-- Content -->
-                <div class="p-6">
-                    ${content}
+                <div class="p-8">
+                    <div class="text-white/70">
+                        ${content}
+                    </div>
                 </div>
 
                 <!-- Footer -->
                 ${footer ? `
-                <div class="p-4 bg-gray-50 rounded-b-xl border-t border-gray-100 flex justify-end gap-2">
+                <div class="p-6 bg-white/5 border-t border-white/5 flex justify-end gap-3 px-8">
                     ${footer}
                 </div>
                 ` : ''}

@@ -20,166 +20,175 @@ export const WizardPage = async () => {
     ]);
 
     app.innerHTML = `
-        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4 pb-32">
-            <div class="bg-white w-full max-w-2xl rounded-[50px] shadow-2xl shadow-purple-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
-                <div class="absolute top-0 right-0 w-96 h-96 bg-purple-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-30"></div>
-                
-                <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center transition-all">
-                    <div class="flex items-center gap-5">
-                        <button onclick="location.hash='#assessment-bank'" class="p-3 glass-panel rounded-2xl text-purple-600 hover:text-purple-800 transition-colors shadow-sm">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                        </button>
-                        <div>
-                            <h1 class="text-2xl font-black text-gray-900 leading-tight tracking-tight uppercase">Assessment Builder</h1>
-                            <p class="text-[9px] font-black text-purple-600 uppercase tracking-[0.3em] mt-0.5">Configure & Generate</p>
+        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+            <!-- Dynamic Mesh Background -->
+            <div class="bg-premium-gradient-fixed"></div>
+            <div class="mesh-blob top-[-10%] left-[-10%] bg-purple-600/10 scale-150"></div>
+            <div class="mesh-blob bottom-[-20%] right-[-10%] bg-indigo-500/10"></div>
+
+            <div class="relative z-10 flex flex-col items-center py-4 md:py-8 px-4">
+                <div class="w-full max-w-3xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    
+                    <!-- Header -->
+                    <header class="glass-panel px-6 py-5 md:px-8 md:py-6 rounded-[35px] border border-white/10 flex flex-wrap justify-between items-center gap-4 shadow-xl">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <button onclick="location.hash='#assessment-bank'" class="p-3 bg-white/5 border border-white/5 rounded-2xl text-purple-400 hover:text-white hover:bg-white/10 transition-all active:scale-90 shadow-lg shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            </button>
+                            <div class="min-w-0">
+                                <h1 class="text-xl md:text-2xl font-black text-white leading-tight tracking-tight uppercase">Assessment Builder</h1>
+                                <p class="text-[10px] text-purple-400 font-black uppercase tracking-[0.3em] mt-0.5 truncate opacity-80">Configure & Generate</p>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main class="space-y-8 relative z-10 pb-20">
+                    <!-- Main Config -->
+                    <div class="glass-panel p-8 md:p-10 rounded-[50px] border border-white/10 space-y-8 relative overflow-hidden shadow-2xl">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                        
+                        <div class="relative z-10">
+                            <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-4 block ml-2">Assessment Title</label>
+                            <input id="test-title" type="text" placeholder="e.g. MIDTERM EXAM — CALCULUS II" class="w-full p-6 bg-white/5 border border-white/10 rounded-[28px] text-white font-black uppercase text-lg outline-none focus:border-purple-500/50 transition-colors placeholder:text-white/10">
+                        </div>
+                        
+                        <div class="flex flex-col gap-3 relative z-10">
+                            <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] ml-2">Assign to Classes (Optional)</label>
+                            <div class="flex flex-wrap gap-3 p-6 bg-black/20 border border-white/5 rounded-[32px] shadow-inner min-h-[80px]">
+                                ${classes.length > 0 ? classes.map(c => `
+                                    <label class="cursor-pointer">
+                                        <input type="checkbox" class="class-check hidden" data-classid="${c.id}">
+                                        <div class="class-chip px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all bg-white/5 text-white/30 border-white/5 hover:border-purple-500/50">
+                                            ${c.name} [${c.section}]
+                                        </div>
+                                    </label>
+                                `).join('') : '<p class="text-[10px] font-black text-white/20 uppercase tracking-widest italic text-center w-full">No Classes Available (Public Access Only)</p>'}
+                            </div>
+                            <p class="text-[9px] font-black text-purple-400/40 uppercase tracking-widest ml-4">Leave empty for universal department-wide accessibility</p>
                         </div>
                     </div>
-                </header>
 
-                <main class="p-8 space-y-12 relative z-10">
-                <!-- Main Config -->
-                <div class="bg-white p-10 rounded-[50px] shadow-2xl shadow-purple-50/50 border border-white space-y-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
-                    
-                    <div class="relative z-10">
-                        <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em] mb-4 block">Assessment Title</label>
-                        ${renderInput({ id: 'test-title', placeholder: 'e.g. MIDTERM EXAM — CALCULUS II', required: true, classes: 'text-lg font-black uppercase' })}
-                    </div>
-                    
-                    <div class="flex flex-col gap-2 relative z-10">
-                        <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em]">Assign to Classes (Optional)</label>
-                        <div class="flex flex-wrap gap-2 p-4 bg-gray-50 border border-gray-100 rounded-2xl shadow-inner min-h-[60px]">
-                            ${classes.length > 0 ? classes.map(c => `
-                                <label class="cursor-pointer">
-                                    <input type="checkbox" class="class-check hidden" data-classid="${c.id}">
-                                    <div class="class-chip px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all bg-white text-gray-500 border-gray-100 hover:border-purple-200">
-                                        ${c.name} [${c.section}]
+                    <!-- Session Parameters -->
+                    <div class="glass-panel p-8 md:p-10 rounded-[50px] border border-white/10 space-y-8 relative overflow-hidden shadow-2xl">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                        
+                        <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] block relative z-10 ml-2">Exam Settings & Constraints</label>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                            <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-white uppercase tracking-widest">One at a Time</span>
+                                    <p class="text-[9px] font-bold text-white/30 uppercase">Show one question per screen</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                    <input type="checkbox" id="one-at-a-time" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                    <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-white uppercase tracking-widest">Shuffle Questions</span>
+                                    <p class="text-[9px] font-bold text-white/30 uppercase">Randomize order for each student</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                    <input type="checkbox" id="random-order" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                    <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-white uppercase tracking-widest">Shuffle Choices</span>
+                                    <p class="text-[9px] font-bold text-white/30 uppercase">Randomize MCQ answer order</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                    <input type="checkbox" id="shuffle-choices" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                    <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
+                                </div>
+                            </label>
+
+                            <div class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 hover:bg-white/10 transition-all group">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-white uppercase tracking-widest">Time Limit</span>
+                                    <p class="text-[9px] font-bold text-white/30 uppercase">Set to 0 for unlimited time</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="number" id="time-limit" placeholder="0" min="0" class="w-20 p-3 text-center bg-white/10 border border-white/10 rounded-2xl font-black text-purple-400 focus:border-purple-500/50 outline-none text-sm">
+                                    <span class="text-[9px] font-black text-white/40 uppercase">MIN</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-4 p-6 bg-white/5 rounded-3xl border border-white/5 transition-all group md:col-span-2">
+                                <label class="flex items-center justify-between cursor-pointer">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Anti-Cheat Lockout</span>
+                                        <p class="text-[9px] font-bold text-white/30 uppercase">Require fullscreen & prevent tab switching</p>
+                                    </div>
+                                    <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                        <input type="checkbox" id="require-fullscreen" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                        <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-red-500"></span>
                                     </div>
                                 </label>
-                            `).join('') : '<p class="text-[10px] font-black text-gray-300 uppercase tracking-widest italic">No Classes Available (Public Only)</p>'}
-                        </div>
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Leave empty to make it publicly accessible</p>
-                    </div>
-                </div>
-
-                <!-- Session Parameters -->
-                <div class="bg-white p-10 rounded-[50px] shadow-2xl shadow-purple-50/50 border border-white space-y-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
-                    
-                    <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em] block relative z-10">Exam Settings</label>
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 relative z-10">
-                        <label class="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border border-gray-100 cursor-pointer hover:bg-white transition-all group">
-                            <div class="flex flex-col gap-1">
-                                <span class="text-[10px] font-black text-gray-900 uppercase tracking-widest">One at a Time</span>
-                                <p class="text-[9px] font-bold text-gray-400 uppercase">Show one question per screen</p>
-                            </div>
-                            <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full shadow-inner">
-                                <input type="checkbox" id="one-at-a-time" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                <span class="absolute left-0 w-6 h-6 bg-white rounded-full shadow border border-gray-100 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
-                            </div>
-                        </label>
-
-                        <label class="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border border-gray-100 cursor-pointer hover:bg-white transition-all group">
-                            <div class="flex flex-col gap-1">
-                                <span class="text-[10px] font-black text-gray-900 uppercase tracking-widest">Shuffle Questions</span>
-                                <p class="text-[9px] font-bold text-gray-400 uppercase">Randomize order for each student</p>
-                            </div>
-                            <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full shadow-inner">
-                                <input type="checkbox" id="random-order" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                <span class="absolute left-0 w-6 h-6 bg-white rounded-full shadow border border-gray-100 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
-                            </div>
-                        </label>
-
-                        <label class="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border border-gray-100 cursor-pointer hover:bg-white transition-all group">
-                            <div class="flex flex-col gap-1">
-                                <span class="text-[10px] font-black text-gray-900 uppercase tracking-widest">Shuffle Choices</span>
-                                <p class="text-[9px] font-bold text-gray-400 uppercase">Randomize MCQ answer order</p>
-                            </div>
-                            <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full shadow-inner">
-                                <input type="checkbox" id="shuffle-choices" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                <span class="absolute left-0 w-6 h-6 bg-white rounded-full shadow border border-gray-100 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
-                            </div>
-                        </label>
-
-                        <div class="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border border-gray-100 hover:bg-white transition-all group">
-                            <div class="flex flex-col gap-1">
-                                <span class="text-[10px] font-black text-gray-900 uppercase tracking-widest">Time Limit</span>
-                                <p class="text-[9px] font-bold text-gray-400 uppercase">Set to 0 for unlimited time</p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <input type="number" id="time-limit" placeholder="0" min="0" class="w-16 p-2 text-center bg-white border border-gray-200 rounded-xl font-black text-purple-600 focus:border-purple-500 outline-none text-sm">
-                                <span class="text-[9px] font-black text-gray-400 uppercase">MIN</span>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col gap-4 p-6 bg-gray-50 rounded-3xl border border-gray-100 transition-all group lg:col-span-2">
-                            <label class="flex items-center justify-between cursor-pointer">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[10px] font-black text-gray-900 uppercase tracking-widest text-red-600">Anti-Cheat Lockout</span>
-                                    <p class="text-[9px] font-bold text-gray-400 uppercase">Require fullscreen & prevent tab switching</p>
-                                </div>
-                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full shadow-inner">
-                                    <input type="checkbox" id="require-fullscreen" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                    <span class="absolute left-0 w-6 h-6 bg-white rounded-full shadow border border-gray-100 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-red-500"></span>
-                                </div>
-                            </label>
-                            
-                            <div id="lockout-settings" class="hidden flex-col gap-2 mt-2 pt-4 border-t border-gray-200">
-                                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Proctor Override Password</label>
-                                <input type="text" id="proctor-password" placeholder="e.g. unlock123" class="w-full p-3 bg-white border border-red-200 rounded-xl font-black text-red-600 focus:border-red-500 outline-none text-sm placeholder:opacity-50">
-                                <p class="text-[8px] font-bold text-gray-400 uppercase">Required to unlock exam if student leaves the app</p>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col gap-4 p-6 bg-gray-50 rounded-3xl border border-gray-100 transition-all group lg:col-span-2">
-                             <label class="flex items-center justify-between cursor-pointer">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[10px] font-black text-gray-900 uppercase tracking-widest text-blue-600">Location Restriction</span>
-                                    <p class="text-[9px] font-bold text-gray-400 uppercase">Only allow access within a set area</p>
-                                </div>
-                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full shadow-inner">
-                                    <input type="checkbox" id="require-geofence" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                    <span class="absolute left-0 w-6 h-6 bg-white rounded-full shadow border border-gray-100 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-blue-500"></span>
-                                </div>
-                            </label>
-
-                            <div id="geofence-settings" class="hidden flex-col gap-4 mt-2 pt-4 border-t border-gray-200">
-                                <div class="flex flex-wrap items-end gap-4">
-                                    <button type="button" id="capture-location-btn" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 border border-blue-200 transition-colors flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        Use Current Location
-                                    </button>
-                                    <div class="flex items-center gap-2">
-                                        <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Radius</label>
-                                        <input type="number" id="geofence-radius" value="100" min="10" step="10" class="w-20 p-2 text-center bg-white border border-blue-200 rounded-xl font-black text-blue-600 focus:border-blue-500 outline-none text-sm">
-                                        <span class="text-[9px] font-black text-gray-400 uppercase">METERS</span>
-                                    </div>
-                                </div>
                                 
-                                <div id="geofence-map" class="w-full h-[400px] rounded-2xl border-2 border-blue-200 overflow-hidden relative z-0"></div>
-                                <div class="text-[8px] font-black text-blue-400 uppercase tracking-widest text-center" id="coords-display">LAT: -- | LNG: --</div>
+                                <div id="lockout-settings" class="hidden flex-col gap-3 mt-2 pt-6 border-t border-white/5">
+                                    <label class="text-[9px] font-black text-white/40 uppercase tracking-widest ml-2">Proctor Override Password</label>
+                                    <input type="text" id="proctor-password" placeholder="e.g. unlock123" class="w-full p-4 bg-red-500/5 border border-red-500/20 rounded-2xl font-black text-red-400 focus:border-red-500 outline-none text-sm placeholder:text-red-900/40">
+                                    <p class="text-[8px] font-bold text-red-400/40 uppercase ml-2">Required to unlock exam if student leaves the application environment</p>
+                                </div>
                             </div>
+
+                            <div class="flex flex-col gap-4 p-6 bg-white/5 rounded-3xl border border-white/5 transition-all group md:col-span-2">
+                                 <label class="flex items-center justify-between cursor-pointer">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Location Restriction</span>
+                                        <p class="text-[9px] font-bold text-white/30 uppercase">Only allow access within a defined operational area</p>
+                                    </div>
+                                    <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                        <input type="checkbox" id="require-geofence" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                        <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-blue-500"></span>
+                                    </div>
+                                </label>
+
+                                <div id="geofence-settings" class="hidden flex-col gap-6 mt-2 pt-6 border-t border-white/5">
+                                    <div class="flex flex-wrap items-center justify-between gap-4">
+                                        <button type="button" id="capture-location-btn" class="bg-blue-500/10 text-blue-400 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/20 border border-blue-500/20 transition-all flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            Pin Current Location
+                                        </button>
+                                        <div class="flex items-center gap-3">
+                                            <label class="text-[9px] font-black text-white/40 uppercase tracking-widest">Radius</label>
+                                            <input type="number" id="geofence-radius" value="100" min="10" step="10" class="w-24 p-3 text-center bg-white/10 border border-white/10 rounded-2xl font-black text-blue-400 focus:border-blue-500 outline-none text-sm">
+                                            <span class="text-[9px] font-black text-white/40 uppercase tracking-widest">M</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="geofence-map" class="w-full h-[400px] rounded-[32px] border border-white/5 overflow-hidden relative z-0 shadow-inner"></div>
+                                    <div class="text-[9px] font-black text-blue-400/40 uppercase tracking-[0.3em] text-center" id="coords-display">LAT: -- | LNG: --</div>
+                                </div>
+                            </div>
+
                         </div>
-
                     </div>
-                </div>
 
-                <!-- Sections Container -->
-                <div id="sections-container" class="space-y-6"></div>
+                    <!-- Sections Container -->
+                    <div id="sections-container" class="space-y-8"></div>
 
-                <!-- Add Section Button -->
-                <button id="add-section-btn" class="w-full py-8 glass-panel border-2 border-dashed border-gray-200 rounded-[40px] text-gray-500 font-extrabold uppercase tracking-widest hover:border-purple-300 hover:text-purple-500 hover:bg-white transition-all active:scale-[0.98] shadow-sm">
-                    + Add Section
-                </button>
+                    <!-- Add Section Button -->
+                    <button id="add-section-btn" class="w-full py-10 bg-white/5 border-2 border-dashed border-white/10 rounded-[50px] text-white/20 font-black uppercase tracking-[0.3em] hover:border-purple-500/50 hover:text-purple-400 hover:bg-white/10 transition-all active:scale-[0.98] shadow-lg text-[10px]">
+                        + Append Knowledge Section
+                    </button>
 
-                <div id="w-error" class="text-red-500 text-[10px] font-black uppercase tracking-widest hidden text-center bg-red-50 py-4 rounded-2xl border border-red-100"></div>
+                    <div id="w-error" class="text-red-400 text-[10px] font-black uppercase tracking-widest hidden text-center bg-red-500/5 py-6 rounded-3xl border border-red-500/20 shadow-lg"></div>
 
-                </main>
+                    </main>
 
-                <!-- Footer Submit Bar (Bounded to Card) -->
-                <div class="sticky bottom-0 left-0 right-0 p-8 bg-white/80 backdrop-blur-xl border-t border-gray-100 flex justify-center z-50">
-                    <button id="final-submit-btn" class="w-full bg-purple-premium text-white p-6 rounded-3xl font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-purple-200/50 hover:shadow-purple-300 hover:-translate-y-1 active:scale-[0.98] transition-all">Create Assessment</button>
+                    <!-- Footer Submit Bar -->
+                    <div class="fixed bottom-0 left-0 right-0 p-6 md:p-8 bg-[#020617]/80 backdrop-blur-xl border-t border-white/5 flex justify-center z-50">
+                        <div class="w-full max-w-3xl">
+                            <button id="final-submit-btn" class="w-full bg-purple-600 text-white p-6 rounded-[35px] font-black uppercase text-sm tracking-[0.4em] shadow-[0_10px_30px_rgba(147,51,234,0.3)] hover:shadow-[0_20px_40px_rgba(147,51,234,0.4)] hover:-translate-y-1 active:scale-[0.98] transition-all border border-white/20">Generate Assessment Protocol</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,72 +221,73 @@ export const WizardPage = async () => {
     const renderSections = () => {
         const container = document.getElementById('sections-container');
         container.innerHTML = sections.map((s, i) => `
-            <div class="bg-white p-10 rounded-[50px] border border-white shadow-2xl shadow-purple-50/50 relative group animate-in fade-in slide-in-from-bottom-8 duration-500 overflow-hidden">
-                <div class="absolute top-0 right-0 w-48 h-full bg-gradient-to-l from-purple-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="glass-panel p-8 md:p-10 rounded-[50px] border border-white/10 relative group animate-in fade-in slide-in-from-bottom-8 duration-500 overflow-hidden shadow-2xl">
+                <div class="absolute top-0 right-0 w-48 h-full bg-gradient-to-l from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
-                <div class="absolute top-8 right-8 z-20 flex gap-2">
-                    <button data-idx="${i}" class="dup-sec w-10 h-10 glass-panel rounded-xl text-gray-300 hover:text-purple-500 hover:border-purple-500 font-black transition-all text-lg" title="Duplicate Section">⊞</button>
-                    <button data-idx="${i}" class="remove-sec w-10 h-10 glass-panel rounded-xl text-gray-300 hover:text-red-500 hover:border-red-500 font-black transition-all">×</button>
+                <div class="absolute top-8 right-8 z-20 flex gap-3">
+                    <button data-idx="${i}" class="dup-sec w-10 h-10 bg-white/5 border border-white/10 rounded-xl text-white/20 hover:text-purple-400 hover:border-purple-500/50 font-black transition-all text-lg shadow-lg" title="Duplicate Section">⊞</button>
+                    <button data-idx="${i}" class="remove-sec w-10 h-10 bg-white/5 border border-white/10 rounded-xl text-white/20 hover:text-red-400 hover:border-red-500/50 font-black transition-all text-xl shadow-lg">×</button>
                 </div>
                 
                 <div class="relative z-10">
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="w-10 h-1bg-purple-premium rounded-full"></div>
-                        <p class="text-[10px] font-black text-purple-600 uppercase tracking-[0.4em]">Section ${i + 1}</p>
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="w-10 h-1 bg-purple-600 rounded-full shadow-[0_0_15px_rgba(147,51,234,0.5)]"></div>
+                        <p class="text-[10px] font-black text-purple-400 uppercase tracking-[0.4em]">Section ${i + 1} — Configuration</p>
                     </div>
                     
-                    <div class="space-y-8">
-                        <div class="flex flex-col gap-2">
-                            <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em]">Section Title</label>
-                            <input type="text" value="${s.title}" data-field="title" data-idx="${i}" placeholder="e.g. PART I: QUANTITATIVE ANALYSIS" class="sec-input p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-purple-500 outline-none transition-all font-black text-gray-700 uppercase placeholder:opacity-30">
+                    <div class="space-y-10">
+                        <div class="flex flex-col gap-3">
+                            <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] ml-2">Section Objective / Title</label>
+                            <input type="text" value="${s.title}" data-field="title" data-idx="${i}" placeholder="e.g. PART I: QUANTITATIVE ANALYSIS" class="sec-input p-5 bg-white/5 border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all font-black text-white uppercase placeholder:text-white/10">
                         </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em]">Course / Subject</label>
-                                <select data-field="course" data-idx="${i}" class="sec-input p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-purple-500 outline-none transition-all font-bold text-gray-600 appearance-none shadow-inner">
-                                    <option value="">UNCATEGORISED</option>
-                                    ${hierarchy.courses.map(c => `<option value="${c}" ${s.course === c ? 'selected' : ''}>${c.toUpperCase()}</option>`).join('')}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex flex-col gap-3">
+                                <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] ml-2">Knowledge Domain</label>
+                                <select data-field="course" data-idx="${i}" class="sec-input p-5 bg-white/5 border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all font-bold text-white appearance-none shadow-inner cursor-pointer">
+                                    <option value="" class="bg-[#0f172a]">UNCATEGORISED</option>
+                                    ${hierarchy.courses.map(c => `<option value="${c}" ${s.course === c ? 'selected' : ''} class="bg-[#0f172a]">${c.toUpperCase()}</option>`).join('')}
                                 </select>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em]">Question Type</label>
-                                <select data-field="type" data-idx="${i}" class="sec-input p-5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-purple-500 outline-none transition-all font-bold text-gray-600 appearance-none shadow-inner">
-                                    <option value="ALL" ${s.type === 'ALL' ? 'selected' : ''}>MIXED TELEMETRY</option>
-                                    <option value="MCQ" ${s.type === 'MCQ' ? 'selected' : ''}>SINGLE CHOICE MCQ</option>
-                                    <option value="MULTI_ANSWER" ${s.type === 'MULTI_ANSWER' ? 'selected' : ''}>MULTIPLE ANSWER</option>
-                                    <option value="IDENTIFICATION" ${s.type === 'IDENTIFICATION' ? 'selected' : ''}>IDENTIFICATION (TYPED)</option>
-                                    <option value="MATCHING" ${s.type === 'MATCHING' ? 'selected' : ''}>MATCHING PAIRS</option>
-                                    <option value="ORDERING" ${s.type === 'ORDERING' ? 'selected' : ''}>SEQUENTIAL ORDER</option>
-                                    <option value="TRUE_FALSE" ${s.type === 'TRUE_FALSE' ? 'selected' : ''}>T/F BINARY</option>
+                            <div class="flex flex-col gap-3">
+                                <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] ml-2">Telemetry Schema</label>
+                                <select data-field="type" data-idx="${i}" class="sec-input p-5 bg-white/5 border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all font-bold text-white appearance-none shadow-inner cursor-pointer">
+                                    <option value="ALL" ${s.type === 'ALL' ? 'selected' : ''} class="bg-[#0f172a]">MIXED TELEMETRY</option>
+                                    <option value="MCQ" ${s.type === 'MCQ' ? 'selected' : ''} class="bg-[#0f172a]">SINGLE CHOICE MCQ</option>
+                                    <option value="MULTI_ANSWER" ${s.type === 'MULTI_ANSWER' ? 'selected' : ''} class="bg-[#0f172a]">MULTIPLE ANSWER</option>
+                                    <option value="IDENTIFICATION" ${s.type === 'IDENTIFICATION' ? 'selected' : ''} class="bg-[#0f172a]">IDENTIFICATION (TYPED)</option>
+                                    <option value="MATCHING" ${s.type === 'MATCHING' ? 'selected' : ''} class="bg-[#0f172a]">MATCHING PAIRS</option>
+                                    <option value="ORDERING" ${s.type === 'ORDERING' ? 'selected' : ''} class="bg-[#0f172a]">SEQUENTIAL ORDER</option>
+                                    <option value="TRUE_FALSE" ${s.type === 'TRUE_FALSE' ? 'selected' : ''} class="bg-[#0f172a]">T/F BINARY</option>
                                 </select>
                             </div>
                         </div>
 
                         ${(s.type === 'MCQ' || s.type === 'IDENTIFICATION') ? `
-                            <div class="p-6 bg-blue-50/50 rounded-3xl border border-blue-100 animate-in slide-in-from-top-4">
-                                <label class="flex items-center justify-between cursor-pointer mb-4">
+                            <div class="p-8 bg-blue-500/5 rounded-[36px] border border-blue-500/20 animate-in slide-in-from-top-4">
+                                <label class="flex items-center justify-between cursor-pointer mb-6">
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-[10px] font-black text-blue-900 uppercase tracking-widest">Answer Bank Mode</span>
-                                        <p class="text-[9px] font-bold text-blue-400 uppercase">Aggregates all identification answers into a shared pool</p>
+                                        <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Answer Bank Mode</span>
+                                        <p class="text-[9px] font-bold text-blue-400/40 uppercase">Aggregates all identification variants into a shared pool</p>
                                     </div>
-                                    <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-200 rounded-full shadow-inner">
+                                    <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
                                         <input type="checkbox" class="bank-toggle absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer" data-idx="${i}" ${s.answerBankMode ? 'checked' : ''}>
-                                        <span class="absolute left-0 w-6 h-6 bg-white rounded-full shadow border border-gray-100 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-blue-600"></span>
+                                        <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-blue-500"></span>
                                     </div>
                                 </label>
                                 
                                 ${s.answerBankMode ? `
-                                    <div class="space-y-4 pt-4 border-t border-blue-100">
-                                         <label class="text-[10px] font-black text-blue-700 uppercase tracking-widest px-2">Additional Distractors (Wrong Answers for Bank)</label>
+                                    <div class="space-y-6 pt-6 border-t border-white/5">
+                                         <label class="text-[10px] font-black text-blue-400/60 uppercase tracking-widest px-2">Additional Distractors (Wrong Answers for Bank)</label>
                                          <div class="flex gap-3">
-                                            <input type="text" class="distractor-input flex-1 p-4 bg-white border border-blue-100 rounded-2xl text-[10px] font-black uppercase outline-none focus:border-blue-400 transition-all placeholder:opacity-30" placeholder="APPEND TRAP DATA..." data-idx="${i}">
-                                            <button type="button" class="add-dist-btn bg-blue-premium text-white px-6 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">ADD</button>
+                                            <input type="text" class="distractor-input flex-1 p-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase outline-none focus:border-blue-500/50 transition-all text-white placeholder:text-white/10" placeholder="APPEND TRAP DATA..." data-idx="${i}">
+                                            <button type="button" class="add-dist-btn bg-blue-600 text-white px-6 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all shadow-lg hover:bg-blue-500 border border-white/10">ADD</button>
                                          </div>
                                          <div class="flex flex-wrap gap-2 pt-2">
                                             ${(s.distractors || []).map((d, dIdx) => `
-                                                <span class="px-4 py-2 bg-white border border-blue-100 text-blue-600 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-3">
+                                                <span class="px-5 py-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-3 animate-in zoom-in">
                                                     ${d}
-                                                    <button type="button" class="rm-dist text-gray-300 hover:text-red-500 font-black text-lg" data-sidx="${i}" data-didx="${dIdx}">×</button>
+                                                    <button type="button" class="rm-dist text-white/20 hover:text-red-500 font-black text-lg transition-colors" data-sidx="${i}" data-didx="${dIdx}">×</button>
                                                 </span>
                                             `).join('')}
                                          </div>
@@ -285,53 +295,53 @@ export const WizardPage = async () => {
                                 ` : ''}
                             </div>
                         ` : ''}
-
+ 
                         <div class="flex flex-col gap-4">
-                            <label class="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em]">Select Topics</label>
-                            <div class="flex flex-wrap gap-3 p-6 bg-gray-50/50 rounded-3xl border border-gray-100/50 shadow-inner min-h-[60px]">
+                            <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] ml-2">Vector Selection (Topics)</label>
+                            <div class="flex flex-wrap gap-3 p-8 bg-black/20 border border-white/5 rounded-[40px] shadow-inner min-h-[100px]">
                                 ${(hierarchy.topics[s.course] || []).map(t => {
             const isChecked = s.topics.includes(t);
             return `
                                             <label class="cursor-pointer">
                                                 <input type="checkbox" class="topic-check hidden" data-topic="${t}" data-idx="${i}" ${isChecked ? 'checked' : ''}>
-                                                <div class="topic-chip px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${isChecked ? 'bg-purple-premium text-white border-purple-400 shadow-lg shadow-purple-100' : 'bg-white text-gray-500 border-gray-100 hover:border-purple-200'}">
+                                                <div class="topic-chip px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${isChecked ? 'bg-purple-600 text-white border-white/20 shadow-[0_5px_15px_rgba(147,51,234,0.3)]' : 'bg-white/5 text-white/20 border-white/5 hover:border-purple-500/30'}">
                                                     ${t}
                                                 </div>
                                             </label>
                                         `;
         }).join('')}
-                                ${!s.course ? '<p class="text-[10px] font-black text-gray-300 uppercase tracking-widest italic flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> Select a Course First</p>' : ''}
+                                ${!s.course ? '<p class="text-[10px] font-black text-white/20 uppercase tracking-widest italic flex items-center gap-3 w-full justify-center py-4"><svg class="w-5 h-5 text-amber-500/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> Please define a Knowledge Domain first</p>' : ''}
                             </div>
                         </div>
 
-                        <div class="p-8 bg-purple-50/30 rounded-[36px] border border-purple-100/30 shadow-inner">
-                            <div class="flex justify-between items-center mb-6">
-                                <label class="text-[10px] font-black text-purple-600 uppercase tracking-[0.3em]">Difficulty & Item Count</label>
-                                <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-purple-100 shadow-sm">
-                                    <span class="text-[10px] font-black text-gray-600 uppercase">Val/Q:</span>
-                                    <input type="number" value="${s.pointsPerQuestion}" min="1" data-field="pointsPerQuestion" data-idx="${i}" class="sec-input w-8 text-center text-xs font-black text-purple-600 outline-none">
+                        <div class="p-8 md:p-10 bg-purple-500/5 rounded-[45px] border border-purple-500/10 shadow-inner">
+                            <div class="flex justify-between items-center mb-8 px-2">
+                                <label class="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em]">Difficulty Distribution</label>
+                                <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/10 shadow-lg">
+                                    <span class="text-[9px] font-black text-white/30 uppercase">WEIGHT:</span>
+                                    <input type="number" value="${s.pointsPerQuestion}" min="1" data-field="pointsPerQuestion" data-idx="${i}" class="sec-input w-10 text-center text-sm font-black text-purple-400 bg-transparent outline-none">
                                 </div>
                             </div>
-                            <div class="grid grid-cols-4 gap-4">
-                                <div class="flex flex-col gap-3">
-                                    <span class="text-[9px] font-black text-purple-500 uppercase tracking-widest text-center">Any</span>
-                                    <input type="number" value="${s.distribution.ANY || 0}" min="0" data-diff="ANY" data-idx="${i}" class="dist-input p-4 text-center font-black text-gray-700 bg-white border border-gray-100 rounded-2xl focus:border-purple-400 outline-none shadow-sm text-lg">
-                                    <span class="text-[8px] font-bold text-purple-400 text-center">${getAvailableCount(s, 'ANY')} avail</span>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                                <div class="flex flex-col gap-4">
+                                    <span class="text-[9px] font-black text-white/40 uppercase tracking-widest text-center">Random</span>
+                                    <input type="number" value="${s.distribution.ANY || 0}" min="0" data-diff="ANY" data-idx="${i}" class="dist-input p-5 text-center font-black text-white bg-white/5 border border-white/10 rounded-3xl focus:border-purple-500/50 outline-none shadow-xl text-xl">
+                                    <span class="text-[8px] font-bold text-white/20 text-center uppercase tracking-tighter">${getAvailableCount(s, 'ANY')} AVAILABLE</span>
                                 </div>
-                                <div class="flex flex-col gap-3">
-                                    <span class="text-[9px] font-black text-green-500 uppercase tracking-widest text-center">Easy</span>
-                                    <input type="number" value="${s.distribution.EASY}" min="0" data-diff="EASY" data-idx="${i}" class="dist-input p-4 text-center font-black text-gray-700 bg-white border border-gray-100 rounded-2xl focus:border-green-400 outline-none shadow-sm text-lg">
-                                    <span class="text-[8px] font-bold text-green-400 text-center">${getAvailableCount(s, 'EASY')} avail</span>
+                                <div class="flex flex-col gap-4">
+                                    <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest text-center">Standard</span>
+                                    <input type="number" value="${s.distribution.EASY}" min="0" data-diff="EASY" data-idx="${i}" class="dist-input p-5 text-center font-black text-white bg-white/5 border border-emerald-500/20 rounded-3xl focus:border-emerald-500/50 outline-none shadow-xl text-xl">
+                                    <span class="text-[8px] font-bold text-emerald-500/30 text-center uppercase tracking-tighter">${getAvailableCount(s, 'EASY')} AVAILABLE</span>
                                 </div>
-                                <div class="flex flex-col gap-3">
-                                    <span class="text-[9px] font-black text-amber-500 uppercase tracking-widest text-center">Medium</span>
-                                    <input type="number" value="${s.distribution.MODERATE}" min="0" data-diff="MODERATE" data-idx="${i}" class="dist-input p-4 text-center font-black text-gray-700 bg-white border border-gray-100 rounded-2xl focus:border-amber-400 outline-none shadow-sm text-lg">
-                                    <span class="text-[8px] font-bold text-amber-400 text-center">${getAvailableCount(s, 'MODERATE')} avail</span>
+                                <div class="flex flex-col gap-4">
+                                    <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest text-center">Refined</span>
+                                    <input type="number" value="${s.distribution.MODERATE}" min="0" data-diff="MODERATE" data-idx="${i}" class="dist-input p-5 text-center font-black text-white bg-white/5 border border-amber-500/20 rounded-3xl focus:border-amber-500/50 outline-none shadow-xl text-xl">
+                                    <span class="text-[8px] font-bold text-amber-500/30 text-center uppercase tracking-tighter">${getAvailableCount(s, 'MODERATE')} AVAILABLE</span>
                                 </div>
-                                <div class="flex flex-col gap-3">
-                                    <span class="text-[9px] font-black text-red-500 uppercase tracking-widest text-center">Hard</span>
-                                    <input type="number" value="${s.distribution.DIFFICULT}" min="0" data-diff="DIFFICULT" data-idx="${i}" class="dist-input p-4 text-center font-black text-gray-700 bg-white border border-gray-100 rounded-2xl focus:border-red-400 outline-none shadow-sm text-lg">
-                                    <span class="text-[8px] font-bold text-red-400 text-center">${getAvailableCount(s, 'DIFFICULT')} avail</span>
+                                <div class="flex flex-col gap-4">
+                                    <span class="text-[9px] font-black text-rose-400 uppercase tracking-widest text-center">Extreme</span>
+                                    <input type="number" value="${s.distribution.DIFFICULT}" min="0" data-diff="DIFFICULT" data-idx="${i}" class="dist-input p-5 text-center font-black text-white bg-white/5 border border-rose-500/20 rounded-3xl focus:border-rose-500/50 outline-none shadow-xl text-xl">
+                                    <span class="text-[8px] font-bold text-rose-500/30 text-center uppercase tracking-tighter">${getAvailableCount(s, 'DIFFICULT')} AVAILABLE</span>
                                 </div>
                             </div>
                         </div>
@@ -368,11 +378,11 @@ export const WizardPage = async () => {
 
                 const chip = e.target.nextElementSibling;
                 if (e.target.checked) {
-                    chip.classList.remove('bg-white', 'text-gray-400', 'border-gray-100');
-                    chip.classList.add('bg-purple-premium', 'text-white', 'border-purple-400', 'shadow-lg', 'shadow-purple-100');
+                    chip.classList.remove('bg-white/5', 'text-white/20', 'border-white/5');
+                    chip.classList.add('bg-purple-600', 'text-white', 'border-white/20', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]');
                 } else {
-                    chip.classList.add('bg-white', 'text-gray-400', 'border-gray-100');
-                    chip.classList.remove('bg-purple-premium', 'text-white', 'border-purple-400', 'shadow-lg', 'shadow-purple-100');
+                    chip.classList.add('bg-white/5', 'text-white/20', 'border-white/5');
+                    chip.classList.remove('bg-purple-600', 'text-white', 'border-white/20', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]');
                 }
 
                 // Refresh counts when topics change
@@ -491,21 +501,22 @@ export const WizardPage = async () => {
 
             // --- Phase 5: Confirmation Summary Modal ---
             const summaryHTML = `
-                <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] animate-in fade-in duration-200" id="confirm-modal">
-                    <div class="bg-white rounded-[40px] p-10 max-w-md w-full mx-4 shadow-2xl shadow-purple-200/50 space-y-6 animate-in slide-in-from-bottom-8 duration-500">
-                        <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">Confirm Assessment</h2>
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-2xl"><span class="font-black text-gray-500 uppercase text-[10px] tracking-widest">Title</span><span class="font-black text-gray-900">${titleInput.value.trim()}</span></div>
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-2xl"><span class="font-black text-gray-500 uppercase text-[10px] tracking-widest">Classes</span><span class="font-bold text-gray-700">${selectedClassNames.length > 0 ? selectedClassNames.join(', ') : 'Public'}</span></div>
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-2xl"><span class="font-black text-gray-500 uppercase text-[10px] tracking-widest">Sections</span><span class="font-black text-gray-900">${sections.length}</span></div>
-                            <div class="flex justify-between p-4 bg-purple-50 rounded-2xl border border-purple-100"><span class="font-black text-purple-500 uppercase text-[10px] tracking-widest">Total Items</span><span class="font-black text-purple-700 text-lg">${totalItems}</span></div>
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-2xl"><span class="font-black text-gray-500 uppercase text-[10px] tracking-widest">Time</span><span class="font-bold text-gray-700">${timeLimit > 0 ? timeLimit + ' min' : 'Unlimited'}</span></div>
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-2xl"><span class="font-black text-gray-500 uppercase text-[10px] tracking-widest">Anti-Cheat</span><span class="font-bold ${requireFullscreen ? 'text-red-600' : 'text-gray-400'}">${requireFullscreen ? 'ON' : 'OFF'}</span></div>
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-2xl"><span class="font-black text-gray-500 uppercase text-[10px] tracking-widest">Location Lock</span><span class="font-bold ${requireGeofence ? 'text-blue-600' : 'text-gray-400'}">${requireGeofence ? 'ON' : 'OFF'}</span></div>
+                <div class="fixed inset-0 bg-[#020617]/80 backdrop-blur-xl flex items-center justify-center z-[100] animate-in fade-in duration-300" id="confirm-modal">
+                    <div class="glass-panel rounded-[50px] p-8 md:p-12 max-w-md w-full mx-4 shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10 space-y-8 animate-in zoom-in duration-500">
+                        <div class="text-center space-y-2">
+                            <h2 class="text-2xl font-black text-white uppercase tracking-tight">Protocol Verification</h2>
+                            <p class="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em]">Review Assessment Configuration</p>
                         </div>
-                        <div class="flex gap-3 pt-2">
-                            <button id="confirm-cancel" class="flex-1 p-4 rounded-2xl border-2 border-gray-100 font-black uppercase text-xs tracking-widest text-gray-500 hover:border-gray-300 transition-all">Go Back</button>
-                            <button id="confirm-create" class="flex-1 p-4 rounded-2xl bg-purple-premium text-white font-black uppercase text-xs tracking-widest shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all">Confirm & Create</button>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between p-5 bg-white/5 rounded-2xl border border-white/5"><span class="font-black text-white/30 uppercase text-[9px] tracking-widest">Identity</span><span class="font-black text-white uppercase truncate ml-4">${titleInput.value.trim()}</span></div>
+                            <div class="flex justify-between p-5 bg-white/5 rounded-2xl border border-white/5"><span class="font-black text-white/30 uppercase text-[9px] tracking-widest">Cohort</span><span class="font-black text-purple-400 uppercase">${selectedClassNames.length > 0 ? selectedClassNames.join(', ') : 'DEPT-WIDE'}</span></div>
+                            <div class="flex justify-between p-5 bg-white/5 rounded-2xl border border-white/5"><span class="font-black text-white/30 uppercase text-[9px] tracking-widest">Segments</span><span class="font-black text-white uppercase">${sections.length} UNITS</span></div>
+                            <div class="flex justify-between p-5 bg-purple-500/10 rounded-2xl border border-purple-500/30 shadow-lg shadow-purple-500/5"><span class="font-black text-purple-400 uppercase text-[9px] tracking-widest">Net Payload</span><span class="font-black text-purple-400 text-xl">${totalItems} ITEMS</span></div>
+                            <div class="flex justify-between p-5 bg-white/5 rounded-2xl border border-white/5"><span class="font-black text-white/30 uppercase text-[9px] tracking-widest">Duration</span><span class="font-black text-white uppercase">${timeLimit > 0 ? timeLimit + ' MIN' : 'UNLIMITED'}</span></div>
+                        </div>
+                        <div class="flex flex-col gap-3 pt-2">
+                            <button id="confirm-create" class="w-full p-5 rounded-3xl bg-purple-600 text-white font-black uppercase text-xs tracking-[0.3em] shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 active:scale-95 transition-all border border-white/20">Authorize & Deploy</button>
+                            <button id="confirm-cancel" class="w-full p-5 rounded-3xl bg-white/5 border border-white/10 font-black uppercase text-[10px] tracking-[0.2em] text-white/40 hover:bg-white/10 hover:text-white transition-all">Abort Procedure</button>
                         </div>
                     </div>
                 </div>
@@ -567,11 +578,11 @@ export const WizardPage = async () => {
         cb.onchange = (e) => {
             const chip = e.target.nextElementSibling;
             if (e.target.checked) {
-                chip.classList.remove('bg-white', 'text-gray-500', 'border-gray-100');
-                chip.classList.add('bg-purple-premium', 'text-white', 'border-purple-400', 'shadow-lg', 'shadow-purple-100');
+                chip.classList.remove('bg-white/5', 'text-white/30', 'border-white/5');
+                chip.classList.add('bg-purple-600', 'text-white', 'border-white/20', 'shadow-lg', 'shadow-purple-500/20');
             } else {
-                chip.classList.add('bg-white', 'text-gray-500', 'border-gray-100');
-                chip.classList.remove('bg-purple-premium', 'text-white', 'border-purple-400', 'shadow-lg', 'shadow-purple-100');
+                chip.classList.add('bg-white/5', 'text-white/30', 'border-white/5');
+                chip.classList.remove('bg-purple-600', 'text-white', 'border-purple-400', 'shadow-lg', 'shadow-purple-500/20');
             }
         };
     });

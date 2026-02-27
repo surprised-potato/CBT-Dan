@@ -21,71 +21,81 @@ export const StudentDashPage = async () => {
     const userEmail = user.email || user.user?.email || 'No Email';
     const userName = user.displayName || 'Student';
 
-    let currentView = 'assessments'; // 'assessments' or 'grades'
+    let currentView = 'exams'; // 'exams' or 'performance'
     let myClasses = [];
 
     const renderHeader = () => `
-        <header class="glass-panel sticky top-0 z-40 px-8 py-8 border-b border-gray-100 flex justify-between items-center transition-all">
+        <header class="glass-panel sticky top-4 z-40 px-6 py-5 md:px-8 md:py-7 rounded-[35px] border border-white/10 flex justify-between items-center shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)]">
             <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-blue-premium rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_10px_25px_rgba(16,185,129,0.3)] relative">
+                    <div class="absolute inset-0 bg-emerald-400 rounded-xl md:rounded-2xl animate-pulse opacity-20 blur-lg"></div>
+                    <svg class="w-6 h-6 md:w-7 md:h-7 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-black text-gray-900 leading-tight">Cognita Student</h1>
-                    <div class="flex items-center gap-2">
-                        <p class="text-xs text-gray-800 font-bold">${userName}</p>
-                        <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
-                        <button id="edit-profile-btn" class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700">Settings</button>
+                    <h1 class="text-lg md:text-xl font-black text-white leading-tight tracking-tight uppercase">Cognita</h1>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <p class="text-[11px] text-white/60 font-medium">${userName}</p>
+                        <span class="w-1 h-1 bg-white/20 rounded-full"></span>
+                        <button id="edit-profile-btn" class="text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-blue-300">Settings</button>
                     </div>
                 </div>
             </div>
-            <button id="logout-btn" class="p-2 glass-panel rounded-xl text-gray-400 hover:text-red-500 transition-colors shadow-sm">
+            <button id="logout-btn" class="p-3 bg-white/5 border border-white/5 rounded-2xl text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all active:scale-90">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             </button>
         </header>
     `;
 
     const renderNav = () => `
-        <nav class="flex gap-1 p-1 bg-gray-200/50 rounded-2xl mb-8 glass-panel backdrop-blur-sm sticky top-[100px] z-30">
-            <button id="view-exams-btn" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${currentView === 'assessments' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'}">Exams</button>
-            <button id="view-grades-btn" class="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${currentView === 'grades' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'}">My Performance</button>
+        <nav class="flex p-2 bg-white/5 border border-white/5 rounded-[28px] md:rounded-[32px] mb-8 md:mb-10 backdrop-blur-xl">
+            <button id="exams-tab" class="flex-1 py-4 md:py-5 px-6 rounded-[22px] md:rounded-[26px] text-xs font-black uppercase tracking-[0.2em] transition-all ${currentView === 'exams' ? 'bg-white/10 text-white shadow-lg ring-1 ring-white/10' : 'text-white/40 hover:text-white/60'}">
+                Exams
+            </button>
+            <button id="performance-tab" class="flex-1 py-4 md:py-5 px-6 rounded-[22px] md:rounded-[26px] text-xs font-black uppercase tracking-[0.2em] transition-all ${currentView === 'performance' ? 'bg-white/10 text-white shadow-lg ring-1 ring-white/10' : 'text-white/40 hover:text-white/60'}">
+                Analytics
+            </button>
         </nav>
     `;
 
-    const renderAssessmentsView = () => `
-        <div class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <!-- Join Class Card -->
-            <section class="relative bg-blue-premium p-10 rounded-[40px] shadow-2xl shadow-blue-200/50 text-white overflow-hidden">
-                <div class="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-40 -mt-40 blur-3xl"></div>
-                <div class="relative z-10">
-                    <h3 class="text-3xl font-black mb-2">Join a New Class</h3>
-                    <p class="text-blue-100/70 text-sm font-medium mb-8">Ready to start? Enter your unique class access key below.</p>
-                    <form id="join-class-form" class="flex flex-col gap-4">
-                        <input id="class-code" type="text" placeholder="ACCESS KEY" class="flex-1 bg-white/10 border-2 border-white/20 rounded-2xl p-5 text-center font-mono text-3xl font-black tracking-[0.4em] placeholder:text-white/20 focus:bg-white/20 focus:border-white/40 outline-none transition-all uppercase" required maxlength="6">
-                        <button type="submit" class="bg-white text-blue-600 p-5 rounded-2xl font-black uppercase text-sm shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Request Entry</button>
-                    </form>
+    const renderJoinClassCard = () => `
+        <div class="group relative bg-gradient-to-br from-blue-600 to-indigo-800 p-8 md:p-10 rounded-[40px] shadow-[0_20px_50px_-15px_rgba(37,99,235,0.4)] overflow-hidden mb-8 border border-white/20">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent)] opacity-50"></div>
+            <div class="relative z-10">
+                <h3 class="text-white text-2xl font-black tracking-tight mb-2">Enroll in Class</h3>
+                <p class="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-8">Enter your section invitation code</p>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input id="invite-code" type="text" placeholder="CODE-123" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-white placeholder:text-white/30 text-lg font-black tracking-widest focus:outline-none focus:ring-2 focus:ring-white/30 transition-all uppercase">
+                    <button id="join-class-btn" class="bg-white text-blue-700 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:-translate-y-1 transition-all active:scale-95">Enroll Now</button>
                 </div>
-            </section>
+            </div>
+        </div>
+    `;
 
-            <!-- Attendance Check-in Card -->
-            <section onclick="location.hash='#checkin'" class="group relative bg-white p-10 rounded-[40px] shadow-xl shadow-green-500/10 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-green-500/40 active:scale-[0.98] border border-white">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-green-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
-                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                    <div class="flex items-center gap-8">
-                        <div class="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-700 rounded-[28px] flex items-center justify-center shadow-lg shadow-green-200 group-hover:scale-110 transition-transform">
-                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v0m6 0v0m6 0v0M5 16h2m10 0h2m-4-6h2m-4 0h2m-4 0h2m-4 0h2m-4 0h2m-4 0h2m-8 8v2m0-10V4m0 0h2M5 4h2M5 4h2"></path></svg>
-                        </div>
-                        <div>
-                            <h3 class="font-black text-gray-900 text-3xl group-hover:text-green-600 transition-colors">Attendance Scan</h3>
-                            <p class="text-gray-600 text-xs font-bold uppercase tracking-[0.2em] mt-2">Check in to your active class session</p>
-                        </div>
+    const renderAttendanceCard = () => `
+        <div onclick="location.hash='#checkin'" class="group relative glass-panel p-8 rounded-[40px] border border-white/5 cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.3)] hover:border-emerald-500/30 active:scale-[0.98]">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -mr-20 -mt-20 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-[22px] flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v0m6 0v0m6 0v0M5 16h2m10 0h2m-4-6h2m-4 0h2m-4 0h2m-4 0h2m-4 0h2m-8 8v2m0-10V4m0 0h2M5 4h2M5 4h2"></path></svg>
                     </div>
-                    <div class="mt-8 flex items-center justify-between p-5 bg-gray-50 rounded-[28px] text-gray-400 group-hover:bg-green-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(22,163,74,0.4)] transition-all shadow-inner border border-transparent group-hover:border-green-400">
-                        <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Open Scanner</span>
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <div>
+                        <h3 class="font-black text-white text-2xl tracking-tight group-hover:text-emerald-400 transition-all">Quick Attendance</h3>
+                        <p class="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Scan Session QR Code</p>
                     </div>
                 </div>
-            </section>
+                <div class="flex items-center justify-between p-4 bg-white/5 rounded-[22px] text-white/20 group-hover:bg-emerald-600 group-hover:text-white transition-all border border-white/5 group-hover:border-emerald-400/30">
+                    <span class="text-[9px] font-black uppercase tracking-[0.3em] ml-2">Open Scanner</span>
+                    <svg class="w-5 h-5 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const renderAssessmentsView = () => `
+        <div class="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            ${renderJoinClassCard()}
+            ${renderAttendanceCard()}
 
             <!-- Active Assessments -->
             <div id="assessments-container" class="space-y-8">
@@ -102,18 +112,22 @@ export const StudentDashPage = async () => {
 
     // --- Initial Shell ---
     app.innerHTML = `
-        <div class="flex items-start justify-center min-h-screen bg-premium-gradient py-8 px-4">
-            <div class="bg-white w-full max-w-xl rounded-[50px] shadow-2xl shadow-blue-200/50 animate-in fade-in slide-in-from-bottom-8 duration-700 relative overflow-hidden border border-white min-h-[90vh]">
-                <div class="absolute top-0 right-0 w-80 h-80 bg-blue-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-30"></div>
-                
-                ${renderHeader()}
-                
-                <main class="p-8 relative z-10">
-                    ${renderNav()}
-                    <div id="view-content">
-                        ${renderAssessmentsView()}
-                    </div>
-                </main>
+        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden">
+            <!-- Dynamic Mesh Background -->
+            <div class="bg-premium-gradient-fixed"></div>
+            <div class="mesh-blob top-[-10%] right-[-10%] bg-emerald-600/10"></div>
+            <div class="mesh-blob bottom-[-10%] left-[-10%] bg-blue-600/10"></div>
+
+            <div class="relative z-10 flex flex-col items-center py-4 md:py-8 px-4">
+                <div class="w-full max-w-xl space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                    ${renderHeader()}
+                    <main class="relative z-10">
+                        ${renderNav()}
+                        <div id="view-content" class="min-h-[60vh]">
+                            ${currentView === 'exams' ? renderAssessmentsView() : renderGradesView()}
+                        </div>
+                    </main>
+                </div>
             </div>
 
             <!-- Profile Modal -->
@@ -122,9 +136,9 @@ export const StudentDashPage = async () => {
         title: 'Account Settings',
         content: `
                     <form id="profile-form" class="space-y-6">
-                        ${renderInput({ id: 'profile-name', label: 'Student Display Name', value: userName, placeholder: 'e.g. John Doe' })}
-                        <p class="text-[10px] text-gray-400 font-medium">This name will be visible to your teachers on class lists and performance reports.</p>
-                        <button type="submit" class="w-full bg-blue-600 text-white p-4 rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">Save Changes</button>
+                        ${renderInput({ id: 'profile-name', label: 'Full Name', value: userName, placeholder: 'Juan Dela Cruz', classes: 'bg-white/5 border-white/5 text-white placeholder:text-white/20' })}
+                        <p class="text-[10px] text-white/30 font-medium px-4">This name will be used on your certificates and performance reports.</p>
+                        <button type="submit" class="w-full bg-blue-600 text-white p-5 rounded-[22px] font-black uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all border border-white/20">Save Profile Changes</button>
                     </form>
                 `
     })}
@@ -141,8 +155,8 @@ export const StudentDashPage = async () => {
         setupModalListeners('profile-modal');
         document.getElementById('edit-profile-btn').onclick = () => document.getElementById('profile-modal').classList.remove('hidden');
 
-        document.getElementById('view-exams-btn').onclick = () => {
-            currentView = 'assessments';
+        document.getElementById('exams-tab').onclick = () => {
+            currentView = 'exams';
             app.querySelector('#view-content').innerHTML = renderAssessmentsView();
             // Re-render nav to update active state
             app.querySelector('nav').outerHTML = renderNav();
@@ -150,31 +164,32 @@ export const StudentDashPage = async () => {
             loadAssessments();
         };
 
-        document.getElementById('view-grades-btn').onclick = () => {
-            currentView = 'grades';
+        document.getElementById('performance-tab').onclick = () => {
+            currentView = 'performance';
             app.querySelector('#view-content').innerHTML = renderGradesView();
             app.querySelector('nav').outerHTML = renderNav();
             setupListeners();
             loadGrades();
         };
 
-        const joinForm = document.getElementById('join-class-form');
-        if (joinForm) {
-            joinForm.onsubmit = async (e) => {
+        const joinBtn = document.getElementById('join-class-btn');
+        if (joinBtn) {
+            joinBtn.onclick = async (e) => {
                 e.preventDefault();
-                const code = document.getElementById('class-code').value.toUpperCase();
-                const btn = e.target.querySelector('button');
+                const codeInput = document.getElementById('invite-code');
+                const code = codeInput.value.toUpperCase();
+                const btn = e.target;
                 btn.disabled = true;
                 btn.textContent = 'Verifying...';
                 try {
                     await joinClass(code, user.user.uid, userEmail, userName);
                     alert("Request sent! Your teacher will review your enrollment.");
-                    e.target.reset();
+                    codeInput.value = ''; // Clear input
                 } catch (err) {
                     alert(err.message);
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = 'Request Entry';
+                    btn.textContent = 'Enroll Now';
                 }
             };
         }
@@ -203,7 +218,7 @@ export const StudentDashPage = async () => {
                 document.getElementById('profile-modal').classList.add('hidden');
 
                 // Surgical UI Update: update the display name in the header
-                const nameDisplay = document.querySelector('header div p.text-xs.font-bold');
+                const nameDisplay = document.querySelector('header div p.text-[11px].font-medium');
                 if (nameDisplay) nameDisplay.textContent = newName;
 
                 console.log("Profile updated successfully");
@@ -245,12 +260,12 @@ export const StudentDashPage = async () => {
             if (myClasses.length > 0) {
                 html += `
                     <div class="mb-4 overflow-hidden">
-                        <h4 class="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-4 pl-1">Authorized Enrolments</h4>
-                        <div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                        <h4 class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-4 pl-1">Authorized Enrolments</h4>
+                        <div class="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
                             ${myClasses.map(c => `
-                                <div class="bg-white px-6 py-4 rounded-[20px] shadow-sm border border-white flex items-center gap-3 whitespace-nowrap">
-                                    <div class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-lg shadow-blue-200"></div>
-                                    <span class="font-black text-gray-800 text-xs tracking-tight">${c.name}</span>
+                                <div class="glass-panel px-5 py-3 rounded-full border border-white/10 flex items-center gap-2 whitespace-nowrap shadow-lg shadow-blue-500/10">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+                                    <span class="font-black text-white text-xs tracking-tight">${c.name}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -261,20 +276,20 @@ export const StudentDashPage = async () => {
             // Render Groups
             Object.values(groups).forEach(g => {
                 html += `
-                    <div class="bg-white rounded-[40px] shadow-sm border border-white overflow-hidden mb-10 transition-all hover:shadow-md">
-                        <div class="bg-gray-50/70 glass-panel px-10 py-6 border-b border-gray-100 flex justify-between items-center">
+                    <div class="glass-panel rounded-[40px] border border-white/5 overflow-hidden mb-10 transition-all hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)]">
+                        <div class="bg-white/5 px-8 py-6 border-b border-white/5 flex justify-between items-center">
                             <div>
-                                <h3 class="font-black text-gray-900 text-base uppercase tracking-tight">${g.name}</h3>
-                                <p class="text-[10px] text-blue-600 font-black uppercase tracking-[0.2em] mt-0.5">${g.section || 'Standard Section'}</p>
+                                <h3 class="font-black text-white text-base uppercase tracking-tight">${g.name}</h3>
+                                <p class="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] mt-0.5">${g.section || 'Standard Section'}</p>
                             </div>
-                            <div class="w-10 h-10 bg-white rounded-xl shadow-sm border border-gray-50 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            <div class="w-10 h-10 bg-white/5 rounded-xl border border-white/5 flex items-center justify-center text-white/30">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                             </div>
                         </div>
-                        <div class="divide-y divide-gray-50">
+                        <div class="divide-y divide-white/5">
                             ${g.exams.length > 0
-                        ? g.exams.map(e => renderExamRow(e)).join('')
-                        : '<div class="p-16 text-center text-gray-500 text-xs font-black uppercase tracking-widest italic opacity-80">No active assessments in this group</div>'}
+                        ? g.exams.map(e => renderExamRow(e, myClasses)).join('')
+                        : '<div class="p-16 text-center text-white/40 text-xs font-black uppercase tracking-widest italic opacity-80">No active assessments in this group</div>'}
                         </div>
                     </div>
                 `;
@@ -283,31 +298,44 @@ export const StudentDashPage = async () => {
             container.innerHTML = html;
 
         } catch (err) {
-            container.innerHTML = '<div class="glass-panel text-red-500 text-center py-10 font-bold">Error loading course materials</div>';
+            container.innerHTML = '<div class="glass-panel text-red-400 text-center py-10 font-bold">Error loading course materials</div>';
         }
     };
 
-    const renderExamRow = (ex) => `
-        <div class="px-10 py-8 flex justify-between items-center group hover:bg-blue-50/50 transition-all">
-            <div class="flex items-center gap-6">
-                <div class="w-14 h-14 ${ex.completed ? 'bg-gray-100 text-gray-300 shadow-inner' : 'bg-blue-50 text-blue-600 shadow-sm'} rounded-2xl flex items-center justify-center transition-all group-hover:scale-110">
+    const renderExamRow = (ex, allClasses) => {
+        const classes = allClasses.filter(c => (ex.assignedClassIds || []).includes(c.id) || ex.assignedClassId === c.id);
+        return `
+        <div class="px-8 py-6 md:px-10 md:py-8 flex flex-col md:flex-row justify-between items-start md:items-center group hover:bg-white/5 transition-all">
+            <div class="flex items-start md:items-center gap-6 w-full md:w-auto">
+                <div class="w-14 h-14 ${ex.completed ? 'bg-white/5 text-white/20 shadow-inner' : 'bg-blue-600 text-white shadow-blue-500/20'} rounded-2xl flex items-center justify-center transition-all group-hover:scale-110">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                 </div>
-                <div>
-                    <h4 class="font-black text-gray-900 text-xl group-hover:text-blue-600 transition-colors tracking-tight">${ex.title}</h4>
+                <div class="flex-1">
+                    <h4 class="font-black text-white text-xl group-hover:text-blue-400 transition-colors tracking-tight leading-tight">${ex.title}</h4>
                     <div class="flex items-center gap-3 mt-1.5">
-                        <span class="text-[10px] text-gray-600 font-black uppercase tracking-widest">${ex.questionCount} Items</span>
-                        <span class="w-1 h-1 bg-gray-200 rounded-full"></span>
-                        <span class="text-[10px] text-blue-500/70 font-black uppercase tracking-widest">Active Now</span>
+                        <span class="text-[10px] text-white/40 font-black uppercase tracking-widest">${ex.questionCount} Items</span>
+                        <span class="w-1 h-1 bg-white/10 rounded-full"></span>
+                        <span class="text-[10px] text-emerald-400 font-black uppercase tracking-widest">Active Now</span>
                     </div>
+                    <div class="flex flex-wrap gap-2 mt-4 animate-in fade-in duration-700">
+                    ${classes.map(c => `
+                        <div class="px-4 py-2 glass-panel border border-white/5 rounded-full flex items-center gap-2">
+                            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+                            <span class="text-[9px] font-black text-white uppercase tracking-widest">${c.name}</span>
+                        </div>
+                    `).join('')}
+                </div>
                 </div>
             </div>
+            <div class="w-full md:w-auto mt-6 md:mt-0">
             ${ex.completed
-            ? '<div class="bg-gray-100 text-gray-400 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-inner">Complete</div>'
-            : `<button onclick="location.hash='#taker?id=${ex.id}'" class="bg-blue-premium text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-100 hover:shadow-2xl hover:shadow-blue-200 hover:-translate-y-1 transition-all active:scale-95">Start Exam</button>`
-        }
+                ? '<div class="bg-white/5 text-white/30 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-white/10 shadow-inner text-center">Complete</div>'
+                : `<button onclick="location.hash='#taker?id=${ex.id}'" class="w-full bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1 transition-all active:scale-95 border border-blue-400/30">Start Exam</button>`
+            }
+            </div>
         </div>
     `;
+    };
 
     const loadGrades = async () => {
         const container = document.getElementById('grades-container');
@@ -315,12 +343,12 @@ export const StudentDashPage = async () => {
             const submissions = await getSubmissionsByStudent(user.user.uid);
             if (submissions.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white p-20 rounded-[50px] border border-white text-center shadow-xl shadow-blue-100/30">
-                        <div class="w-24 h-24 bg-gray-50 rounded-[32px] flex items-center justify-center mx-auto mb-8 text-gray-200 shadow-inner">
+                    <div class="glass-panel p-20 rounded-[50px] border border-white/5 text-center shadow-xl shadow-blue-500/10">
+                        <div class="w-24 h-24 bg-white/5 rounded-[32px] flex items-center justify-center mx-auto mb-8 text-white/20 shadow-inner">
                              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <h3 class="text-2xl font-black text-gray-900 tracking-tight">Focus on Learning</h3>
-                        <p class="text-gray-400 mt-3 text-sm max-w-xs mx-auto leading-relaxed font-medium">Your performance metrics will propagate here once you complete your assigned course evaluations.</p>
+                        <h3 class="text-2xl font-black text-white tracking-tight">Focus on Learning</h3>
+                        <p class="text-white/40 mt-3 text-sm max-w-xs mx-auto leading-relaxed font-medium">Your performance metrics will propagate here once you complete your assigned course evaluations.</p>
                     </div>
                 `;
                 return;
@@ -329,52 +357,54 @@ export const StudentDashPage = async () => {
             const enriched = await Promise.all(submissions.map(async (s) => {
                 try {
                     const assessment = await getAssessment(s.assessmentId);
-                    return { ...s, assessmentTitle: assessment.title };
+                    const className = myClasses.find(c => (assessment.assignedClassIds || []).includes(c.id) || assessment.assignedClassId === c.id)?.name || 'Unknown Class';
+                    return { ...s, assessmentTitle: assessment.title, className: className };
                 } catch {
-                    return { ...s, assessmentTitle: 'Archived Module' };
+                    return { ...s, assessmentTitle: 'Archived Module', className: 'Unknown Class' };
                 }
             }));
 
-            container.innerHTML = `
+            const gradesContainer = document.getElementById('grades-container');
+            gradesContainer.innerHTML = `
                 <div class="flex items-center gap-3 mb-6 pl-2">
-                    <h2 class="text-xs font-black text-gray-600 uppercase tracking-[0.3em]">Institutional Record</h2>
-                    <div class="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent"></div>
+                    <h2 class="text-xs font-black text-white/40 uppercase tracking-[0.3em]">Institutional Record</h2>
+                    <div class="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
                 </div>
                 <div class="grid gap-6">
-        ${enriched.map(s => {
-                const isGraded = s.status === 'graded';
-                const percentage = isGraded ? Math.round((s.score / s.totalPoints) * 100) : null;
-                const date = new Date(s.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    ${enriched.map(r => {
+                const isGraded = r.status === 'graded';
+                const scorePercentage = isGraded ? Math.round((r.score / r.totalPoints) * 100) : 0;
+                const date = new Date(r.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
                 return `
-                             <div class="bg-white p-10 rounded-[40px] border border-white shadow-xl shadow-blue-50/50 flex flex-col sm:flex-row items-center justify-between group hover:border-blue-200 transition-all text-left gap-8">
-                                <div class="flex items-center gap-8 w-full">
-                                    <div class="w-20 h-20 ${isGraded ? 'bg-blue-premium text-white shadow-blue-200' : 'bg-orange-50 text-orange-600 shadow-orange-100'} rounded-[28px] flex flex-col items-center justify-center font-black shadow-lg transition-transform group-hover:scale-110">
-                                        <span class="text-[10px] uppercase opacity-70">${date.split(' ')[0]}</span>
-                                        <span class="text-2xl tracking-tighter">${date.split(' ')[1]}</span>
+                        <div class="glass-panel p-8 rounded-[40px] border border-white/5 space-y-8 animate-in fade-in duration-500">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="px-4 py-2 bg-white/5 border border-white/10 rounded-full inline-block mb-3">
+                                        <span class="text-[9px] font-black text-white/40 uppercase tracking-widest">${new Date(r.submittedAt).toLocaleDateString()}</span>
                                     </div>
-                                    <div class="flex-1">
-                                        <h3 class="font-black text-gray-900 text-2xl group-hover:text-blue-600 transition-colors uppercase tracking-tight leading-tight">${s.assessmentTitle}</h3>
-                                        <p class="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] mt-2">${isGraded ? 'Standardized Score' : 'Evaluation in Progress'}</p>
-                                    </div>
+                                    <h3 class="text-2xl font-black text-white tracking-tight leading-tight uppercase">${r.assessmentTitle}</h3>
+                                    <p class="text-white/30 text-[9px] font-black uppercase tracking-[0.2em] mt-2">${r.className}</p>
                                 </div>
-                                <div class="text-center sm:text-right w-full sm:w-auto">
-                                    ${isGraded ? `
-                                        <div class="flex flex-col items-center sm:items-end gap-6">
-                                            <div class="text-center sm:text-right">
-                                                <p class="text-5xl font-black text-gray-900 tracking-tighter">${s.score}<span class="text-gray-200 mx-2 text-3xl">/</span>${s.totalPoints}</p>
-                                                <div class="w-full sm:w-40 h-3 bg-gray-50 rounded-full mt-5 overflow-hidden shadow-inner border border-gray-100">
-                                                    <div class="h-full bg-blue-premium shadow-lg" style="width: ${percentage}%"></div>
-                                                </div>
-                                            </div>
-                                            <button onclick="location.hash='#results?id=${s.id}'" class="bg-gray-900 text-white px-8 py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-premium hover:-translate-y-1 transition-all shadow-xl shadow-gray-200">View Analysis</button>
-                                        </div>
-                                    ` : `
-                                        <span class="text-[11px] font-black text-orange-600 uppercase tracking-widest bg-orange-100 px-6 py-3 rounded-2xl border border-orange-200">Processing</span>
-                                    `}
+                                <div class="text-right">
+                                    <p class="text-4xl font-black text-white tracking-tighter leading-none">${scorePercentage}%</p>
+                                    <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mt-2">Ranked Excellent</p>
                                 </div>
                             </div>
-                        `;
+
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">
+                                    <span>Knowledge Accuracy</span>
+                                    <span class="text-white">${r.score} / ${r.totalPoints} Points</span>
+                                </div>
+                                <div class="h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
+                                    <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-[0_0_10px_rgba(37,99,235,0.5)] transition-all duration-1000" style="width: ${scorePercentage}%"></div>
+                                </div>
+                            </div>
+
+                            <button onclick="location.hash='#results?id=${r.id}'" class="w-full bg-white/5 border border-white/5 p-5 rounded-[22px] font-black uppercase text-[10px] tracking-[0.3em] text-white/40 hover:bg-blue-600 hover:text-white hover:border-blue-400/30 transition-all">Detailed Analysis</button>
+                        </div>
+                    `;
             }).join('')}
     </div>
 `;
