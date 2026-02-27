@@ -6,7 +6,8 @@ import {
     onAuthStateChanged,
     GoogleAuthProvider,
     signInWithPopup,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    updatePassword
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
     doc,
@@ -93,6 +94,16 @@ export const loginWithGoogle = async (role = 'student') => {
 export const resetPassword = async (email) => {
     try {
         await sendPasswordResetEmail(auth, email);
+        return true;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const changeUserPassword = async (newPassword) => {
+    try {
+        if (!auth.currentUser) throw new Error("No user logged in");
+        await updatePassword(auth.currentUser, newPassword);
         return true;
     } catch (error) {
         throw error;

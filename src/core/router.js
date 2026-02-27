@@ -34,8 +34,8 @@ export const handleRoute = async () => {
         return; // Wait on loading screen
     }
 
-    // Redirect logged-in users away from auth pages
-    if ((baseRoute === '#login' || baseRoute === '#register') && user) {
+    // Redirect logged-in users away from auth pages or generic dashboard aliases
+    if ((baseRoute === '#login' || baseRoute === '#register' || baseRoute === '#dashboard' || baseRoute === '') && user) {
         window.location.hash = user.role === 'teacher' ? '#teacher-dash' : '#student-dash';
         return;
     }
@@ -74,6 +74,6 @@ export const handleRoute = async () => {
             app.innerHTML = '<div class="p-4 text-red-500">Error loading page.</div>';
         }
     } else {
-        app.innerHTML = '<div class="p-10 text-center text-xl">404 - Page Not Found</div>';
+        app.innerHTML = '<div class="p-10 text-center text-xl text-white">404 - Page Not Found</div>';
     }
 };

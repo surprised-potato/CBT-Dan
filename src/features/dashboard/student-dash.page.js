@@ -4,7 +4,7 @@ import { joinClass, getStudentClasses } from '../../services/class.service.js';
 import { getActiveAssessments, getAssessment } from '../../services/assessment.service.js';
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
-import { updateUserProfile, logoutUser } from '../../services/auth.service.js';
+import { updateUserProfile, logoutUser, changeUserPassword } from '../../services/auth.service.js';
 import { getSubmissionsByStudent, checkSubmission } from '../../services/submission.service.js';
 import { enforceProfileCompletion } from '../../core/utils.js';
 import { getActiveSessionsForStudent } from '../../services/attendance.service.js';
@@ -110,6 +110,8 @@ export const StudentDashPage = async () => {
         </div>
     `;
 
+    const isEmailUser = user.user?.providerData?.some(p => p.providerId === 'password') || false;
+
     // --- Initial Shell ---
     app.innerHTML = `
         <div class="relative min-h-screen bg-[#020617] overflow-x-hidden">
@@ -131,16 +133,25 @@ export const StudentDashPage = async () => {
             </div>
 
             <!-- Profile Modal -->
-            ${renderModal({
+    ${renderModal({
         id: 'profile-modal',
         title: 'Account Settings',
         content: `
-                    <form id="profile-form" class="space-y-6">
-                        ${renderInput({ id: 'profile-name', label: 'Full Name', value: userName, placeholder: 'Juan Dela Cruz', classes: 'bg-white/5 border-white/5 text-white placeholder:text-white/20' })}
-                        <p class="text-[10px] text-white/30 font-medium px-4">This name will be used on your certificates and performance reports.</p>
-                        <button type="submit" class="w-full bg-blue-600 text-white p-5 rounded-[22px] font-black uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all border border-white/20">Save Profile Changes</button>
-                    </form>
-                `
+            <form id="profile-form" class="space-y-6">
+                ${renderInput({ id: 'profile-name', label: 'Full Name', value: userName, placeholder: 'Juan Dela Cruz', classes: 'bg-white/5 border-white/5 text-white placeholder:text-white/20' })}
+                <p class="text-[10px] text-white/30 font-medium px-4">This name will be used on your certificates and performance reports.</p>
+
+                ${isEmailUser ? `
+                    <div class="pt-4 border-t border-white/10">
+                        ${renderInput({ id: 'profile-password', label: 'New Password', type: 'password', placeholder: 'Leave blank to keep current password', showToggle: true, classes: 'bg-white/5 border-white/5 text-white placeholder:text-white/20' })}
+                    </div>
+                ` : ''}
+
+                <div id="profile-error" class="hidden text-red-400 text-[10px] font-black uppercase tracking-widest text-center bg-red-500/10 py-3 px-4 rounded-xl border border-red-500/20"></div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white p-5 rounded-[22px] font-black uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all border border-white/20">Save Profile Changes</button>
+            </form>
+        `
     })}
         </div>
     `;
@@ -197,11 +208,22 @@ export const StudentDashPage = async () => {
         document.getElementById('profile-form').onsubmit = async (e) => {
             e.preventDefault();
             const newName = document.getElementById('profile-name').value;
+            const newPasswordInput = document.getElementById('profile-password');
+            const errDisplay = document.getElementById('profile-error');
+
+            let newPassword = newPasswordInput ? newPasswordInput.value.trim() : null;
+
             const btn = e.target.querySelector('button');
             btn.disabled = true;
             btn.textContent = 'Saving...';
+            if (errDisplay) errDisplay.classList.add('hidden');
+
             try {
                 await updateUserProfile(user.user.uid, { displayName: newName });
+
+                if (newPassword) {
+                    await changeUserPassword(newPassword);
+                }
 
                 // If now complete, restore UI
                 const modal = document.getElementById('profile-modal');
@@ -223,9 +245,16 @@ export const StudentDashPage = async () => {
 
                 console.log("Profile updated successfully");
             } catch (err) {
-                alert("Update failed");
+                console.error(err);
+                if (errDisplay) {
+                    errDisplay.textContent = err.message || "Update failed. Error code: " + err.code;
+                    errDisplay.classList.remove('hidden');
+                } else {
+                    alert("Update failed: " + err.message);
+                }
             } finally {
                 btn.disabled = false;
+                btn.textContent = 'Save Profile Changes';
             }
         };
     };
