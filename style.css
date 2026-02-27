@@ -1,7 +1,8 @@
 /* Global custom styles if needed, mostly using Tailwind */
 body {
     -webkit-tap-highlight-color: transparent;
-    background: #020617; /* Darker Slate for premium contrast */
+    background: #020617;
+    /* Darker Slate for premium contrast */
 }
 
 /* Extreme Mesh Gradient Background */
@@ -9,8 +10,9 @@ body {
     position: fixed;
     inset: 0;
     z-index: -1;
+    pointer-events: none;
     background-color: #020617;
-    background-image: 
+    background-image:
         radial-gradient(at 0% 0%, hsla(225, 100%, 15%, 1) 0, transparent 50%),
         radial-gradient(at 50% 0%, hsla(217, 91%, 60%, 0.15) 0, transparent 50%),
         radial-gradient(at 100% 0%, hsla(225, 100%, 15%, 1) 0, transparent 50%),
@@ -21,7 +23,10 @@ body {
 .bg-premium-gradient::after {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(2, 4, 15, 0.4) 100%);
 }
 
@@ -34,12 +39,18 @@ body {
     border-radius: 50%;
     filter: blur(80px);
     z-index: -1;
+    pointer-events: none;
     animation: mesh-float 20s infinite alternate-reverse;
 }
 
 @keyframes mesh-float {
-    0% { transform: translate(-10%, -10%) scale(1); }
-    100% { transform: translate(20%, 30%) scale(1.2); }
+    0% {
+        transform: translate(-10%, -10%) scale(1);
+    }
+
+    100% {
+        transform: translate(20%, 30%) scale(1.2);
+    }
 }
 
 /* Glassmorphism Lux */
@@ -60,7 +71,7 @@ body {
 
 /* Autofill Overrides */
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
+input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
     -webkit-text-fill-color: #1e293b;
     -webkit-box-shadow: 0 0 0px 1000px #f8fafc inset;
@@ -69,7 +80,7 @@ input:-webkit-autofill:focus {
 
 .dark input:-webkit-autofill {
     -webkit-text-fill-color: white;
-    -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,0.05) inset;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset;
 }
 
 /* Ambient Glow */
