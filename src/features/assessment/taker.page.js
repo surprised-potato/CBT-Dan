@@ -8,7 +8,7 @@ import { renderIdentification } from '../question-bank/types/identification.js';
 import { renderMultiAnswer } from '../question-bank/types/multi-answer.js';
 import { renderMatching } from '../question-bank/types/matching.js';
 import { renderOrdering } from '../question-bank/types/ordering.js';
-import { calculateDistance } from '../../core/utils.js';
+import { calculateDistance, requestGeolocation, getGeolocationErrorHelp, canRequestFullscreen, isIOS } from '../../core/utils.js';
 
 export const TakerPage = async () => {
     const app = document.getElementById('app');
@@ -63,73 +63,126 @@ export const TakerPage = async () => {
         const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
 
         // --- ANTI-CHEAT PRE-CHECKS ---
+
+        // ── Geofence Check (hardened for iOS/Android) ──
         if (!isTeacher && settings.requireGeofence) {
-            app.innerHTML = `
-                <div class="min-h-screen flex flex-col items-center justify-center p-6">
-                    <div class="w-16 h-1 bg-blue-500 rounded-full animate-pulse mb-8"></div>
-                    <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Verifying Geospatial Permiter...</p>
-                </div>
-            `;
-
-            try {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    });
-                });
-
-                const studentLat = position.coords.latitude;
-                const studentLng = position.coords.longitude;
-                const distance = calculateDistance(studentLat, studentLng, settings.geofenceLat, settings.geofenceLng);
-
-                if (distance > settings.geofenceRadius) {
-                    throw new Error(`Location outside authorized perimeter (Distance: ${Math.round(distance)}m > Allowed: ${settings.geofenceRadius}m)`);
-                }
-            } catch (err) {
+            let geoPassed = false;
+            while (!geoPassed) {
                 app.innerHTML = `
                     <div class="min-h-screen flex flex-col items-center justify-center p-6">
-                        <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-blue-100 border border-white max-w-md w-full text-center">
-                            <h2 class="text-3xl font-black text-gray-900 mb-4 uppercase tracking-tight text-blue-600">Geospatial Lock</h2>
-                            <p class="text-xs font-black text-gray-600 mb-10 uppercase tracking-widest leading-loose">Access Denied: ${err.message || 'Location access required'}</p>
-                            <button onclick="window.location.hash='#student-dash'" class="w-full bg-blue-500 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em]">Return to Dashboard</button>
-                        </div>
+                        <div class="w-16 h-1 bg-blue-500 rounded-full animate-pulse mb-8"></div>
+                        <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Verifying Geospatial Perimeter...</p>
                     </div>
                 `;
-                return;
+
+                try {
+                    let position;
+                    try {
+                        position = await requestGeolocation(true, 15000);
+                    } catch (e1) {
+                        // Retry with relaxed accuracy
+                        position = await requestGeolocation(false, 20000);
+                    }
+
+                    const studentLat = position.coords.latitude;
+                    const studentLng = position.coords.longitude;
+                    const distance = calculateDistance(studentLat, studentLng, settings.geofenceLat, settings.geofenceLng);
+
+                    if (distance > settings.geofenceRadius) {
+                        throw { code: -1, message: `Location outside authorized perimeter (${Math.round(distance)}m > ${settings.geofenceRadius}m allowed)` };
+                    }
+                    geoPassed = true; // success
+                } catch (err) {
+                    const help = err.code === -1
+                        ? { title: 'Outside Perimeter', message: err.message }
+                        : getGeolocationErrorHelp(err);
+
+                    const userAction = await new Promise(resolve => {
+                        app.innerHTML = `
+                            <div class="min-h-screen flex flex-col items-center justify-center p-6">
+                                <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-blue-100 border border-white max-w-md w-full text-center">
+                                    <div class="w-20 h-20 bg-amber-50 border border-amber-100 rounded-[28px] flex items-center justify-center mx-auto mb-6">
+                                        <svg class="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    </div>
+                                    <h2 class="text-2xl font-black text-amber-600 mb-4 uppercase tracking-tight">${help.title}</h2>
+                                    <div class="text-[11px] font-bold text-gray-600 mb-8 leading-relaxed">${help.message}</div>
+                                    <button id="geo-retry-btn" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all mb-3">Retry Location</button>
+                                    <button id="geo-cancel-btn" class="w-full bg-gray-100 text-gray-600 p-4 rounded-2xl font-black uppercase text-[10px] tracking-widest">Return to Dashboard</button>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('geo-retry-btn').onclick = () => resolve('retry');
+                        document.getElementById('geo-cancel-btn').onclick = () => resolve('cancel');
+                    });
+
+                    if (userAction === 'cancel') {
+                        window.location.hash = '#student-dash';
+                        return;
+                    }
+                    // Loop continues on retry
+                }
             }
         }
 
+        // ── Fullscreen Check (platform-aware with iOS fallback) ──
         let isFullscreenArmed = false;
+        let isPseudoFullscreen = false;
         let isLockedOut = false;
         let unlockAttempts = 0;
+        const hasNativeFullscreen = canRequestFullscreen();
 
         if (!isTeacher && settings.requireFullscreen) {
-            app.innerHTML = `
-                <div class="min-h-screen flex flex-col items-center justify-center p-6">
-                    <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-red-100 border border-white max-w-md w-full text-center">
-                        <div class="w-20 h-20 bg-red-50 rounded-[28px] flex items-center justify-center mx-auto mb-8">
-                            <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            if (hasNativeFullscreen) {
+                // Desktop / Android: use native fullscreen
+                app.innerHTML = `
+                    <div class="min-h-screen flex flex-col items-center justify-center p-6">
+                        <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-red-100 border border-white max-w-md w-full text-center">
+                            <div class="w-20 h-20 bg-red-50 rounded-[28px] flex items-center justify-center mx-auto mb-8">
+                                <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                            <h2 class="text-xl font-black text-gray-900 mb-4 uppercase tracking-tight">STRICT LOCKOUT PROTOCOL</h2>
+                            <p class="text-xs font-black text-red-500 mb-10 uppercase tracking-widest leading-loose">Leaving fullscreen or switching tabs will result in an immediate test lockout.</p>
+                            <button id="enter-fs-btn" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all">Agree & Enter Fullscreen</button>
                         </div>
-                        <h2 class="text-xl font-black text-gray-900 mb-4 uppercase tracking-tight">STRICT LOCKOUT PROTOCOL</h2>
-                        <p class="text-xs font-black text-red-500 mb-10 uppercase tracking-widest leading-loose">Leaving fullscreen or switching tabs will result in an immediate test lockout.</p>
-                        <button id="enter-fs-btn" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all">Agree & Enter Fullscreen</button>
                     </div>
-                </div>
-            `;
+                `;
 
-            await new Promise(resolve => {
-                document.getElementById('enter-fs-btn').onclick = async () => {
-                    try {
-                        await document.documentElement.requestFullscreen();
+                await new Promise(resolve => {
+                    document.getElementById('enter-fs-btn').onclick = async () => {
+                        try {
+                            const el = document.documentElement;
+                            await (el.requestFullscreen ? el.requestFullscreen() : el.webkitRequestFullscreen());
+                            isFullscreenArmed = true;
+                            resolve();
+                        } catch (e) {
+                            alert('Fullscreen required to proceed.');
+                        }
+                    };
+                });
+            } else {
+                // iOS / unsupported: pseudo-fullscreen mode
+                app.innerHTML = `
+                    <div class="min-h-screen flex flex-col items-center justify-center p-6">
+                        <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-red-100 border border-white max-w-md w-full text-center">
+                            <div class="w-20 h-20 bg-red-50 rounded-[28px] flex items-center justify-center mx-auto mb-8">
+                                <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                            <h2 class="text-xl font-black text-gray-900 mb-4 uppercase tracking-tight">STRICT MODE</h2>
+                            <p class="text-xs font-black text-red-500 mb-4 uppercase tracking-widest leading-loose">Switching apps or tabs will trigger an immediate lockout.</p>
+                            <p class="text-[10px] font-bold text-gray-500 mb-10 leading-relaxed">Your device does not support native fullscreen. The exam will run in strict mode — leaving this page will lock your session.</p>
+                            <button id="enter-fs-btn" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all">Agree & Begin Exam</button>
+                        </div>
+                    </div>
+                `;
+
+                await new Promise(resolve => {
+                    document.getElementById('enter-fs-btn').onclick = () => {
+                        isPseudoFullscreen = true;
                         isFullscreenArmed = true;
                         resolve();
-                    } catch (e) {
-                        alert("Fullscreen required to proceed.");
-                    }
-                };
-            });
+                    };
+                });
+            }
         }
         // --- END ANTI-CHEAT PRE-CHECKS ---
 
@@ -543,9 +596,13 @@ export const TakerPage = async () => {
                 isLockedOut = false;
                 document.getElementById('lockout-overlay').classList.add('hidden');
                 document.getElementById('lockout-overlay').classList.remove('flex');
-                try {
-                    await document.documentElement.requestFullscreen();
-                } catch (e) { }
+                // Only re-enter native fullscreen if supported
+                if (hasNativeFullscreen && !isPseudoFullscreen) {
+                    try {
+                        const el = document.documentElement;
+                        await (el.requestFullscreen ? el.requestFullscreen() : el.webkitRequestFullscreen());
+                    } catch (e) { }
+                }
             } else {
                 alert("INCORRECT PROCTOR OVERRIDE");
             }
@@ -560,7 +617,7 @@ export const TakerPage = async () => {
                     email: user.email || user.user.email
                 }, {
                     terminatedDueToCheating: true,
-                    cheatingReason: "Force submitted during lockout",
+                    cheatingReason: isPseudoFullscreen ? "Force submitted during strict mode lockout" : "Force submitted during lockout",
                     unlockAttempts
                 });
                 localStorage.removeItem(storageKey);
@@ -576,15 +633,18 @@ export const TakerPage = async () => {
         };
 
         if (!isTeacher && settings.requireFullscreen) {
-            document.addEventListener('fullscreenchange', () => {
-                if (document.fullscreenElement === null) handleLockout("Exited Fullscreen");
-            });
+            if (hasNativeFullscreen && !isPseudoFullscreen) {
+                // Native fullscreen: watch both fullscreen exit and tab switch
+                document.addEventListener('fullscreenchange', () => {
+                    if (document.fullscreenElement === null) handleLockout("Exited Fullscreen");
+                });
+            }
+            // Visibility API: works on both native and pseudo-fullscreen (including iOS Safari)
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'hidden') handleLockout("Switched Tabs/Background");
             });
 
-            // Because UI is re-rendered, we must attach listeners to the body/document or dynamically
-            // But since they are static overlays, we can attach when UI updates or globally delegate:
+            // Delegated click listeners for lockout overlay buttons
             document.addEventListener('click', (e) => {
                 if (e.target.id === 'unlock-btn') handleResume();
                 if (e.target.id === 'force-submit-btn') handleForceSubmit();

@@ -73,3 +73,64 @@ export const generateSecureCode = (length = 6) => {
     }
     return code;
 };
+
+// ──────────────────────────────────
+// Device / Platform Helpers
+// ──────────────────────────────────
+
+/**
+ * Detect iOS devices (iPhone, iPad, iPod).
+ */
+export const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+/**
+ * Check whether the Fullscreen API is available.
+ */
+export const canRequestFullscreen = () => !!(
+    document.documentElement.requestFullscreen ||
+    document.documentElement.webkitRequestFullscreen
+);
+
+/**
+ * Build a user-friendly geolocation error message with device-specific instructions.
+ */
+export const getGeolocationErrorHelp = (error) => {
+    const ios = isIOS();
+    const base = {
+        1: { // PERMISSION_DENIED
+            title: 'Location Access Denied',
+            message: ios
+                ? 'Open your iPhone <b>Settings → Privacy & Security → Location Services</b>, ensure it is <b>ON</b>, then scroll to <b>Safari Websites</b> and set it to <b>"While Using"</b>.'
+                : 'Tap the <b>🔒 lock icon</b> in your browser address bar → <b>Permissions → Location → Allow</b>. Then try again.',
+        },
+        2: { // POSITION_UNAVAILABLE
+            title: 'Location Unavailable',
+            message: 'Your device could not determine its location. Please ensure <b>GPS / Location Services</b> are enabled and you are not in Airplane mode.',
+        },
+        3: { // TIMEOUT
+            title: 'Location Request Timed Out',
+            message: 'It took too long to get your location. Please move to an area with better GPS reception and try again.',
+        }
+    };
+    return base[error?.code] || { title: 'Location Error', message: error?.message || 'An unknown error occurred while accessing your location.' };
+};
+
+/**
+ * Request geolocation with a promise wrapper. Uses relaxed accuracy on retry.
+ * @param {boolean} highAccuracy - Use high accuracy (default true).
+ * @param {number} timeout - Timeout in ms (default 15000).
+ * @returns {Promise<GeolocationPosition>}
+ */
+export const requestGeolocation = (highAccuracy = true, timeout = 15000) => {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject({ code: 2, message: 'Geolocation is not supported by this browser.' });
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: highAccuracy,
+            timeout: timeout,
+            maximumAge: 60000
+        });
+    });
+};
