@@ -1,4 +1,4 @@
-import { getAssessment, toggleAssessmentStatus, cloneAssessment, updateAssessmentConfig, reconfigureAssessmentSections } from '../../services/assessment.service.js';
+import { getAssessment, getAssessmentWithKeys, toggleAssessmentStatus, cloneAssessment, updateAssessmentConfig, reconfigureAssessmentSections } from '../../services/assessment.service.js';
 import { getClassesByTeacher } from '../../services/class.service.js';
 import { getHierarchy } from '../../services/question-bank.service.js';
 import { getUser } from '../../core/store.js';
@@ -45,7 +45,7 @@ export const DetailsPage = async () => {
         try {
             const user = getUser();
             const [assessment, classes, hierarchy] = await Promise.all([
-                getAssessment(id),
+                getAssessmentWithKeys(id),
                 user ? getClassesByTeacher(user.user.uid) : [],
                 getHierarchy()
             ]);
@@ -185,7 +185,10 @@ export const DetailsPage = async () => {
 
                 <div class="space-y-8">
                     <h3 class="text-xl font-black text-white uppercase tracking-[0.2em] px-4">Registry Preview</h3>
-                    ${assessment.questions.map((q, idx) => `
+                    ${assessment.questions.map((q, idx) => {
+                const correctAnswer = assessment.keys && assessment.keys[q.id] ? assessment.keys[q.id] : null;
+
+                return `
                         <div class="glass-panel bg-white/5 p-8 rounded-[40px] border border-white/10 shadow-xl relative overflow-hidden group backdrop-blur-md">
                              ${isActive ? '<div class="absolute inset-0 bg-black/60 backdrop-blur-[4px] z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="font-black text-[10px] uppercase tracking-[0.3em] text-cyan-300 bg-cyan-900/40 border border-cyan-500/30 px-6 py-3 rounded-2xl shadow-[0_0_15px_rgba(6,182,212,0.2)]">Encryption Locked (Active Session)</span></div>' : ''}
                             <div class="flex justify-between items-center mb-6">
@@ -193,17 +196,36 @@ export const DetailsPage = async () => {
                                 <span class="text-[10px] font-black text-purple-300 bg-purple-500/10 px-4 py-1.5 rounded-full border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)] uppercase tracking-widest">${q.type}</span>
                             </div>
                             <p class="text-white font-extrabold text-lg mb-6 leading-relaxed drop-shadow-sm">${q.text || 'No operational data provided'}</p>
+                            
                              ${q.choices && q.choices.length > 0 ? `
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    ${q.choices.map(opt => `
-                                        <div class="p-4 bg-black/20 rounded-2xl text-[13px] font-bold text-gray-300 border border-white/5 shadow-inner backdrop-blur-sm hover:bg-white/5 transition-colors">
-                                            ${typeof opt === 'string' ? opt : opt.text}
+                                    ${q.choices.map(opt => {
+                    const textValue = typeof opt === 'string' ? opt : opt.text;
+                    const isCorrect = correctAnswer === textValue;
+                    return `
+                                        <div class="p-4 rounded-2xl text-[13px] font-bold border transition-colors relative overflow-hidden ${isCorrect ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-black/20 text-gray-300 border-white/5 shadow-inner backdrop-blur-sm'}">
+                                            ${isCorrect ? '<div class="absolute right-0 top-0 h-full w-12 bg-emerald-500/10 flex items-center justify-center border-l border-emerald-500/20"><svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>' : ''}
+                                            <span class="${isCorrect ? 'pr-10 block' : ''}">${textValue}</span>
                                         </div>
-                                    `).join('')}
+                                    `}).join('')}
+                                </div>
+                            ` : ``}
+                            
+                            ${(!q.choices || q.choices.length === 0) && correctAnswer ? `
+                                <div class="mt-4 p-5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl relative overflow-hidden">
+                                     <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/20 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                                     <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-2 opacity-80">Verified Key</span>
+                                     <p class="text-[13px] font-bold text-emerald-50 relative z-10">${Array.isArray(correctAnswer) ? correctAnswer.map(c => `• ${typeof c === 'object' ? JSON.stringify(c) : c}`).join('<br>') : typeof correctAnswer === 'object' ? JSON.stringify(correctAnswer) : correctAnswer}</p>
+                                </div>
+                            ` : ''}
+                            
+                            ${(!q.choices || q.choices.length === 0) && !correctAnswer ? `
+                                <div class="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl">
+                                     <span class="text-[10px] font-black uppercase tracking-widest text-amber-400">Manual Evaluation Required</span>
                                 </div>
                             ` : ''}
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             `;
 
