@@ -64,6 +64,7 @@ export const handleRoute = async () => {
 
     // Simple transition or clearing
     app.innerHTML = '';
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
     // Check if handler exists
     if (handler) {

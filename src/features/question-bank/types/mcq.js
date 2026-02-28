@@ -18,15 +18,15 @@ export const renderMCQ = (question, index = 1, section = {}) => {
         inputArea = `
             <div class="grid grid-cols-1 gap-4">
                 ${question.choices.map((choice, i) => `
-                    <label class="relative flex items-center p-6 bg-gray-50/50 border border-transparent rounded-[32px] cursor-pointer transition-all hover:bg-white hover:border-purple-200 hover:shadow-xl hover:shadow-purple-50 group/choice">
+                    <label class="relative flex items-center p-6 bg-white/5 border border-white/10 rounded-[32px] cursor-pointer transition-all hover:bg-white/10 hover:border-purple-500/50 hover:shadow-[0_0_15px_rgba(147,51,234,0.3)] group/choice backdrop-blur-sm">
                         <input type="radio" 
                                name="q-${question.id}" 
                                value="${choice.id}" 
                                class="peer hidden">
-                        <div class="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center font-black text-gray-400 transition-all peer-checked:bg-purple-600 peer-checked:text-white peer-checked:scale-110 shadow-sm mr-6 group-hover/choice:border-purple-200">
+                        <div class="w-12 h-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center font-black text-gray-500 transition-all peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-400 peer-checked:scale-110 shadow-inner mr-6 group-hover/choice:border-purple-500/50">
                             ${String.fromCharCode(65 + i)}
                         </div>
-                        <span class="text-sm font-black text-gray-600 uppercase tracking-tight transition-all peer-checked:text-purple-900">${choice.text}</span>
+                        <span class="text-sm font-black text-gray-300 uppercase tracking-tight transition-all peer-checked:text-white">${choice.text}</span>
                     </label>
                 `).join('')}
             </div>
@@ -36,11 +36,11 @@ export const renderMCQ = (question, index = 1, section = {}) => {
         inputArea = `
             <div class="relative group/bank">
                 <select name="q-${question.id}" 
-                        class="w-full p-8 bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-[40px] text-sm font-black text-blue-900 uppercase tracking-widest appearance-none outline-none focus:border-blue-500 focus:bg-white transition-all cursor-pointer">
-                    <option value="">-- RETRIEVE FROM BANK --</option>
-                    ${section.answerBank.map(ans => `<option value="${ans}">${ans}</option>`).join('')}
+                        class="w-full p-8 bg-black/40 border border-white/10 rounded-[40px] text-sm font-black text-cyan-300 uppercase tracking-widest appearance-none outline-none focus:border-cyan-500 focus:bg-black/60 transition-all cursor-pointer shadow-inner">
+                    <option value="" class="bg-[#0f172a] text-gray-400">-- RETRIEVE FROM BANK --</option>
+                    ${section.answerBank.map(ans => `<option value="${ans}" class="bg-[#0f172a] text-white">${ans}</option>`).join('')}
                 </select>
-                <div class="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-blue-300 transition-transform group-hover/bank:translate-x-1">
+                <div class="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-cyan-500 transition-transform group-hover/bank:translate-x-1">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
             </div>
@@ -52,8 +52,8 @@ export const renderMCQ = (question, index = 1, section = {}) => {
                 <input type="text" 
                        name="q-${question.id}" 
                        placeholder="INPUT TELEMETRY DATA..."
-                       class="w-full p-8 bg-gray-50 border-2 border-transparent rounded-[40px] text-lg font-black text-purple-900 uppercase tracking-tight placeholder:text-gray-300 outline-none focus:bg-white focus:border-purple-500 transition-all shadow-inner">
-                <div class="absolute right-10 top-1/2 -translate-y-1/2 text-purple-100 pointer-events-none">
+                       class="w-full p-8 bg-black/40 border border-white/10 rounded-[40px] text-lg font-black text-white uppercase tracking-tight placeholder:text-gray-600 outline-none focus:bg-black/60 focus:border-purple-500 transition-all shadow-inner">
+                <div class="absolute right-10 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 </div>
             </div>
@@ -64,10 +64,10 @@ export const renderMCQ = (question, index = 1, section = {}) => {
         <div class="space-y-8">
             <div class="space-y-4">
                 <div class="flex items-center gap-3">
-                    <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-blue-100">${hasChoices ? 'Operational' : 'Identification'}</span>
-                    ${isBankMode ? '<span class="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-amber-100 italic">Banked</span>' : ''}
+                    <span class="px-3 py-1 bg-indigo-900/40 text-indigo-300 rounded-full text-[8px] font-black uppercase tracking-widest border border-indigo-500/30">${hasChoices ? 'Operational' : 'Identification'}</span>
+                    ${isBankMode ? '<span class="px-3 py-1 bg-amber-900/40 text-amber-300 rounded-full text-[8px] font-black uppercase tracking-widest border border-amber-500/30 italic">Banked</span>' : ''}
                 </div>
-                <div class="text-2xl font-black text-gray-800 leading-tight uppercase tracking-tight q-content">
+                <div class="text-2xl font-black text-white leading-tight uppercase tracking-tight q-content">
                     ${question.text}
                 </div>
             </div>

@@ -30,7 +30,7 @@ export const AttendanceTerminalPage = async () => {
     // ────────── Setup View ──────────
     const renderSetup = () => {
         app.innerHTML = `
-        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+        <div class="relative min-h-screen bg-[#020617] pb-32">
             <!-- Dynamic Mesh Background -->
             <div class="bg-premium-gradient-fixed"></div>
             <div class="mesh-blob top-[-10%] left-[-10%] bg-emerald-600/10 scale-150"></div>
@@ -201,7 +201,7 @@ export const AttendanceTerminalPage = async () => {
         const classId = activeSession.classId;
 
         app.innerHTML = `
-        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+        <div class="relative min-h-screen bg-[#020617] pb-32">
             <!-- Dynamic Mesh Background -->
             <div class="bg-premium-gradient-fixed"></div>
             <div class="mesh-blob top-[-10%] left-[-10%] bg-emerald-600/10 scale-150"></div>
@@ -260,10 +260,10 @@ export const AttendanceTerminalPage = async () => {
                         <div class="lg:col-span-2 flex flex-col h-full space-y-6">
                             <div class="glass-panel rounded-[40px] border border-white/5 flex flex-col flex-1 shadow-xl overflow-hidden">
                                 <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
-                                    <h2 class="text-[10px] font-black text-white uppercase tracking-[0.4em]">Checkpoint Feed</h2>
-                                    <span id="checkin-count" class="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg shadow-emerald-900/20">0 Entry</span>
+                                    <h2 class="text-[10px] font-black text-white uppercase tracking-[0.4em]">Live Roll Call Grid</h2>
+                                    <span id="checkin-count" class="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg shadow-emerald-900/20">0 Connected</span>
                                 </div>
-                                <div id="checkins-feed" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar min-h-[400px]">
+                                <div id="checkins-feed" class="flex-1 overflow-y-auto p-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 custom-scrollbar min-h-[400px] content-start">
                                     <div class="h-full flex flex-col items-center justify-center text-center p-10 opacity-30 italic font-medium text-xs text-white uppercase tracking-widest">
                                         <svg class="w-12 h-12 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
                                         Awaiting Initial Signals...
@@ -325,19 +325,19 @@ export const AttendanceTerminalPage = async () => {
             }
 
             const renderFeedRow = (c) => {
-                const isLate = c.status === 'LATE'; // Changed 'late' to 'LATE' to match existing data structure
+                const isLate = c.status === 'LATE';
+                const initial = (c.name && c.name !== 'Unknown') ? c.name.charAt(0) : (c.email ? c.email.charAt(0) : '?');
                 return `
-            <div class="glass-panel p-5 rounded-[22px] border border-white/5 flex items-center justify-between group animate-in slide-in-from-right-4 duration-300">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 ${isLate ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'} rounded-xl flex items-center justify-center ring-1 ring-white/5 group-hover:scale-110 transition-transform">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <div title="${c.name || c.email} - ${new Date(c.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}" class="flex flex-col items-center gap-2 group animate-in zoom-in-50 duration-500">
+                <div class="relative">
+                    <div class="w-14 h-14 md:w-16 md:h-16 ${isLate ? 'bg-amber-500/20 text-amber-500 border-amber-500/50' : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/50'} rounded-full flex items-center justify-center border-2 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-transform group-hover:scale-110">
+                        <span class="text-xl md:text-2xl font-black uppercase">${initial.toUpperCase()}</span>
                     </div>
-                    <div>
-                        <p class="text-xs font-black text-white tracking-tight uppercase">${c.name || c.email}</p>
-                        <p class="text-[9px] font-black ${isLate ? 'text-amber-400' : 'text-emerald-400'} uppercase tracking-widest mt-0.5">${isLate ? 'Late Entry' : 'Present'}</p>
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 ${isLate ? 'bg-amber-500' : 'bg-emerald-500'} border-2 border-[#020617] rounded-full flex items-center justify-center">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="${isLate ? 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' : 'M5 13l4 4L19 7'}"></path></svg>
                     </div>
                 </div>
-                <span class="text-[14px] font-mono text-white/30 tracking-widest">${new Date(c.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <p class="text-[10px] font-black text-white/70 tracking-tighter uppercase w-16 truncate text-center">${c.name || c.email.split('@')[0]}</p>
             </div>
         `;
             };
@@ -381,10 +381,10 @@ export const AttendanceTerminalPage = async () => {
     // --- Initial Entry Logic ---
     const checkActiveSessions = async () => {
         app.innerHTML = `
-        <div class="flex items-center justify-center min-h-screen bg-premium-gradient">
+                    < div class="flex items-center justify-center min-h-screen bg-premium-gradient" >
             <div class="w-16 h-1 bg-green-500 rounded-full animate-pulse mb-8"></div>
             <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] animate-pulse">Syncing Active Sessions...</p>
-        </div>`;
+        </div > `;
 
         try {
             const activeSessions = await getActiveSessionsByTeacher(user.user.uid);

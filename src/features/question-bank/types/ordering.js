@@ -17,9 +17,9 @@ export const renderOrdering = (question, index = 1) => {
         <div class="space-y-8">
             <div class="space-y-4">
                 <div class="flex items-center gap-3">
-                    <span class="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-amber-100">Chronological Sequencing</span>
+                    <span class="px-3 py-1 bg-amber-900/40 text-amber-300 rounded-full text-[8px] font-black uppercase tracking-widest border border-amber-500/30">Chronological Sequencing</span>
                 </div>
-                <div class="text-2xl font-black text-gray-800 leading-tight uppercase tracking-tight q-content">
+                <div class="text-2xl font-black text-white leading-tight uppercase tracking-tight q-content">
                     ${question.text}
                 </div>
             </div>
@@ -28,18 +28,18 @@ export const renderOrdering = (question, index = 1) => {
 
             <div class="space-y-4 pt-4">
                 ${shuffledItems.map((item, i) => `
-                    <div class="flex items-center gap-6 p-6 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:border-amber-200 transition-all group/item">
+                    <div class="flex items-center gap-6 p-6 bg-white/5 border border-white/10 rounded-[32px] shadow-lg hover:bg-white/10 hover:border-amber-500/50 transition-all group/item backdrop-blur-sm">
                         <div class="relative w-16 h-16 shrink-0">
                             <input type="number" 
                                    name="q-${question.id}-order-${i}" 
                                    data-item="${item}"
                                    min="1" 
                                    max="${shuffledItems.length}"
-                                   class="order-input w-full h-full p-4 bg-amber-50 border-2 border-transparent rounded-2xl text-center font-black text-lg text-amber-600 outline-none focus:bg-white focus:border-amber-400 transition-all appearance-none shadow-inner"
+                                   class="order-input w-full h-full p-4 bg-black/40 border border-white/10 rounded-2xl text-center font-black text-lg text-amber-300 outline-none focus:bg-black/60 focus:border-amber-500 transition-all appearance-none shadow-inner"
                                    placeholder="#"
                                    required>
                         </div>
-                        <div class="flex-1 text-sm font-black text-gray-700 uppercase tracking-tight">
+                        <div class="flex-1 text-sm font-black text-gray-200 uppercase tracking-tight">
                             ${item}
                         </div>
                     </div>

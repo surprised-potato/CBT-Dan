@@ -1,5 +1,3 @@
-console.log("App starting...");
-
 // Import config (optional, ensures firebase init)
 import './src/core/config.js';
 
@@ -55,7 +53,6 @@ addRoute('', LoginPage);
 
 // --- Start the App ---
 observeAuthChanges((user) => {
-    console.log("Auth State Changed:", user);
     handleRoute(); // Process route once auth finishes
 });
 

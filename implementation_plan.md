@@ -236,3 +236,17 @@ Overhaul the remaining core teacher management views to align with the premium d
     *   Enable GitHub Pages.
 
 **✅ Final Test:** Ask a friend to log in as a student on their phone using the live link. You manage it from your laptop. Run a full exam cycle.
+
+---
+
+### **Phase 10: Editable Assessment Sectors**
+*Goal: Allow teachers to edit the configuration of specific sectors (number of items, topics, difficulty) on the Assessment Details page if the assessment has not yet been launched.*
+
+*   [ ] **10.1. Service Helper Methods (`src/services/assessment.service.js`)**
+    *   Extract question querying and distribution logic out of `generateAssessment()` into an exported helper `generateQuestionsForSections(sections)`.
+    *   Implement `reconfigureAssessmentSections(id, newSections)` which calls the helper to generate new questions and safely mutates both `assessment_content` and `assessment_keys` to commit the new sector configurations.
+*   [ ] **10.2. Assessment Details Edit Logic (`src/features/assessment/details.page.js`)**
+    *   Import and fetch `getHierarchy()` on page load.
+    *   Add an "Edit Sector" button to the sector loop if the assessment is in draft mode.
+    *   Render an edit modal populated with the sector's current config (Course, Topics, Item Distribution, Points).
+    *   Bind a save handler that aggregates the form data, patches the single section in the assessment's sections array, and dispatches the payload to `reconfigureAssessmentSections`.

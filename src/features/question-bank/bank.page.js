@@ -45,7 +45,7 @@ export const BankPage = async () => {
         const { title, subtitle, actionLabel, onAction } = getHeaderDetails();
 
         app.innerHTML = `
-            <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+            <div class="relative min-h-screen bg-[#020617] pb-32">
                 <!-- Dynamic Mesh Background -->
                 <div class="bg-premium-gradient-fixed"></div>
                 <div class="mesh-blob top-[-10%] left-[-10%] bg-blue-600/10 scale-150"></div>

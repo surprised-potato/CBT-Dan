@@ -10,7 +10,7 @@ export const CheckinPage = async () => {
     let scanner = null;
 
     app.innerHTML = `
-        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+        <div class="relative min-h-screen bg-[#020617] pb-32">
             <!-- Dynamic Mesh Background -->
             <div class="bg-premium-gradient-fixed"></div>
             <div class="mesh-blob top-[-10%] left-[-10%] bg-emerald-600/10 scale-150"></div>
@@ -210,6 +210,12 @@ export const CheckinPage = async () => {
             </div>`;
 
         try {
+            if (!navigator.onLine) {
+                const err = new Error('OFFLINE_QUEUE');
+                err.code = 'OFFLINE_QUEUE';
+                throw err;
+            }
+
             const record = await submitCheckin(
                 payload.s,
                 {
@@ -228,7 +234,34 @@ export const CheckinPage = async () => {
                 record.status
             );
         } catch (err) {
-            showResult(statusDiv, false, 'Check-in Failed', err.message);
+            if (err.code === 'ALREADY_CHECKED_IN' && err.record) {
+                showResult(statusDiv, true,
+                    'Already Checked In',
+                    `You successfully checked in at ${new Date(err.record.time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}.`,
+                    err.record.status
+                );
+            } else if (err.code === 'NOT_ENROLLED') {
+                showResult(statusDiv, false, 'Access Denied', 'You are not enrolled in this roster. Please contact the instructor.');
+            } else if (err.code === 'OFFLINE_QUEUE' || err.code === 'unavailable' || err.message.includes('fetch') || err.message.includes('network')) {
+                // Offline Queuing implementation
+                const queue = JSON.parse(localStorage.getItem('checkin_queue') || '[]');
+                queue.push({
+                    sessionId: payload.s,
+                    userAuth: { uid: user.user.uid, name: user.displayName || user.email || 'Unknown', email: user.email || user.user.email || '' },
+                    code: payload.c,
+                    lat, lng,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('checkin_queue', JSON.stringify(queue));
+
+                showResult(statusDiv, true,
+                    'Offline Mode: Queued',
+                    'Your scan has been securely saved to this device and will automatically sync when network connection is restored.',
+                    'PRESENT'
+                );
+            } else {
+                showResult(statusDiv, false, 'Check-in Failed', err.message);
+            }
         }
     };
 

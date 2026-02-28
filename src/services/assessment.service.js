@@ -16,99 +16,102 @@ import {
 const COL_CONTENT = 'assessment_content'; // Public(ish) - Questions only
 const COL_KEYS = 'assessment_keys';       // Private - Answers only
 
+export const generateQuestionsForSections = async (sections) => {
+    let allSelectedQuestions = [];
+    const sectionAnswerBanks = {}; // sectorIdx -> [shuffled choices]
+
+    for (let i = 0; i < sections.length; i++) {
+        const section = sections[i];
+        const qRef = collection(db, 'questions');
+        let q = qRef;
+
+        if (section.course) {
+            q = query(q, where("course", "==", section.course));
+        }
+
+        if (section.topics && section.topics.length > 0) {
+            q = query(q, where("topic", "in", section.topics));
+        }
+
+        const snapshot = await getDocs(q);
+        let candidates = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Filter by type if specified
+        if (section.type && section.type !== 'ALL') {
+            candidates = candidates.filter(c => c.type === section.type);
+        }
+
+        // --- Difficulty Distribution Logic ---
+        let selectedForSection = [];
+        const dist = section.distribution || { ANY: 5, EASY: 0, MODERATE: 0, DIFFICULT: 0 };
+        const diffs = ['EASY', 'MODERATE', 'DIFFICULT'];
+        const selectedIds = new Set();
+
+        // 1. Fixed Difficulties
+        for (const diff of diffs) {
+            const countNeeded = dist[diff] || 0;
+            if (countNeeded <= 0) continue;
+
+            const diffCandidates = candidates.filter(c => (c.difficulty || 'EASY') === diff);
+
+            if (diffCandidates.length < countNeeded) {
+                throw new Error(`Insufficient ${diff} questions in ${section.course || 'selected domain'}. Requested: ${countNeeded}, Found: ${diffCandidates.length}`);
+            }
+
+            diffCandidates.sort(() => Math.random() - 0.5);
+            const chosen = diffCandidates.slice(0, countNeeded);
+            selectedForSection = [...selectedForSection, ...chosen];
+            chosen.forEach(c => selectedIds.add(c.id));
+        }
+
+        // 2. MIXED / ANY Difficulty
+        const anyNeeded = dist.ANY || 0;
+        if (anyNeeded > 0) {
+            const remainingPool = candidates.filter(c => !selectedIds.has(c.id));
+
+            if (remainingPool.length < anyNeeded) {
+                throw new Error(`Insufficient pool for Mixed Difficulty in ${section.course || 'selected domain'}. Requested: ${anyNeeded}, Available: ${remainingPool.length}`);
+            }
+
+            remainingPool.sort(() => Math.random() - 0.5);
+            const chosenAny = remainingPool.slice(0, anyNeeded);
+            selectedForSection = [...selectedForSection, ...chosenAny];
+        }
+
+        // Global Answer Bank Logic
+        if (section.answerBankMode) {
+            const bankSet = new Set(section.distractors || []);
+            selectedForSection.forEach(sq => {
+                const isID = sq.type === 'IDENTIFICATION' || (sq.type === 'MCQ' && (!sq.choices || sq.choices.length === 0));
+                if (isID) {
+                    (sq.correct_answers || []).forEach(ans => bankSet.add(ans));
+                }
+            });
+            sectionAnswerBanks[i] = Array.from(bankSet).sort(() => Math.random() - 0.5);
+        }
+
+        // Label questions
+        const labeled = selectedForSection.map(sq => ({
+            ...sq,
+            sectionIdx: i,
+            sectionTitle: section.title || 'Untitled Section',
+            sectionPoints: section.pointsPerQuestion || sq.points || 1
+        }));
+
+        allSelectedQuestions = [...allSelectedQuestions, ...labeled];
+    }
+
+    if (allSelectedQuestions.length === 0) {
+        throw new Error("No questions found for the selected criteria.");
+    }
+
+    return { allSelectedQuestions, sectionAnswerBanks };
+};
+
 export const generateAssessment = async (config) => {
     // config: { title, sections: [{ title, course, topics, type, distribution, pointsPerQuestion }], authorId }
-
     try {
-        let allSelectedQuestions = [];
-
-        // 1. Process each section
-        const sectionAnswerBanks = {}; // sectorIdx -> [shuffled choices]
-
-        for (let i = 0; i < config.sections.length; i++) {
-            const section = config.sections[i];
-            const qRef = collection(db, 'questions');
-            let q = qRef;
-
-            if (section.course) {
-                q = query(q, where("course", "==", section.course));
-            }
-
-            if (section.topics && section.topics.length > 0) {
-                q = query(q, where("topic", "in", section.topics));
-            }
-
-            const snapshot = await getDocs(q);
-            let candidates = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-
-            // Filter by type if specified
-            if (section.type && section.type !== 'ALL') {
-                candidates = candidates.filter(c => c.type === section.type);
-            }
-
-            // --- Difficulty Distribution Logic ---
-            let selectedForSection = [];
-            const dist = section.distribution || { ANY: 5, EASY: 0, MODERATE: 0, DIFFICULT: 0 };
-            const diffs = ['EASY', 'MODERATE', 'DIFFICULT'];
-            const selectedIds = new Set();
-
-            // 1. Fixed Difficulties
-            for (const diff of diffs) {
-                const countNeeded = dist[diff] || 0;
-                if (countNeeded <= 0) continue;
-
-                const diffCandidates = candidates.filter(c => (c.difficulty || 'EASY') === diff);
-
-                if (diffCandidates.length < countNeeded) {
-                    throw new Error(`Insufficient ${diff} questions in ${section.course || 'selected domain'}. Requested: ${countNeeded}, Found: ${diffCandidates.length}`);
-                }
-
-                diffCandidates.sort(() => Math.random() - 0.5);
-                const chosen = diffCandidates.slice(0, countNeeded);
-                selectedForSection = [...selectedForSection, ...chosen];
-                chosen.forEach(c => selectedIds.add(c.id));
-            }
-
-            // 2. MIXED / ANY Difficulty
-            const anyNeeded = dist.ANY || 0;
-            if (anyNeeded > 0) {
-                const remainingPool = candidates.filter(c => !selectedIds.has(c.id));
-
-                if (remainingPool.length < anyNeeded) {
-                    throw new Error(`Insufficient pool for Mixed Difficulty in ${section.course || 'selected domain'}. Requested: ${anyNeeded}, Available: ${remainingPool.length}`);
-                }
-
-                remainingPool.sort(() => Math.random() - 0.5);
-                const chosenAny = remainingPool.slice(0, anyNeeded);
-                selectedForSection = [...selectedForSection, ...chosenAny];
-            }
-
-            // Global Answer Bank Logic
-            if (section.answerBankMode) {
-                const bankSet = new Set(section.distractors || []);
-                selectedForSection.forEach(sq => {
-                    const isID = sq.type === 'IDENTIFICATION' || (sq.type === 'MCQ' && (!sq.choices || sq.choices.length === 0));
-                    if (isID) {
-                        (sq.correct_answers || []).forEach(ans => bankSet.add(ans));
-                    }
-                });
-                sectionAnswerBanks[i] = Array.from(bankSet).sort(() => Math.random() - 0.5);
-            }
-
-            // Label questions
-            const labeled = selectedForSection.map(sq => ({
-                ...sq,
-                sectionIdx: i,
-                sectionTitle: section.title || 'Untitled Section',
-                sectionPoints: section.pointsPerQuestion || sq.points || 1
-            }));
-
-            allSelectedQuestions = [...allSelectedQuestions, ...labeled];
-        }
-
-        if (allSelectedQuestions.length === 0) {
-            throw new Error("No questions found for the selected criteria.");
-        }
+        const { allSelectedQuestions, sectionAnswerBanks } = await generateQuestionsForSections(config.sections);
 
         // 2. SPLIT DATA
         const contentPayload = {
@@ -302,6 +305,74 @@ export const updateAssessmentConfig = async (id, updates) => {
         await updateDoc(doc(db, COL_CONTENT, id), sanitized);
     } catch (error) {
         console.error("Error updating assessment config:", error);
+        throw error;
+    }
+};
+
+export const reconfigureAssessmentSections = async (id, newSections) => {
+    try {
+        const contentSnap = await getDoc(doc(db, COL_CONTENT, id));
+        if (!contentSnap.exists()) throw new Error("Assessment not found");
+
+        const content = contentSnap.data();
+        if (content.status !== 'draft') {
+            throw new Error("Cannot reconfigure an active assessment.");
+        }
+
+        // 1. Generate new questions based on the new sections
+        const { allSelectedQuestions, sectionAnswerBanks } = await generateQuestionsForSections(newSections);
+
+        // 2. Prepare updated content (strip answers)
+        const updatedQuestions = allSelectedQuestions.map(q => {
+            const { correct_answers, correct_answer, ...safeQ } = q;
+            if (q.type === 'MATCHING') {
+                const pairs = q.pairs || [];
+                safeQ.matchingTerms = pairs.map(p => p.term);
+                safeQ.matchingDefinitions = pairs.map(p => p.definition).sort(() => Math.random() - 0.5);
+                delete safeQ.pairs;
+            }
+            if (q.type === 'ORDERING') {
+                safeQ.orderingItems = [...(q.items || [])].sort(() => Math.random() - 0.5);
+                delete safeQ.items;
+            }
+            return safeQ;
+        });
+
+        // 3. Prepare updated keys
+        const updatedAnswers = allSelectedQuestions.reduce((acc, q) => {
+            let keyAnswer = q.correct_answers || q.correct_answer || q.pairs || q.items;
+            if (Array.isArray(keyAnswer) && (q.type === 'MCQ' || q.type === 'TRUE_FALSE')) {
+                keyAnswer = keyAnswer[0];
+            }
+            if (keyAnswer === undefined) keyAnswer = null;
+            acc[q.id] = keyAnswer;
+            return acc;
+        }, {});
+
+        // 4. Batch update
+        const batch = writeBatch(db);
+
+        batch.update(doc(db, COL_CONTENT, id), {
+            sections: newSections.map((s, i) => ({
+                title: s.title,
+                topics: s.topics,
+                distribution: s.distribution,
+                pointsPerQuestion: s.pointsPerQuestion,
+                answerBank: sectionAnswerBanks[i] || null,
+                answerBankMode: s.answerBankMode || false,
+                course: s.course || null,
+                type: s.type || 'ALL'
+            })),
+            questions: updatedQuestions,
+            questionCount: updatedQuestions.length
+        });
+
+        batch.update(doc(db, COL_KEYS, id), { answers: updatedAnswers });
+
+        await batch.commit();
+
+    } catch (error) {
+        console.error("Error reconfiguring assessment sections:", error);
         throw error;
     }
 };

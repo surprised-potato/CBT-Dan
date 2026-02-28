@@ -101,6 +101,20 @@ export const submitCheckin = async (sessionId, { uid, name, email }, code, lat, 
 
     if (session.status !== 'active') throw new Error('Session is no longer active.');
 
+    // 0. Verify Enrollment
+    if (session.classId) {
+        const classSnap = await getDoc(doc(db, 'classes', session.classId));
+        if (classSnap.exists()) {
+            const classData = classSnap.data();
+            const isEnrolled = (classData.students || []).some(s => (typeof s === 'string' ? s : s.uid) === uid);
+            if (!isEnrolled) {
+                const err = new Error('Not Enrolled');
+                err.code = 'NOT_ENROLLED';
+                throw err;
+            }
+        }
+    }
+
     // 1. Validate code
     if (session.currentCode !== code) throw new Error('Invalid or expired code. Please scan again.');
 
@@ -119,8 +133,13 @@ export const submitCheckin = async (sessionId, { uid, name, email }, code, lat, 
     }
 
     // 4. Check duplicate
-    const alreadyIn = session.checkedIn.some(s => s.uid === uid);
-    if (alreadyIn) throw new Error('Already checked in for this session.');
+    const existingRecord = session.checkedIn.find(s => s.uid === uid);
+    if (existingRecord) {
+        const err = new Error('Already checked in.');
+        err.code = 'ALREADY_CHECKED_IN';
+        err.record = existingRecord;
+        throw err;
+    }
 
     // 5. Determine PRESENT vs LATE
     const sessionStart = new Date(session.createdAt).getTime();
@@ -141,6 +160,20 @@ export const submitCheckin = async (sessionId, { uid, name, email }, code, lat, 
     });
 
     return record;
+};
+
+/**
+ * Manually update a student's check-in status (e.g., LATE -> EXCUSED).
+ */
+export const updateCheckinStatus = async (sessionId, uid, newStatus) => {
+    const sessionRef = doc(db, COLLECTION, sessionId);
+    const snap = await getDoc(sessionRef);
+    if (!snap.exists()) throw new Error('Session not found.');
+
+    const session = snap.data();
+    const updated = session.checkedIn.map(s => s.uid === uid ? { ...s, status: newStatus } : s);
+
+    await updateDoc(sessionRef, { checkedIn: updated });
 };
 
 // ──────────────────────────────────
@@ -257,7 +290,8 @@ export const exportAttendanceCSV = async (classId, classDoc) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `attendance_${classDoc.name || classId}_${new Date().toLocaleDateString('en-CA')}.csv`;
+    const safeClassName = (classDoc.name || classId).replace(/[\\/:"*?<>|]+/g, '').trim();
+    link.download = `${safeClassName} - Attendance Book.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

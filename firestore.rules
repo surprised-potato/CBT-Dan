@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // 1. Users Collection
+    // Users can read and write their own profile
+    // Teachers can read student profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+    
+    // 2. Classes Collection
+    // Anyone authenticated can read classes (to join)
+    // Teachers can create and manage classes
+    // Students can update the class (to add themselves to pending)
+    match /classes/{classId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated(); // Could restrict to teachers if custom claims existed
+      allow update: if isAuthenticated(); 
+      allow delete: if isAuthenticated(); 
+    }
+    
+    // 3. Attendance Sessions
+    // Teachers create/manage, students read/update to check in
+    match /attendance_sessions/{sessionId} {
+      allow read: if isAuthenticated();
+      allow create, delete: if isAuthenticated();
+      allow update: if isAuthenticated();
+    }
+    
+    // 4. Question Bank
+    match /questions/{questionId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // 5. Assessments (Public content)
+    match /assessment_content/{assessmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // 6. Assessment Keys (Answers)
+    match /assessment_keys/{assessmentId} {
+      // In a strict production environment, this should be restricted to the creator/teacher
+      allow read, write: if isAuthenticated(); 
+    }
+    
+    // 7. Submissions
+    // Students create submissions, teachers read/grade them
+    match /submissions/{submissionId} {
+      allow read, write: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+
+    // Default fallback (Deny all)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -20,9 +20,9 @@ export const renderMatching = (question, index = 1) => {
         <div class="space-y-8">
             <div class="space-y-4">
                 <div class="flex items-center gap-3">
-                    <span class="px-3 py-1 bg-cyan-50 text-cyan-600 rounded-full text-[8px] font-black uppercase tracking-widest border border-cyan-100">Relational Mapping</span>
+                    <span class="px-3 py-1 bg-cyan-900/40 text-cyan-300 rounded-full text-[8px] font-black uppercase tracking-widest border border-cyan-500/30">Relational Mapping</span>
                 </div>
-                <div class="text-2xl font-black text-gray-800 leading-tight uppercase tracking-tight q-content">
+                <div class="text-2xl font-black text-white leading-tight uppercase tracking-tight q-content">
                     ${question.text}
                 </div>
             </div>
@@ -32,15 +32,15 @@ export const renderMatching = (question, index = 1) => {
             <div class="space-y-4 pt-4">
                 ${terms.map((term, i) => `
                     <div class="flex flex-col sm:flex-row gap-4 items-stretch group/pair">
-                        <div class="flex-1 p-6 bg-white border border-gray-100 rounded-3xl flex items-center shadow-sm group-hover/pair:border-cyan-200 transition-all">
-                            <span class="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-500 flex items-center justify-center font-black text-[10px] mr-4 shadow-inner">${i + 1}</span>
-                            <span class="text-xs font-black text-gray-700 uppercase tracking-tight">${term}</span>
+                        <div class="flex-1 p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center shadow-lg group-hover/pair:border-cyan-500/50 transition-all backdrop-blur-sm">
+                            <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-black text-[10px] mr-4 shadow-inner border border-cyan-500/30">${i + 1}</span>
+                            <span class="text-xs font-black text-gray-200 uppercase tracking-tight">${term}</span>
                         </div>
                         <div class="flex-1 relative">
                             <select name="q-${question.id}-pair-${i}" 
-                                    class="matching-select w-full h-full p-6 bg-gray-50/50 border border-transparent rounded-3xl text-xs font-black text-cyan-900 uppercase tracking-tight appearance-none outline-none focus:bg-white focus:border-cyan-500 transition-all cursor-pointer shadow-inner">
-                                <option value="">-- CORRELATE --</option>
-                                ${shuffledDefs.map(def => `<option value="${def}">${def}</option>`).join('')}
+                                    class="matching-select w-full h-full p-6 bg-black/40 border border-white/10 rounded-3xl text-xs font-black text-cyan-300 uppercase tracking-tight appearance-none outline-none focus:bg-black/60 focus:border-cyan-500 transition-all cursor-pointer shadow-inner">
+                                <option value="" class="bg-[#0f172a] text-gray-400">-- CORRELATE --</option>
+                                ${shuffledDefs.map(def => `<option value="${def}" class="bg-[#0f172a] text-white">${def}</option>`).join('')}
                             </select>
                             <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-cyan-200">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>

@@ -6,7 +6,7 @@ import { getAssessment, getAssessmentsByClass } from '../../services/assessment.
 import { renderInput } from '../../shared/input.js';
 import { getSubmissionsForAssessment } from '../../services/grading.service.js';
 import { downloadCSV } from '../../shared/csv.utils.js';
-import { exportAttendanceCSV } from '../../services/attendance.service.js';
+import { exportAttendanceCSV, getSessionsByClass, updateCheckinStatus } from '../../services/attendance.service.js';
 
 export const ClassManagerPage = async () => {
     const app = document.getElementById('app');
@@ -24,7 +24,7 @@ export const ClassManagerPage = async () => {
 
     const renderLevel1 = () => {
         app.innerHTML = `
-            <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+            <div class="relative min-h-screen bg-[#020617] pb-32">
                 <!-- Dynamic Mesh Background -->
                 <div class="bg-premium-gradient-fixed"></div>
                 <div class="mesh-blob top-[-10%] right-[-10%] bg-emerald-600/10 scale-150"></div>
@@ -98,7 +98,7 @@ export const ClassManagerPage = async () => {
         const studentCount = cls.students?.length || 0;
 
         app.innerHTML = `
-        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+        <div class="relative min-h-screen bg-[#020617] pb-32">
             <!-- Dynamic Mesh Background -->
             <div class="bg-premium-gradient-fixed"></div>
             <div class="mesh-blob top-[-10%] right-[-10%] bg-emerald-600/10 scale-150"></div>
@@ -154,19 +154,22 @@ export const ClassManagerPage = async () => {
 
                         <div class="space-y-8">
                             <!-- Premium Tab Navigation -->
-                            <div class="flex p-1.5 bg-white/5 rounded-[30px] border border-white/5 max-w-lg mx-auto shadow-2xl overflow-hidden">
-                                <button id="tab-requests" class="flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-[24px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'requests' ? 'bg-white/10 text-amber-400 shadow-xl ring-1 ring-amber-400/20' : 'text-white/30 hover:text-white/50'}">
+                            <div class="flex p-1.5 bg-white/5 rounded-[30px] border border-white/5 max-w-2xl mx-auto shadow-2xl overflow-hidden">
+                                <button id="tab-requests" class="flex-1 flex items-center justify-center gap-2 py-4 px-4 sm:px-6 rounded-[24px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'requests' ? 'bg-white/10 text-amber-400 shadow-xl ring-1 ring-amber-400/20' : 'text-white/30 hover:text-white/50'}">
                                     Requests
                                     <span class="px-2.5 py-1 rounded-full text-[9px] ${activeTab === 'requests' ? 'bg-amber-400/20' : 'bg-white/5'}">
                                         ${pendingCount}
                                     </span>
                                     ${pendingCount > 0 && activeTab !== 'requests' ? '<span class="w-2 h-2 bg-amber-400 rounded-full animate-ping"></span>' : ''}
                                 </button>
-                                <button id="tab-cohort" class="flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-[24px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'cohort' ? 'bg-white/10 text-emerald-400 shadow-xl ring-1 ring-emerald-400/20' : 'text-white/30 hover:text-white/50'}">
+                                <button id="tab-cohort" class="flex-1 flex items-center justify-center gap-2 py-4 px-4 sm:px-6 rounded-[24px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'cohort' ? 'bg-white/10 text-emerald-400 shadow-xl ring-1 ring-emerald-400/20' : 'text-white/30 hover:text-white/50'}">
                                     Students
                                     <span class="px-2.5 py-1 rounded-full text-[9px] ${activeTab === 'cohort' ? 'bg-emerald-400/20' : 'bg-white/5'}">
                                         ${studentCount}
                                     </span>
+                                </button>
+                                <button id="tab-attendance" class="flex-1 flex items-center justify-center gap-2 py-4 px-4 sm:px-6 rounded-[24px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'attendance' ? 'bg-white/10 text-purple-400 shadow-xl ring-1 ring-purple-400/20' : 'text-white/30 hover:text-white/50'}">
+                                    Attendance Logs
                                 </button>
                             </div>
 
@@ -176,9 +179,15 @@ export const ClassManagerPage = async () => {
                                     <div id="pending-list" class="space-y-4">
                                         ${renderPendingList(cls)}
                                     </div>
-                                ` : `
+                                ` : activeTab === 'cohort' ? `
                                     <div id="student-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         ${renderStudentList(cls)}
+                                    </div>
+                                ` : `
+                                    <div id="attendance-list" class="space-y-6">
+                                        <div class="glass-panel p-10 rounded-[40px] border border-white/10 text-center animate-pulse">
+                                            <p class="text-[10px] font-black uppercase tracking-widest text-white/50">Loading Session Logs...</p>
+                                        </div>
                                     </div>
                                 `}
                             </div>
@@ -200,12 +209,82 @@ export const ClassManagerPage = async () => {
             activeTab = 'cohort';
             renderLevel2(cls);
         };
+        document.getElementById('tab-attendance').onclick = () => {
+            activeTab = 'attendance';
+            renderLevel2(cls);
+            loadAttendanceTab(cls);
+        };
+
+        if (activeTab === 'attendance') {
+            loadAttendanceTab(cls);
+        }
+    };
+
+    let cachedSessions = null;
+    const loadAttendanceTab = async (cls) => {
+        const container = document.getElementById('attendance-list');
+        if (!container) return;
+
+        try {
+            if (!cachedSessions || cachedSessions.classId !== cls.id) {
+                const sessions = await getSessionsByClass(cls.id);
+                cachedSessions = { classId: cls.id, sessions };
+            }
+
+            const sessions = cachedSessions.sessions;
+
+            if (sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="p-12 glass-panel rounded-[40px] text-center border-dashed border border-white/10">
+                        <p class="text-xs text-white/20 font-black uppercase tracking-widest opacity-80 italic">No attendance sessions found.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = sessions.map((session, sIdx) => {
+                const checkedIn = session.checkedIn || [];
+                const note = session.note ? `<p class="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">${session.note}</p>` : '';
+                return `
+                    <div class="glass-panel p-6 rounded-[35px] border border-white/5 shadow-xl space-y-4">
+                        <div class="flex items-center justify-between border-b border-white/5 pb-4">
+                            <div>
+                                <h3 class="font-black text-white uppercase tracking-tight">${new Date(session.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} — ${new Date(session.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</h3>
+                                ${note}
+                            </div>
+                            <div class="bg-white/5 px-4 py-2 rounded-xl text-[10px] font-black text-white/60 uppercase tracking-widest border border-white/5">
+                                ${checkedIn.length} <span class="opacity-50">Checked In</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            ${checkedIn.map((student, idx) => {
+                    const statusColors = {
+                        'PRESENT': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20',
+                        'LATE': 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20',
+                        'EXCUSED': 'bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20',
+                        'ABSENT': 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20'
+                    };
+                    const colorClass = statusColors[student.status] || statusColors['PRESENT'];
+
+                    return `
+                                <button onclick="window.cycleStatus('${session.id}', '${student.uid}', '${student.status}', this)" 
+                                        class="flex items-center justify-between p-3 rounded-2xl border transition-all shadow-inner group active:scale-95 ${colorClass}" title="Click to override status">
+                                    <span class="text-[10px] font-black uppercase tracking-tight truncate flex-1 text-left">${student.name || student.email}</span>
+                                    <span class="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded border border-current opacity-70 group-hover:opacity-100">${student.status}</span>
+                                </button>`;
+                }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (err) {
+            container.innerHTML = `<div class="p-10 text-center text-red-500 font-bold uppercase tracking-widest text-[10px]">Error loading sessions</div>`;
+        }
     };
 
     const renderLevel3 = async (student) => {
         selectedStudent = student;
         app.innerHTML = `
-        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden pb-32">
+        <div class="relative min-h-screen bg-[#020617] pb-32">
             <!-- Dynamic Mesh Background -->
             <div class="bg-premium-gradient-fixed"></div>
             <div class="mesh-blob top-[-10%] right-[-10%] bg-emerald-600/10 scale-150"></div>
@@ -554,16 +633,22 @@ export const ClassManagerPage = async () => {
             const students = selectedClass.students || [];
             if (students.length === 0) return alert("No students enrolled.");
 
-            const exportData = students.map(student => {
-                const row = { 'Student Name': student.displayName || 'Unnamed', 'Email': student.email };
+            const exportData = students.map(s => {
+                const studentId = typeof s === 'string' ? s : s.uid;
+                const studentName = typeof s === 'string' ? 'Unnamed' : (s.displayName || s.name || 'Unnamed');
+                const studentEmail = typeof s === 'string' ? 'Unknown' : (s.email || 'Unknown');
+
+                const row = { 'Student Name': studentName, 'Email': studentEmail };
+
                 submissionsData.forEach(ad => {
-                    const sub = ad.submissions.find(s => s.studentId === student.uid);
+                    const sub = ad.submissions.find(subDoc => subDoc.studentId === studentId);
                     row[ad.assessmentTitle] = sub ? (sub.score !== null ? `${sub.score}/${sub.totalPoints}` : 'Pending') : 'N/A';
                 });
                 return row;
             });
 
-            downloadCSV(exportData, `gradebook_${selectedClass.name.replace(/\s+/g, '_')}.csv`);
+            const safeClassName = selectedClass.name.replace(/[\\/:"*?<>|]+/g, '').trim();
+            downloadCSV(exportData, `${safeClassName} - Gradebook.csv`);
         } catch (err) {
             alert("Export failed.");
         }
@@ -575,6 +660,35 @@ export const ClassManagerPage = async () => {
         } catch (err) {
             console.error("Attendance export failed:", err);
             alert("Failed to export attendance data.");
+        }
+    };
+
+    window.cycleStatus = async (sessionId, uid, currentStatus, btnElement) => {
+        const statuses = ['PRESENT', 'LATE', 'EXCUSED', 'ABSENT'];
+        const nextStatus = statuses[(statuses.indexOf(currentStatus) + 1) % statuses.length];
+
+        // Optimistic UI update
+        const originalHTML = btnElement.innerHTML;
+        const originalClass = btnElement.className;
+        btnElement.innerHTML = `<span class="flex-1 text-center animate-pulse tracking-widest">SAVING...</span>`;
+
+        try {
+            await updateCheckinStatus(sessionId, uid, nextStatus);
+            // Refresh purely from backend cache to ensure it flows down
+            const tgtSession = cachedSessions.sessions.find(s => s.id === sessionId);
+            if (tgtSession) {
+                const tgtStudent = tgtSession.checkedIn.find(s => s.uid === uid);
+                if (tgtStudent) tgtStudent.status = nextStatus;
+            }
+            // Trigger fresh render
+            if (activeTab === 'attendance' && selectedClass) {
+                loadAttendanceTab(selectedClass);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update status");
+            btnElement.innerHTML = originalHTML;
+            btnElement.className = originalClass;
         }
     };
 

@@ -114,7 +114,7 @@ export const StudentDashPage = async () => {
 
     // --- Initial Shell ---
     app.innerHTML = `
-        <div class="relative min-h-screen bg-[#020617] overflow-x-hidden">
+        <div class="relative min-h-screen bg-[#020617]">
             <!-- Dynamic Mesh Background -->
             <div class="bg-premium-gradient-fixed"></div>
             <div class="mesh-blob top-[-10%] right-[-10%] bg-emerald-600/10"></div>
