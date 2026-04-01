@@ -30,14 +30,14 @@ export const buildPrintableHTML = (assessment, options = {}) => {
     const header = `
         <div class="print-header pb-4 mb-2">
             <div class="flex items-center justify-between mb-4">
-                <img src="/UNO-R_logo.png" class="h-20 object-contain" />
+                <img src="UNO-R_logo.png" class="h-20 object-contain" />
                 <div class="text-center flex-1 px-4 leading-tight uppercase font-bold">
                     <p class="text-[10px]">University of</p>
                     <p class="text-[12px]">Negros Occidental &ndash; Recoletos, Incorporated</p>
                     <p class="text-[9px] italic normal-case">CHED Autonomous University</p>
                     <p class="text-[11px] mt-1">College of Engineering</p>
                 </div>
-                <img src="/coeng%20logo.jpg" class="h-20 object-contain" />
+                <img src="coeng%20logo.jpg" class="h-20 object-contain" />
             </div>
             
             <table class="w-full text-[10px] border-collapse border border-black mb-4">
