@@ -464,5 +464,3 @@ export const StudentDashPage = async () => {
     loadAssessments();
     enforceProfileCompletion(user, 'profile-modal');
 };
-enforceProfileCompletion(user, 'profile-modal');
-};
