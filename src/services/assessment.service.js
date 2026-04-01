@@ -108,10 +108,23 @@ export const generateQuestionsForSections = async (sections) => {
     return { allSelectedQuestions, sectionAnswerBanks };
 };
 
+const _generateUnlockPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let pwd = '';
+    for (let i = 0; i < 6; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    return pwd;
+};
+
 export const generateAssessment = async (config) => {
     // config: { title, sections: [{ title, course, topics, type, distribution, pointsPerQuestion }], authorId }
     try {
         const { allSelectedQuestions, sectionAnswerBanks } = await generateQuestionsForSections(config.sections);
+
+        // Auto-generate unlock password if not already set
+        const settings = config.settings || { oneAtATime: false, randomizeOrder: false };
+        if (!settings.unlockPassword) {
+            settings.unlockPassword = _generateUnlockPassword();
+        }
 
         // 2. SPLIT DATA
         const contentPayload = {
@@ -121,7 +134,7 @@ export const generateAssessment = async (config) => {
             status: 'draft',
             createdAt: new Date().toISOString(),
             questionCount: allSelectedQuestions.length,
-            settings: config.settings || { oneAtATime: false, randomizeOrder: false },
+            settings,
             sections: config.sections.map((s, i) => ({
                 title: s.title,
                 topics: s.topics,

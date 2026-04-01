@@ -1,7 +1,7 @@
 import { getUser, isAuthReady } from './store.js';
 
 const routes = {};
-const teacherRoutes = ['#editor', '#teacher-dash', '#assessment-bank', '#wizard', '#bank', '#bulk-import', '#class-manager', '#teacher-list', '#attendance-terminal'];
+const teacherRoutes = ['#editor', '#teacher-dash', '#assessment-bank', '#wizard', '#bank', '#bulk-import', '#class-manager', '#teacher-list', '#attendance-terminal', '#proctor'];
 
 export const initRouter = () => {
     window.addEventListener('hashchange', handleRoute);
@@ -27,7 +27,7 @@ export const handleRoute = async () => {
     }
 
     const baseRoute = hash.split('?')[0];
-    const publicRoutes = ['#login', '#register', '#test-ui'];
+    const publicRoutes = ['#login', '#register', '#test-ui', '#exam'];
 
     // Auth Middleware: Wait for initial Auth to resolve before showing protected pages
     if (!isAuthReady() && baseRoute !== '#test-ui') {

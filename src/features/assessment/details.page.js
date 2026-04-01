@@ -95,6 +95,13 @@ export const DetailsPage = async () => {
                             Initialise Simulation
                         </button>
 
+                        ${isActive ? `
+                        <button onclick="window.location.hash='#proctor?id=${id}'" class="w-full bg-teal-500/10 text-teal-300 p-5 rounded-2xl font-black uppercase text-xs tracking-widest border border-teal-500/20 shadow-sm hover:bg-teal-500/20 transition-all flex items-center justify-center gap-3 backdrop-blur-sm shadow-[0_0_15px_rgba(20,184,166,0.1)]">
+                            <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v0m6 0v0m6 0v0M5 16h2m10 0h2m-4-6h2m-4 0h2m-4 0h2m-4 0h2m-4 0h2m-8 8v2m0-10V4m0 0h2M5 4h2M5 4h2"></path></svg>
+                            Proctor Mode — QR Distribution
+                        </button>
+                        ` : ''}
+
                         <button onclick="window.location.hash='#report?id=${id}'" class="w-full bg-indigo-500/10 text-indigo-300 p-5 rounded-2xl font-black uppercase text-xs tracking-widest border border-indigo-500/20 shadow-sm hover:bg-indigo-500/20 transition-all flex items-center justify-center gap-3 backdrop-blur-sm">
                             <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                             Generate Performance Registry
