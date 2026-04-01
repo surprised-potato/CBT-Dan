@@ -406,7 +406,10 @@ export const TakerPage = async () => {
 
             // Re-hydrate answers
             Object.keys(answers).forEach(qId => {
-                const val = answers[qId];
+                let val = answers[qId];
+                const qObj = questions.find(item => item.id === qId);
+                if (!qObj) return;
+
                 if (Array.isArray(val)) {
                     // Multi-selection, Matching, or Ordering
                     val.forEach(v => {
@@ -417,13 +420,12 @@ export const TakerPage = async () => {
                         }
                     });
                     // For Matching/Ordering with specific sub-names
-                    const qObj = questions.find(item => item.id === qId);
-                    if (qObj?.type === 'MATCHING') {
+                    if (qObj.type === 'MATCHING') {
                         val.forEach((pairVal, i) => {
                             const sel = document.querySelector(`select[name="q-${CSS.escape(qId)}-pair-${i}"]`);
                             if (sel) sel.value = pairVal;
                         });
-                    } else if (qObj?.type === 'ORDERING') {
+                    } else if (qObj.type === 'ORDERING') {
                         // val is item text in student's intended order
                         // Reverse-map to numeric ranks for each shuffled item input
                         const shuffledItems = qObj.orderingItems || qObj.items || [];
@@ -436,16 +438,25 @@ export const TakerPage = async () => {
                         });
                     }
                 } else {
-                    const selector = `input[name="q-${CSS.escape(qId)}"][value="${CSS.escape(val)}"]`;
+                    // Handle Boolean for T/F or String for MCQ/ID
+                    const stringVal = String(val);
+                    const selector = `input[name="q-${CSS.escape(qId)}"][value="${CSS.escape(stringVal)}"]`;
                     try {
                         const radio = document.querySelector(selector);
-                        if (radio) radio.checked = true;
-                    } catch (e) { }
-
-                    const input = document.querySelector(`input[name="q-${CSS.escape(qId)}"]`);
-                    if (input && input.type !== 'radio') input.value = val;
-                    const select = document.querySelector(`select[name="q-${CSS.escape(qId)}"]`);
-                    if (select) select.value = val;
+                        if (radio) {
+                            radio.checked = true;
+                        } else {
+                            // Fallback for ID text inputs
+                            const input = document.querySelector(`input[name="q-${CSS.escape(qId)}"]`);
+                            if (input && input.type !== 'radio' && input.type !== 'checkbox') {
+                                input.value = val;
+                            }
+                            const select = document.querySelector(`select[name="q-${CSS.escape(qId)}"]`);
+                            if (select) select.value = val;
+                        }
+                    } catch (e) {
+                        console.error("Hydration error for", qId, e);
+                    }
                 }
             });
 
