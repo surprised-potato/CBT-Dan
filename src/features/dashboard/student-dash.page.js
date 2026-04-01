@@ -259,21 +259,26 @@ export const StudentDashPage = async () => {
     const loadAssessments = async () => {
         const container = document.getElementById('assessments-container');
         try {
-            myClasses = await getStudentClasses(user.user.uid);
-            const myClassIds = myClasses.map(c => c.id);
-            // Optimized summary fetch (1 read)
-            const rawExams = await getActiveAssessmentsSummary();
+            // Optimized: Fetch submissions once, fetch summary once.
+            const [myClassesData, rawExams, mySubmissions] = await Promise.all([
+                getStudentClasses(user.user.uid),
+                getActiveAssessmentsSummary(),
+                getSubmissionsByStudent(user.user.uid)
+            ]);
 
-            // Filter for student's classes
+            myClasses = myClassesData;
+            const myClassIds = myClasses.map(c => c.id);
+            const submittedIds = new Set(mySubmissions.map(s => s.assessmentId));
+
             const myExams = rawExams.filter(a => {
                 const ids = a.assignedClassIds || [];
                 if (ids.length === 0) return true;
                 return ids.some(id => myClassIds.includes(id));
             });
 
-            const examsWithStatus = await Promise.all(myExams.map(async (a) => {
-                const completed = await checkSubmission(a.id, user.user.uid);
-                return { ...a, completed };
+            const examsWithStatus = myExams.map(a => ({
+                ...a,
+                completed: submittedIds.has(a.id)
             }));
 
             const groups = {};

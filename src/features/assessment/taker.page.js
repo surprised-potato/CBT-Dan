@@ -57,7 +57,20 @@ export const TakerPage = async () => {
             }
         }
 
-        const assessment = await getAssessment(assessmentId);
+        // --- OPTIMIZED READ: Caching Logic ---
+        let assessment = null;
+        const cacheKey = `cache_as_${assessmentId}`;
+        const cached = localStorage.getItem(cacheKey);
+        
+        if (cached) {
+            assessment = JSON.parse(cached);
+            console.log("[Taker] Loading from local cache (0 reads)");
+        } else {
+            assessment = await getAssessment(assessmentId);
+            localStorage.setItem(cacheKey, JSON.stringify(assessment));
+            console.log("[Taker] Fetched from backend (1 read)");
+        }
+
         const { questions: rawQuestions, settings = { oneAtATime: false, randomizeOrder: false, shuffleChoices: false, timeLimit: 0, requireFullscreen: false, requireGeofence: false }, sections = [] } = assessment;
         const storageKey = `test_${assessmentId}_${user.user.uid}`;
         const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
@@ -80,7 +93,6 @@ export const TakerPage = async () => {
                     try {
                         position = await requestGeolocation(true, 15000);
                     } catch (e1) {
-                        // Retry with relaxed accuracy
                         position = await requestGeolocation(false, 20000);
                     }
 
@@ -140,12 +152,10 @@ export const TakerPage = async () => {
                     if (userAction === 'override') {
                         geoPassed = true;
                     }
-                    // Loop continues on retry
                 }
             }
         }
 
-        // ── Fullscreen Check (platform-aware with iOS fallback) ──
         let isFullscreenArmed = false;
         let isPseudoFullscreen = false;
         let isLockedOut = false;
@@ -154,7 +164,6 @@ export const TakerPage = async () => {
 
         if (!isTeacher && settings.requireFullscreen) {
             if (hasNativeFullscreen) {
-                // Desktop / Android: use native fullscreen
                 app.innerHTML = `
                     <div class="min-h-screen flex flex-col items-center justify-center p-6">
                         <div class="bg-white p-12 rounded-[50px] shadow-2xl shadow-red-100 border border-white max-w-md w-full text-center">
@@ -181,10 +190,8 @@ export const TakerPage = async () => {
                     };
                 });
             } else {
-                // iOS / unsupported: pseudo-fullscreen mode
                 app.innerHTML = `
                     <div class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#020617] bg-premium-gradient relative">
-                        <!-- Animated Background Mesh -->
                         <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
                             <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-900/20 rounded-full blur-[120px] mix-blend-screen animate-blob"></div>
                             <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-900/20 rounded-full blur-[150px] mix-blend-screen animate-blob animation-delay-4000"></div>
@@ -211,27 +218,22 @@ export const TakerPage = async () => {
                 });
             }
         }
-        // --- END ANTI-CHEAT PRE-CHECKS ---
 
         let questions = rawQuestions;
         let answers = saved.answers || {};
         let currentIdx = saved.lastIdx || 0;
         let elapsed = saved.elapsed || 0;
 
-        // 1. Shuffling Logic (Persist order in session)
         if (settings.randomizeOrder) {
             if (saved.shuffledIds) {
-                // Restore saved order
                 questions = saved.shuffledIds.map(id => questions.find(q => q.id === id)).filter(Boolean);
             } else {
-                // New shuffle
                 questions = [...questions].sort(() => Math.random() - 0.5);
                 saved.shuffledIds = questions.map(q => q.id);
                 localStorage.setItem(storageKey, JSON.stringify({ ...saved, shuffledIds: saved.shuffledIds }));
             }
         }
 
-        // 2. Choice Shuffling Logic (Persist order)
         if (settings.shuffleChoices) {
             questions.forEach(q => {
                 if (q.type === 'MCQ' && q.choices) {
@@ -239,10 +241,8 @@ export const TakerPage = async () => {
                     let order = JSON.parse(localStorage.getItem(choiceKey) || '[]');
 
                     if (order.length === q.choices.length) {
-                        // Sort based on saved order
                         q.choices.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
                     } else {
-                        // Shuffle and save
                         q.choices.sort(() => Math.random() - 0.5);
                         localStorage.setItem(choiceKey, JSON.stringify(q.choices.map(c => c.id)));
                     }
@@ -251,13 +251,12 @@ export const TakerPage = async () => {
         }
 
         const renderHeader = () => {
-            const progress = ((Object.keys(answers).length) / questions.length) * 100;
+            const progress = questions.length > 0 ? ((Object.keys(answers).length) / questions.length) * 100 : 0;
 
-            // Timer Logic
             let timeDisplay = '--:--';
             if (settings.timeLimit && settings.timeLimit > 0) {
                 const totalSeconds = settings.timeLimit * 60;
-                const remaining = totalSeconds - elapsed;
+                const remaining = Math.max(0, totalSeconds - elapsed);
                 const m = Math.floor(remaining / 60);
                 const s = Math.floor(remaining % 60);
                 timeDisplay = `${m}:${s < 10 ? '0' : ''}${s}`;
@@ -349,85 +348,77 @@ export const TakerPage = async () => {
             if (q.type === 'MATCHING') return getQuestionUI(renderMatching(q, index + 1));
             if (q.type === 'ORDERING') return getQuestionUI(renderOrdering(q, index + 1));
 
-            return `< div class="p-8 bg-red-50 text-red-500 rounded-3xl border border-red-100 uppercase font-black text-xs tracking-widest text-center" > Telemetry Corruption: ${q.type}</div > `;
+            return `<div class="p-8 bg-red-50 text-red-500 rounded-3xl border border-red-100 uppercase font-black text-xs tracking-widest text-center">Telemetry Corruption: ${q.type}</div>`;
         };
 
         const updateUI = () => {
             app.innerHTML = `
-    < div class="min-h-screen pb-40 bg-[#020617] bg-premium-gradient relative" >
-                    < !--Animated Background Mesh for the whole taker area-- >
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/40 rounded-full blur-[120px] mix-blend-screen animate-blob"></div>
-        <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-900/30 rounded-full blur-[150px] mix-blend-screen animate-blob animation-delay-4000"></div>
-    </div>
+                <div class="min-h-screen pb-40 bg-[#020617] bg-premium-gradient relative">
+                    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/40 rounded-full blur-[120px] mix-blend-screen animate-blob"></div>
+                        <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-900/30 rounded-full blur-[150px] mix-blend-screen animate-blob animation-delay-4000"></div>
+                    </div>
 
                     ${renderHeader()}
-<main class="max-w-3xl mx-auto p-4 md:p-6 mt-4 md:mt-8 relative z-10 w-full">
-    <form id="assessment-form">
-        <div id="questions-container" class="space-y-8 md:space-y-10">
-            ${settings.oneAtATime
-                    ? renderQuestion(questions[currentIdx], currentIdx)
-                    : questions.map((q, i) => renderQuestion(q, i)).join('')
-                }
-        </div>
+                    <main class="max-w-3xl mx-auto p-4 md:p-6 mt-4 md:mt-8 relative z-10 w-full">
+                        <form id="assessment-form">
+                            <div id="questions-container" class="space-y-8 md:space-y-10">
+                                ${settings.oneAtATime
+                                    ? renderQuestion(questions[currentIdx], currentIdx)
+                                    : questions.map((q, i) => renderQuestion(q, i)).join('')
+                                }
+                            </div>
 
-        ${!settings.oneAtATime ? `
+                            ${!settings.oneAtATime ? `
                                 <div class="mt-16 pt-12 border-t border-white/10 flex flex-col items-center">
                                     <button type="submit" id="submit-btn" class="w-full max-w-md bg-purple-600 text-white p-6 rounded-3xl font-black uppercase text-sm tracking-[0.3em] shadow-[0_0_30px_rgba(147,51,234,0.4)] hover:shadow-[0_0_40px_rgba(147,51,234,0.6)] hover:bg-purple-500 hover:-translate-y-1 active:scale-[0.98] transition-all border border-purple-400">Transmit Telemetry</button>
                                     <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse box-shadow-glow"></span> Persistent sync active with cloud buffers</p>
                                 </div>
                             ` : ''}
-    </form>
-</main>
+                        </form>
+                    </main>
                     ${renderNavigation()}
-                </div >
-
-                < !--Lockout Overlay-- >
-    <div id="lockout-overlay" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-3xl flex-col items-center justify-center p-6">
-        <div class="glass-panel bg-red-900/20 p-8 md:p-12 rounded-[50px] shadow-[0_0_100px_rgba(239,68,68,0.2)] border border-red-500/30 max-w-md w-full text-center relative overflow-hidden">
-            <div class="absolute inset-0 bg-red-500/5 pulse-bg z-0 pointer-events-none"></div>
-            <div class="relative z-10">
-                <div class="w-20 h-20 bg-red-500/20 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
-                    <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                </div>
-                <h2 class="text-2xl font-black mb-4 uppercase tracking-tight text-white drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]">ENVIRONMENT COMPROMISED</h2>
-                <p class="text-[11px] md:text-xs font-black text-red-300 mb-8 uppercase tracking-widest leading-loose">You left the secure testing environment. Ask your Proctor to unlock.</p>
-
-                <div class="space-y-4 mb-8">
-                    <input type="password" id="proctor-auth" placeholder="Master Proctor Password" class="w-full p-5 text-center bg-black/50 border border-white/10 rounded-2xl font-black text-white focus:border-red-500 focus:bg-black/80 transition-all outline-none placeholder-gray-600">
-                        <button id="unlock-btn" class="w-full bg-white/10 text-white border border-white/20 p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all hover:bg-white/20 hover:border-white/30 shadow-lg">Authorize Resume</button>
                 </div>
 
-                <button id="force-submit-btn" class="text-[10px] font-black text-red-400 uppercase tracking-widest hover:text-red-300 hover:underline transition-colors p-2">Or Force Submit Assessment Now</button>
-            </div>
-        </div>
-    </div>
-`;
+                <div id="lockout-overlay" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-3xl flex-col items-center justify-center p-6">
+                    <div class="glass-panel bg-red-900/20 p-8 md:p-12 rounded-[50px] shadow-[0_0_100px_rgba(239,68,68,0.2)] border border-red-500/30 max-w-md w-full text-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-red-500/5 pulse-bg z-0 pointer-events-none"></div>
+                        <div class="relative z-10">
+                            <div class="w-20 h-20 bg-red-500/20 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+                                <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                            <h2 class="text-2xl font-black mb-4 uppercase tracking-tight text-white drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]">ENVIRONMENT COMPROMISED</h2>
+                            <p class="text-[11px] md:text-xs font-black text-red-300 mb-8 uppercase tracking-widest leading-loose">You left the secure testing environment. Ask your Proctor to unlock.</p>
 
-            // Re-hydrate answers
+                            <div class="space-y-4 mb-8">
+                                <input type="password" id="proctor-auth" placeholder="Master Proctor Password" class="w-full p-5 text-center bg-black/50 border border-white/10 rounded-2xl font-black text-white focus:border-red-500 focus:bg-black/80 transition-all outline-none placeholder-gray-600">
+                                    <button id="unlock-btn" class="w-full bg-white/10 text-white border border-white/20 p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all hover:bg-white/20 hover:border-white/30 shadow-lg">Authorize Resume</button>
+                            </div>
+
+                            <button id="force-submit-btn" class="text-[10px] font-black text-red-400 uppercase tracking-widest hover:text-red-300 hover:underline transition-colors p-2">Or Force Submit Assessment Now</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             Object.keys(answers).forEach(qId => {
                 let val = answers[qId];
                 const qObj = questions.find(item => item.id === qId);
                 if (!qObj) return;
 
                 if (Array.isArray(val)) {
-                    // Multi-selection, Matching, or Ordering
                     val.forEach(v => {
                         if (typeof v === 'string') {
-                            // Multi-choice or identification bank
                             const cb = document.querySelector(`input[name="q-${CSS.escape(qId)}"][value="${CSS.escape(v)}"]`);
                             if (cb) cb.checked = true;
                         }
                     });
-                    // For Matching/Ordering with specific sub-names
                     if (qObj.type === 'MATCHING') {
                         val.forEach((pairVal, i) => {
                             const sel = document.querySelector(`select[name="q-${CSS.escape(qId)}-pair-${i}"]`);
                             if (sel) sel.value = pairVal;
                         });
                     } else if (qObj.type === 'ORDERING') {
-                        // val is item text in student's intended order
-                        // Reverse-map to numeric ranks for each shuffled item input
                         const shuffledItems = qObj.orderingItems || qObj.items || [];
                         shuffledItems.forEach((item, i) => {
                             const inp = document.querySelector(`input[name="q-${CSS.escape(qId)}-order-${i}"]`);
@@ -438,7 +429,6 @@ export const TakerPage = async () => {
                         });
                     }
                 } else {
-                    // Handle Boolean for T/F or String for MCQ/ID
                     const stringVal = String(val);
                     const selector = `input[name="q-${CSS.escape(qId)}"][value="${CSS.escape(stringVal)}"]`;
                     try {
@@ -446,7 +436,6 @@ export const TakerPage = async () => {
                         if (radio) {
                             radio.checked = true;
                         } else {
-                            // Fallback for ID text inputs
                             const input = document.querySelector(`input[name="q-${CSS.escape(qId)}"]`);
                             if (input && input.type !== 'radio' && input.type !== 'checkbox') {
                                 input.value = val;
@@ -460,12 +449,9 @@ export const TakerPage = async () => {
                 }
             });
 
-            // Unified Answer Collection
             const collectAnswers = () => {
                 const formData = new FormData(form);
                 const newAnswers = { ...answers };
-
-                // Get all active questions in view
                 const activeQs = settings.oneAtATime ? [questions[currentIdx]] : questions;
 
                 activeQs.forEach(q => {
@@ -474,7 +460,7 @@ export const TakerPage = async () => {
                         if (val !== null) newAnswers[q.id] = val;
                     } else if (q.type === 'MULTI_ANSWER') {
                         const vals = formData.getAll(`q-${q.id}`);
-                        newAnswers[q.id] = vals; // Array
+                        newAnswers[q.id] = vals;
                     } else if (q.type === 'MATCHING') {
                         const matched = [];
                         const terms = q.matchingTerms || (q.pairs || []);
@@ -484,13 +470,10 @@ export const TakerPage = async () => {
                         newAnswers[q.id] = matched;
                     } else if (q.type === 'ORDERING') {
                         const items = q.orderingItems || (q.items || []);
-                        // Build pairs of (item text, rank) and sort by rank
-                        // so the stored answer is item text in the student's intended order
                         const pairs = items.map((item, i) => ({
                             item,
                             rank: parseInt(formData.get(`q-${q.id}-order-${i}`)) || 0
                         }));
-                        // Only store if at least one rank was entered
                         if (pairs.some(p => p.rank > 0)) {
                             pairs.sort((a, b) => a.rank - b.rank);
                             newAnswers[q.id] = pairs.map(p => p.item);
@@ -500,8 +483,7 @@ export const TakerPage = async () => {
 
                 answers = newAnswers;
 
-                // Update UI Progress
-                const progress = ((Object.keys(answers).length) / questions.length) * 100;
+                const progress = questions.length > 0 ? ((Object.keys(answers).length) / questions.length) * 100 : 0;
                 const pBar = document.getElementById('progress-bar');
                 const pText = document.getElementById('progress-text');
                 if (pBar) pBar.style.width = `${progress}% `;
@@ -511,11 +493,11 @@ export const TakerPage = async () => {
                     answers,
                     lastIdx: currentIdx,
                     elapsed,
-                    shuffledIds: questions.map(q => q.id)
+                    shuffledIds: questions.map(q => q.id),
+                    startTime
                 }));
             };
 
-            // Listeners
             const form = document.getElementById('assessment-form');
             form.onchange = collectAnswers;
             form.oninput = collectAnswers;
@@ -539,7 +521,7 @@ export const TakerPage = async () => {
 
             form.onsubmit = async (e) => {
                 e.preventDefault();
-                collectAnswers(); // Final pull
+                collectAnswers();
 
                 const isAutoSubmit = window.sessionTimeExpired === true;
                 if (!isAutoSubmit && !confirm("FINALISE TRANSMISSION PROTOCOL?")) return;
@@ -554,34 +536,33 @@ export const TakerPage = async () => {
                         email: user.email || user.user.email
                     }, {
                         unlockAttempts,
-                        terminatedDueToCheating: false // It was a normal submit
+                        terminatedDueToCheating: false
                     });
                     localStorage.removeItem(storageKey);
+                    localStorage.removeItem(cacheKey);
 
-                    // Show success overlay
                     const successOverlay = document.createElement('div');
                     successOverlay.className = 'fixed inset-0 z-[200] bg-black/90 backdrop-blur-3xl flex flex-col items-center justify-center p-6 animate-in fade-in duration-500';
                     successOverlay.innerHTML = `
-                <div class="glass-panel bg-green-900/20 p-12 rounded-[50px] shadow-[0_0_100px_rgba(34,197,94,0.2)] border border-green-500/30 max-w-md w-full text-center relative overflow-hidden animate-in zoom-in-95 duration-500">
-                    <div class="absolute inset-0 bg-green-500/5 pulse-bg z-0 pointer-events-none"></div>
-                    <div class="relative z-10">
-                        <div class="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-green-500/40 shadow-[0_0_30px_rgba(34,197,94,0.5)]">
-                            <svg class="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        <div class="glass-panel bg-green-900/20 p-12 rounded-[50px] shadow-[0_0_100px_rgba(34,197,94,0.2)] border border-green-500/30 max-w-md w-full text-center relative overflow-hidden animate-in zoom-in-95 duration-500">
+                            <div class="absolute inset-0 bg-green-500/5 pulse-bg z-0 pointer-events-none"></div>
+                            <div class="relative z-10">
+                                <div class="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-green-500/40 shadow-[0_0_30px_rgba(34,197,94,0.5)]">
+                                    <svg class="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <h2 class="text-2xl md:text-3xl font-black text-white mb-4 uppercase tracking-tight drop-shadow-[0_0_10px_rgba(34,197,94,0.6)]">Transmitted</h2>
+                                <p class="text-[11px] md:text-sm font-black text-green-300 mb-8 uppercase tracking-[0.2em] leading-loose">Telemetry successfully synchronized with master node. Please wait for official assessment results.</p>
+                                <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden mt-4">
+                                    <div class="bg-green-500 h-full animate-[progress_3s_ease-in-out_forwards]"></div>
+                                </div>
+                            </div>
                         </div>
-                        <h2 class="text-2xl md:text-3xl font-black text-white mb-4 uppercase tracking-tight drop-shadow-[0_0_10px_rgba(34,197,94,0.6)]">Transmitted</h2>
-                        <p class="text-[11px] md:text-sm font-black text-green-300 mb-8 uppercase tracking-[0.2em] leading-loose">Telemetry successfully synchronized with master node. Please wait for official assessment results.</p>
-                        <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden mt-4">
-                            <div class="bg-green-500 h-full animate-[progress_3s_ease-in-out_forwards]"></div>
-                        </div>
-                    </div>
-                </div>
-                <style>
-                    @keyframes progress { 0% { width: 0%; } 100% { width: 100%; } }
-                </style>
-            `;
+                        <style>
+                            @keyframes progress { 0% { width: 0%; } 100% { width: 100%; } }
+                        </style>
+                    `;
                     document.body.appendChild(successOverlay);
 
-                    // Wait 3 seconds, then exit fullscreen and redirect
                     setTimeout(async () => {
                         if (document.fullscreenElement) {
                             try { await document.exitFullscreen(); } catch (e) { }
@@ -609,70 +590,53 @@ export const TakerPage = async () => {
             };
         };
 
-        // Timer Logic
         let startTime = saved.startTime || (Date.now() - (saved.elapsed || 0) * 1000);
         if (!saved.startTime) {
             saved.startTime = startTime;
-            localStorage.setItem(storageKey, JSON.stringify(saved));
+            localStorage.setItem(storageKey, JSON.stringify({ ...saved, startTime }));
         }
 
         const tick = () => {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const now = Date.now();
+            elapsed = Math.floor((now - startTime) / 1000);
+            
             const timerEl = document.getElementById('timer');
             const progressEl = document.getElementById('progress-bar');
 
             if (settings.timeLimit && settings.timeLimit > 0) {
-                // Countdown Mode
                 const totalSeconds = settings.timeLimit * 60;
                 const remaining = totalSeconds - elapsed;
 
                 if (remaining <= 0) {
                     window.sessionTimeExpired = true;
                     const btn = document.getElementById('submit-btn') || document.getElementById('submit-trigger');
-
                     if (timerEl) {
                         timerEl.textContent = "00:00";
                         timerEl.classList.add('text-red-600', 'animate-pulse');
                     }
-                    if (progressEl) progressEl.style.width = "0%";
-
-                    if (btn && !btn.disabled) {
-                        // Trigger auto-submit
-                        const form = document.getElementById('assessment-form');
-                        if (form) {
-                            // Cloning the requestSubmit behavior manually if needed, or just calling handler
-                            // Since we set the global flag, we can just trigger it
-                            btn.click();
-                        }
-                    }
+                    if (btn && !btn.disabled) btn.click();
                     return;
                 }
 
                 const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
                 const ss = String(remaining % 60).padStart(2, '0');
-
-                if (timerEl) {
-                    timerEl.textContent = `${mm}:${ss}`;
-                }
+                if (timerEl) timerEl.textContent = `${mm}:${ss}`;
             } else {
-                // Count-up Mode (Default)
                 const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
                 const ss = String(elapsed % 60).padStart(2, '0');
-
                 if (timerEl) timerEl.textContent = `${mm}:${ss}`;
             }
         };
 
         updateUI();
-        setInterval(tick, 1000);
+        const timerInterval = setInterval(tick, 1000);
         tick();
 
-        // --- ANTI-CHEAT WATCHERS ---
         const handleLockout = (reason) => {
             if (!isFullscreenArmed || isLockedOut || isTeacher) return;
             isLockedOut = true;
-            document.getElementById('lockout-overlay').classList.remove('hidden');
-            document.getElementById('lockout-overlay').classList.add('flex');
+            document.getElementById('lockout-overlay')?.classList.remove('hidden');
+            document.getElementById('lockout-overlay')?.classList.add('flex');
             console.warn("LOCKOUT TRIGGERED:", reason);
         };
 
@@ -685,7 +649,6 @@ export const TakerPage = async () => {
                 isLockedOut = false;
                 document.getElementById('lockout-overlay').classList.add('hidden');
                 document.getElementById('lockout-overlay').classList.remove('flex');
-                // Only re-enter native fullscreen if supported
                 if (hasNativeFullscreen && !isPseudoFullscreen) {
                     try {
                         const el = document.documentElement;
@@ -710,11 +673,9 @@ export const TakerPage = async () => {
                     unlockAttempts
                 });
                 localStorage.removeItem(storageKey);
+                localStorage.removeItem(cacheKey);
                 window.location.hash = '#student-dash';
-                // Try to exit fullscreen if possible
-                if (document.fullscreenElement) {
-                    await document.exitFullscreen();
-                }
+                if (document.fullscreenElement) await document.exitFullscreen();
             } catch (err) {
                 alert("TRANSMISSION FAILURE: " + err.message);
                 btn.textContent = "Or Force Submit Assessment Now";
@@ -723,33 +684,16 @@ export const TakerPage = async () => {
 
         if (!isTeacher && settings.requireFullscreen) {
             if (hasNativeFullscreen && !isPseudoFullscreen) {
-                // Native fullscreen: watch both fullscreen exit and tab switch
                 document.addEventListener('fullscreenchange', () => {
                     if (document.fullscreenElement === null) handleLockout("Exited Fullscreen");
                 });
             }
-            // Visibility API: works on both native and pseudo-fullscreen (including iOS Safari)
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'hidden') handleLockout("Switched Tabs/Background");
             });
-
-            // Focus/Blur API: catches notification center / control center pull-downs on mobile
-            window.addEventListener('blur', () => {
-                handleLockout("Lost Window Focus");
-            });
-
-            // Pagehide: Final fallback for app switching
-            window.addEventListener('pagehide', () => {
-                handleLockout("Backgrounded Assessment");
-            });
-
-            // Context Menu Block: Prevents lookups/system menus during exam
-            document.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                return false;
-            });
-
-            // Delegated click listeners for lockout overlay buttons
+            window.addEventListener('blur', () => handleLockout("Lost Window Focus"));
+            window.addEventListener('pagehide', () => handleLockout("Backgrounded Assessment"));
+            document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
             document.addEventListener('click', (e) => {
                 if (e.target.id === 'unlock-btn') handleResume();
                 if (e.target.id === 'force-submit-btn') handleForceSubmit();
