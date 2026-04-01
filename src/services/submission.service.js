@@ -15,8 +15,8 @@ export const submitTest = async (assessmentId, studentId, answers, studentProfil
         const payload = {
             assessmentId,
             studentId,
-            studentName: studentProfile?.displayName || 'Unknown',
-            studentEmail: studentProfile?.email || 'Unknown',
+            studentName: (studentProfile && studentProfile.displayName) || 'Unknown',
+            studentEmail: (studentProfile && studentProfile.email) || 'Unknown',
             answers, // { q1: 'choice_id', q2: 'true', ... }
             submittedAt: new Date().toISOString(),
             serverTimestamp: serverTimestamp(),

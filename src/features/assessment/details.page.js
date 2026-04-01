@@ -74,8 +74,8 @@ export const DetailsPage = async () => {
                                 ${statusBadge}
                                 <span class="text-[10px] font-black text-purple-300 uppercase tracking-[0.2em] bg-purple-500/10 px-3 py-1.5 rounded-lg border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]">Module ID: ${id.substring(0, 8)}...</span>
                                 ${assignedClasses.map(c => `<span class="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20">${c.name} [${c.section}]</span>`).join('')}
-                                ${assessment.settings?.oneAtATime ? '<span class="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20">Discrete Delivery</span>' : ''}
-                                ${assessment.settings?.randomizeOrder ? '<span class="text-[10px] font-black text-amber-300 uppercase tracking-[0.2em] bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">Random Order</span>' : ''}
+                                ${(assessment.settings && assessment.settings.oneAtATime) ? '<span class="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20">Discrete Delivery</span>' : ''}
+                                ${(assessment.settings && assessment.settings.randomizeOrder) ? '<span class="text-[10px] font-black text-amber-300 uppercase tracking-[0.2em] bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">Random Order</span>' : ''}
                             </div>
                             <h2 class="text-3xl md:text-4xl font-black text-white leading-[1.1] tracking-tight uppercase mb-4 drop-shadow-md">${assessment.title}</h2>
                             <p class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Initialised on ${new Date(assessment.createdAt).toLocaleDateString(undefined, { dateStyle: 'full' })}</p>
@@ -144,7 +144,7 @@ export const DetailsPage = async () => {
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${assessment.sections.length} Sector(s)</span>
                     </div>
                     ${assessment.sections.map((sec, idx) => {
-                const totalItems = (sec.distribution?.EASY || 0) + (sec.distribution?.MODERATE || 0) + (sec.distribution?.DIFFICULT || 0);
+                const totalItems = ((sec.distribution && sec.distribution.EASY) || 0) + ((sec.distribution && sec.distribution.MODERATE) || 0) + ((sec.distribution && sec.distribution.DIFFICULT) || 0);
                 return `
                         <div class="glass-panel bg-white/5 p-8 rounded-[40px] border border-white/10 shadow-xl relative overflow-hidden backdrop-blur-md">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full -mr-16 -mt-16 blur-3xl mix-blend-screen"></div>
@@ -172,15 +172,15 @@ export const DetailsPage = async () => {
                                 <div class="flex items-center gap-6 p-4 bg-black/20 rounded-2xl border border-white/5 backdrop-blur-sm">
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                                        <span class="text-[10px] font-black text-gray-300 uppercase">${sec.distribution?.EASY || 0} Easy</span>
+                                        <span class="text-[10px] font-black text-gray-300 uppercase">${(sec.distribution && sec.distribution.EASY) || 0} Easy</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
-                                        <span class="text-[10px] font-black text-gray-300 uppercase">${sec.distribution?.MODERATE || 0} Moderate</span>
+                                        <span class="text-[10px] font-black text-gray-300 uppercase">${(sec.distribution && sec.distribution.MODERATE) || 0} Moderate</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
-                                        <span class="text-[10px] font-black text-gray-300 uppercase">${sec.distribution?.DIFFICULT || 0} Difficult</span>
+                                        <span class="text-[10px] font-black text-gray-300 uppercase">${(sec.distribution && sec.distribution.DIFFICULT) || 0} Difficult</span>
                                     </div>
                                 </div>
                             </div>
@@ -449,6 +449,11 @@ export const DetailsPage = async () => {
                     <button onclick="location.hash='#assessment-bank'" class="bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors px-6 py-3 rounded-xl border border-red-500/30 font-black uppercase text-[10px] tracking-[0.2em]">Return to Registry</button>
                 </div>
             `;
+        }
+    };
+
+    renderDetails();
+};
         }
     };
 

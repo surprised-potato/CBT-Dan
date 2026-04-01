@@ -503,15 +503,18 @@ export const TakerPage = async () => {
             form.oninput = collectAnswers;
 
             if (settings.oneAtATime) {
-                document.getElementById('prev-btn')?.addEventListener('click', () => {
+                const prevBtn = document.getElementById('prev-btn');
+                if (prevBtn) prevBtn.addEventListener('click', () => {
                     collectAnswers();
                     if (currentIdx > 0) { currentIdx--; updateUI(); }
                 });
-                document.getElementById('next-btn')?.addEventListener('click', () => {
+                const nextBtn = document.getElementById('next-btn');
+                if (nextBtn) nextBtn.addEventListener('click', () => {
                     collectAnswers();
                     if (currentIdx < questions.length - 1) { currentIdx++; updateUI(); }
                 });
-                document.getElementById('submit-trigger')?.addEventListener('click', () => {
+                const submitBtn = document.getElementById('submit-trigger');
+                if (submitBtn) submitBtn.addEventListener('click', () => {
                     form.requestSubmit();
                 });
                 document.querySelectorAll('[data-jump]').forEach(btn => {
@@ -635,8 +638,9 @@ export const TakerPage = async () => {
         const handleLockout = (reason) => {
             if (!isFullscreenArmed || isLockedOut || isTeacher) return;
             isLockedOut = true;
-            document.getElementById('lockout-overlay')?.classList.remove('hidden');
-            document.getElementById('lockout-overlay')?.classList.add('flex');
+            const lockoutOverlay = document.getElementById('lockout-overlay');
+            if (lockoutOverlay) lockoutOverlay.classList.remove('hidden');
+            if (lockoutOverlay) lockoutOverlay.classList.add('flex');
             console.warn("LOCKOUT TRIGGERED:", reason);
         };
 

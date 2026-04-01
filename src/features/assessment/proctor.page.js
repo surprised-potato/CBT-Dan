@@ -27,7 +27,7 @@ export const ProctorPage = async () => {
 
     try {
         const assessment = await getAssessment(id);
-        const unlockPassword = assessment.settings?.unlockPassword || assessment.settings?.proctorPassword || 'N/A';
+        const unlockPassword = (assessment.settings && assessment.settings.unlockPassword) || (assessment.settings && assessment.settings.proctorPassword) || 'N/A';
 
         // Build the exam URL that students will scan
         const examUrl = `${window.location.origin}${window.location.pathname}#exam?id=${id}`;
@@ -63,7 +63,7 @@ export const ProctorPage = async () => {
                     <div class="glass-panel p-6 md:p-8 rounded-[35px] border border-white/10 shadow-xl text-center relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full -mr-24 -mt-24 blur-3xl"></div>
                         <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tight relative z-10 mb-2">${assessment.title}</h2>
-                        <p class="text-[10px] font-black text-teal-400/60 uppercase tracking-[0.3em] relative z-10">${assessment.questionCount} Items • ${assessment.settings?.timeLimit ? assessment.settings.timeLimit + ' Min' : 'No Time Limit'}</p>
+                        <p class="text-[10px] font-black text-teal-400/60 uppercase tracking-[0.3em] relative z-10">${assessment.questionCount} Items • ${(assessment.settings && assessment.settings.timeLimit) ? assessment.settings.timeLimit + ' Min' : 'No Time Limit'}</p>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">

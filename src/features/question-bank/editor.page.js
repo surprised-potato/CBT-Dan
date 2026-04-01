@@ -486,7 +486,7 @@ export const EditorPage = async () => {
             state.hierarchy = await getHierarchy();
 
             const courseList = document.getElementById('course-list');
-            if (courseList && state.hierarchy?.courses) {
+            if (courseList && state.hierarchy && state.hierarchy.courses) {
                 courseList.innerHTML = state.hierarchy.courses.map(c => `<option value="${c}">`).join('');
             }
 

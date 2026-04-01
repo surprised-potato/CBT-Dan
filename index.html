@@ -7,6 +7,9 @@
     <title>Cognita — Assessment Platform</title>
     <!-- UI Frameworks -->
     <script>
+        window.onerror = function(msg, url, line, col, error) {
+            alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + (error && error.stack ? "\nstack: " + error.stack : ""));
+        };
         const originalWarn = console.warn;
         console.warn = (...args) => {
             if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;

@@ -94,8 +94,8 @@ export const ClassManagerPage = async () => {
 
     const renderLevel2 = (cls) => {
         selectedClass = cls;
-        const pendingCount = cls.pendingStudents?.length || 0;
-        const studentCount = cls.students?.length || 0;
+        const pendingCount = (cls.pendingStudents && cls.pendingStudents.length) || 0;
+        const studentCount = (cls.students && cls.students.length) || 0;
 
         app.innerHTML = `
         <div class="relative min-h-screen bg-[#020617] pb-32">
@@ -140,7 +140,7 @@ export const ClassManagerPage = async () => {
                                     Class Join Code
                                 </p>
                                 <div class="bg-black/10 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/10 inline-block">
-                                    <p class="text-4xl md:text-5xl font-mono font-black tracking-[0.2em] text-white drop-shadow-lg">${cls.code?.toUpperCase()}</p>
+                                    <p class="text-4xl md:text-5xl font-mono font-black tracking-[0.2em] text-white drop-shadow-lg">${cls.code ? cls.code.toUpperCase() : ''}</p>
                                 </div>
                             </div>
                             <div class="md:text-right flex flex-col gap-4 w-full md:w-auto">
@@ -487,8 +487,8 @@ export const ClassManagerPage = async () => {
             }
 
             grid.innerHTML = currentClasses.map((cls, idx) => {
-                const pendingCount = cls.pendingStudents?.length || 0;
-                const studentCount = cls.students?.length || 0;
+                const pendingCount = (cls.pendingStudents && cls.pendingStudents.length) || 0;
+                const studentCount = (cls.students && cls.students.length) || 0;
                 return `
                 <div onclick="window.drillDown(${idx})" class="group relative glass-panel p-8 md:p-10 rounded-[45px] border border-white/5 hover:border-emerald-500/30 hover:-translate-y-1 transition-all cursor-pointer overflow-hidden shadow-2xl active:scale-[0.99]">
                     <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -568,7 +568,7 @@ export const ClassManagerPage = async () => {
     // Global Handlers
     window.drillDown = (idx) => {
         const cls = currentClasses[idx];
-        activeTab = (cls.pendingStudents?.length > 0) ? 'requests' : 'cohort';
+        activeTab = (cls.pendingStudents && cls.pendingStudents.length > 0) ? 'requests' : 'cohort';
         renderLevel2(cls);
     };
     window.viewScores = (idx) => renderLevel3(selectedClass.students[idx]);
@@ -693,4 +693,11 @@ export const ClassManagerPage = async () => {
     };
 
     renderLevel1();
+};
+;
+};
+;
+el1();
+};
+rLevel1();
 };

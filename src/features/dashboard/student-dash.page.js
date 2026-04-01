@@ -18,7 +18,7 @@ export const StudentDashPage = async () => {
         return;
     }
 
-    const userEmail = user.email || user.user?.email || 'No Email';
+    const userEmail = user.email || (user.user && user.user.email) || 'No Email';
     const userName = user.displayName || 'Student';
 
     let currentView = 'exams'; // 'exams' or 'performance'
@@ -110,7 +110,7 @@ export const StudentDashPage = async () => {
         </div>
     `;
 
-    const isEmailUser = user.user?.providerData?.some(p => p.providerId === 'password') || false;
+    const isEmailUser = (user.user && user.user.providerData && user.user.providerData.some(p => p.providerId === 'password')) || false;
 
     // --- Initial Shell ---
     app.innerHTML = `
@@ -226,7 +226,7 @@ export const StudentDashPage = async () => {
 
                 const modal = document.getElementById('profile-modal');
                 const closeBtn = document.getElementById('profile-modal-close-btn');
-                const title = modal?.querySelector('h3');
+                const title = modal ? modal.querySelector('h3') : null;
 
                 if (closeBtn) closeBtn.classList.remove('hidden');
                 if (title) {
@@ -403,7 +403,8 @@ export const StudentDashPage = async () => {
                         assessment = await getAssessment(s.assessmentId);
                     }
 
-                    const className = myClasses.find(c => (assessment.assignedClassIds || []).includes(c.id))?.name || 'Institutional Class';
+                    const foundClass = myClasses.find(c => (assessment.assignedClassIds || []).includes(c.id));
+                    const className = (foundClass && foundClass.name) || 'Institutional Class';
                     return { ...s, assessmentTitle: assessment.title, className: className };
                 } catch {
                     return { ...s, assessmentTitle: 'Completed Module', className: 'Legacy Record' };
@@ -462,4 +463,6 @@ export const StudentDashPage = async () => {
     setupListeners();
     loadAssessments();
     enforceProfileCompletion(user, 'profile-modal');
+};
+enforceProfileCompletion(user, 'profile-modal');
 };

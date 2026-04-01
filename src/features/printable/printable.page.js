@@ -114,7 +114,7 @@ export const PrintablePage = async () => {
         if (!assessmentData) return;
 
         const user = getUser();
-        const instructorName = user?.displayName || user?.user?.email || "Instructor";
+        const instructorName = (user && user.displayName) || (user && user.user && user.user.email) || "Instructor";
 
         const html = buildPrintableHTML(assessmentData, {
             showAnswers,

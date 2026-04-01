@@ -27,10 +27,15 @@ let app, auth, db;
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
-    setPersistence(auth, browserLocalPersistence); // Ensure local persistence
+    try {
+        setPersistence(auth, browserLocalPersistence); // Ensure local persistence
+    } catch (pError) {
+        console.warn("Persistence could not be set, falling back to session:", pError);
+    }
     db = getFirestore(app);
 } catch (error) {
-    console.error("Firebase Initialization Error (Did you set the keys?):", error);
+    console.error("Firebase Initialization Error:", error);
+    alert("CRITICAL: Failed to initialize security subsystem. Please check your connection.");
 }
 
 export { app, auth, db };

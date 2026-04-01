@@ -190,7 +190,8 @@ export const CheckinPage = async () => {
                         <div class="text-[11px] font-bold text-gray-600 text-center leading-relaxed mb-6 max-w-xs px-4">${help.message}</div>
                         <button id="retry-location-btn" class="w-full bg-amber-500 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all">Retry Location</button>
                     </div>`;
-                document.getElementById('retry-location-btn')?.addEventListener('click', () => {
+                const retryLocBtn = document.getElementById('retry-location-btn');
+                if (retryLocBtn) retryLocBtn.addEventListener('click', () => {
                     statusDiv.classList.add('hidden');
                     statusDiv.innerHTML = '';
                     handleScanSuccess(decodedText); // re-run with same payload
@@ -285,7 +286,8 @@ export const CheckinPage = async () => {
             </div>`;
 
         if (!success) {
-            document.getElementById('retry-launch-btn')?.addEventListener('click', () => {
+            const retryLaunchBtn = document.getElementById('retry-launch-btn');
+            if (retryLaunchBtn) retryLaunchBtn.addEventListener('click', () => {
                 container.classList.add('hidden');
                 container.innerHTML = '';
                 startScanner();
@@ -331,4 +333,6 @@ export const CheckinPage = async () => {
     window.addEventListener('hashchange', () => {
         stopScanner();
     }, { once: true });
+};
+;
 };

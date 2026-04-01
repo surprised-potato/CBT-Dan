@@ -15,7 +15,7 @@ import {
     getDoc,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { setUser, getUser, setAuthInitialized } from '../core/store.js';
+import { setUser, getUser, setAuthInitialized, isAuthReady } from '../core/store.js';
 import { setCookie, deleteCookie } from '../core/cookies.js';
 
 export const registerUser = async (email, password, role, displayName, course) => {
@@ -188,7 +188,7 @@ export const updateUserProfile = async (uid, data) => {
 
         // Update local store
         const currentUser = getUser();
-        if (currentUser && (currentUser.uid === uid || currentUser.user?.uid === uid)) {
+        if (currentUser && (currentUser.uid === uid || (currentUser.user && currentUser.user.uid === uid))) {
             setUser({ ...currentUser, ...data });
         }
     } catch (error) {
@@ -198,26 +198,49 @@ export const updateUserProfile = async (uid, data) => {
 };
 
 export const observeAuthChanges = (callback) => {
+    if (!auth) {
+        console.error("Auth subsystem not initialized.");
+        setAuthInitialized(true);
+        if (callback) callback(null);
+        return;
+    }
+
+    // Fallback: If Firebase doesn't respond in 10s, release the loading screen
+    const timeout = setTimeout(() => {
+        if (!isAuthReady()) {
+            console.warn("Auth initialization timed out. Proceeding as guest.");
+            setAuthInitialized(true);
+            if (callback) callback(null);
+        }
+    }, 10000);
+
     onAuthStateChanged(auth, async (user) => {
+        clearTimeout(timeout);
         if (user) {
-            // Re-fetch role on reload
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                // Normalize isAuthorized for teachers if missing
-                if (data.role === 'teacher' && data.isAuthorized === undefined) {
-                    data.isAuthorized = false;
+            try {
+                // Re-fetch role on reload
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    // Normalize isAuthorized for teachers if missing
+                    if (data.role === 'teacher' && data.isAuthorized === undefined) {
+                        data.isAuthorized = false;
+                    }
+                    const userData = { user, ...data };
+                    setUser(userData);
+                    setCookie('cbt_session', user.uid, 7);
+                    setAuthInitialized(true);
+                    if (callback) callback(userData);
+                } else {
+                    setUser({ user, role: 'student', isAuthorized: true });
+                    setCookie('cbt_session', user.uid, 7);
+                    setAuthInitialized(true);
+                    if (callback) callback({ user, role: 'student', isAuthorized: true });
                 }
-                const userData = { user, ...data };
-                setUser(userData);
-                setCookie('cbt_session', user.uid, 7);
+            } catch (err) {
+                console.error("Profile fetch error:", err);
                 setAuthInitialized(true);
-                if (callback) callback(userData);
-            } else {
-                setUser({ user, role: 'student', isAuthorized: true });
-                setCookie('cbt_session', user.uid, 7);
-                setAuthInitialized(true);
-                if (callback) callback({ user, role: 'student', isAuthorized: true });
+                if (callback) callback(null);
             }
         } else {
             deleteCookie('cbt_session');

@@ -32,7 +32,7 @@ export const checkCorrectness = (q, studentAns, keyAns) => {
                 return studentAns.every(v => keyAns.includes(v)) && keyAns.every(v => studentAns.includes(v));
             } else if (q.type === 'MATCHING') {
                 return studentAns.every((v, idx) => {
-                    const def = keyAns[idx]?.definition;
+                    const def = keyAns[idx] && keyAns[idx].definition;
                     return def && normalize(v) === normalize(def);
                 });
             } else if (q.type === 'ORDERING') {

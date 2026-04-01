@@ -112,7 +112,7 @@ export const getGeolocationErrorHelp = (error) => {
             message: 'It took too long to get your location. Please move to an area with better GPS reception and try again.',
         }
     };
-    return base[error?.code] || { title: 'Location Error', message: error?.message || 'An unknown error occurred while accessing your location.' };
+    return base[error && error.code] || { title: 'Location Error', message: (error && error.message) || 'An unknown error occurred while accessing your location.' };
 };
 
 /**
