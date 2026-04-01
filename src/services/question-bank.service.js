@@ -141,6 +141,19 @@ export const updateQuestion = async (id, data) => {
     }
 };
 
+export const repairQuestion = async (id, data) => {
+    try {
+        const questionRef = doc(db, COLLECTION_NAME, id);
+        await updateDoc(questionRef, {
+            ...data,
+            repairedAt: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error("Error repairing question:", error);
+        throw error;
+    }
+};
+
 export const getQuestionById = async (id) => {
     try {
         const docRef = doc(db, COLLECTION_NAME, id);

@@ -548,15 +548,15 @@ export const EditorPage = async () => {
                         isCorrect: correctIds.includes(c.id)
                     }));
                 } else if (q.type === 'TRUE_FALSE') {
-                    const radio = document.querySelector(`input[name="tf-answer"][value="${q.correct_answer}"]`);
+                    els.type.value = 'TRUE_FALSE';
+                    const ans = String(q.correct_answer);
+                    const radio = document.querySelector(`input[name="tf-answer"][value="${ans}"]`);
                     if (radio) radio.checked = true;
-                } else if (q.type === 'MULTI_ANSWER') {
-                    state.multiChoices = q.choices || [];
-                    const correct = q.correct_answers || [];
-                    state.multiChoices.forEach(c => c.isCorrect = correct.includes(c.id));
                 } else if (q.type === 'MATCHING') {
+                    els.type.value = 'MATCHING';
                     state.matchingPairs = q.pairs || [];
                 } else if (q.type === 'ORDERING') {
+                    els.type.value = 'ORDERING';
                     state.orderingItems = q.items || [];
                 }
             }
