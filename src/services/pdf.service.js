@@ -28,31 +28,56 @@ export const buildPrintableHTML = (assessment, options = {}) => {
     const gapMap = { 'compact': 'gap-4', 'normal': 'gap-8' };
 
     const header = `
-        <div class="print-header border-b-2 border-black pb-4 mb-2">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h1 class="text-xl font-bold uppercase">${assessment.title}</h1>
-                    <p class="text-[10px] font-bold mt-1">Instructor: ${instructorName}</p>
+        <div class="print-header pb-4 mb-2">
+            <div class="flex items-center justify-between mb-4">
+                <img src="/UNO-R_logo.png" class="h-20 object-contain" />
+                <div class="text-center flex-1 px-4 leading-tight uppercase font-bold">
+                    <p class="text-[10px]">University of</p>
+                    <p class="text-[12px]">Negros Occidental &ndash; Recoletos, Incorporated</p>
+                    <p class="text-[9px] italic normal-case">CHED Autonomous University</p>
+                    <p class="text-[11px] mt-1">College of Engineering</p>
                 </div>
-                <div class="text-right">
-                    <p class="text-[8px] font-bold uppercase">Academic Registry Protocol</p>
-                    <p class="text-[8px] mt-0.5">${new Date().toLocaleDateString(undefined, { dateStyle: 'full' })}</p>
-                </div>
+                <img src="/coeng%20logo.jpg" class="h-20 object-contain" />
             </div>
             
-            ${!showAnswers ? `
-            <div class="grid grid-cols-2 gap-4 mt-4">
-                <div class="border-b border-black py-0.5"><span class="text-[9px] font-bold uppercase mr-1">Name:</span></div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="border-b border-black py-0.5"><span class="text-[9px] font-bold uppercase mr-1">Sec:</span></div>
-                    <div class="border-b border-black py-0.5"><span class="text-[9px] font-bold uppercase mr-1">Score:</span> <span class="text-[9px] font-bold">___/${assessment.questionCount}</span></div>
-                </div>
+            <table class="w-full text-[10px] border-collapse border border-black mb-4">
+                <tbody>
+                    <tr>
+                        <td class="border border-black p-1 font-bold w-[15%]">COURSE CODE:</td>
+                        <td class="border border-black p-1 w-[35%]"></td>
+                        <td class="border border-black p-1 font-bold w-[15%]">SECTION:</td>
+                        <td class="border border-black p-1 w-[35%]"></td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-1 font-bold">COURSE TITLE:</td>
+                        <td class="border border-black p-1" colspan="3"></td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-1 text-center font-bold" colspan="2">AY 2025-2026</td>
+                        <td class="border border-black p-1 text-center font-bold">PRELIM</td>
+                        <td class="border border-black p-1 text-center font-bold">EXAMINATION</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="w-full text-[10px] border-collapse border border-black">
+                <tbody>
+                    <tr>
+                        <td class="border border-black p-1 font-bold w-[60%] align-top h-8">NAME:</td>
+                        <td class="border border-black p-1 font-bold w-[20%] align-top" rowspan="2">DATE:</td>
+                        <td class="border border-black p-1 font-bold w-[20%] align-top" rowspan="2">SCORE:</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-1 font-bold align-top h-8">INSTRUCTOR'S NAME:</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            ${showAnswers ? `
+            <div class="mt-4 text-right">
+                <span class="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest">Answer Key</span>
             </div>
-            ` : `
-            <div class="mt-2 text-right">
-                <span class="bg-black text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest">Answer Key</span>
-            </div>
-            `}
+            ` : ''}
         </div>
     `;
 
@@ -98,6 +123,57 @@ export const buildPrintableHTML = (assessment, options = {}) => {
         `;
     }).join('');
 
+    const totalQuestionsCount = sectionedQuestions.reduce((acc, s) => acc + s.items.length, 0);
+    const allQuestionsFlat = sectionedQuestions.flatMap(s => s.items);
+    
+    const answerGridItems = Array.from({ length: totalQuestionsCount }, (_, i) => {
+        const idx = i + 1;
+        const q = allQuestionsFlat[i];
+        let answerText = '';
+        if (showAnswers && q) {
+            const key = keys[q.id];
+            
+            let displayKey = key;
+            if (q.type === 'MCQ' && key && q.choices) {
+                const choiceIdx = q.choices.findIndex(c => c.id === key);
+                if (choiceIdx !== -1) displayKey = String.fromCharCode(65 + choiceIdx);
+            } else if (Array.isArray(key)) {
+                displayKey = key.join(', ');
+            }
+            
+            answerText = displayKey ? `<span class="text-red-500 font-bold ml-2 text-[12px] break-all line-clamp-1">${displayKey}</span>` : '';
+        }        return `
+            <div class="flex items-end mb-4 break-inside-avoid" style="page-break-inside: avoid; break-inside: avoid-column;">
+                <span class="font-bold w-6 text-right mr-3 text-sm">${idx}.</span>
+                <div class="border-b border-black flex-1 h-5 flex items-end pb-0.5 relative">
+                     ${answerText}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const answerSheetHTML = totalQuestionsCount > 0 ? `
+        <div class="print-answer-sheet mt-12 pt-8" style="page-break-before: always; break-before: page;">
+            <div class="text-center mb-8 border-b-2 border-black pb-4">
+                <h2 class="text-xl font-black uppercase tracking-widest">Examination Answer Sheet</h2>
+                <div class="grid grid-cols-2 gap-8 mt-8 text-left max-w-3xl mx-auto">
+                    <div class="flex items-end"><span class="font-bold text-[11px] mr-2">NAME:</span><div class="border-b border-black flex-1"></div></div>
+                    <div class="flex items-end"><span class="font-bold text-[11px] mr-2">COURSE/SEC:</span><div class="border-b border-black flex-1"></div></div>
+                    <div class="flex items-end"><span class="font-bold text-[11px] mr-2">DATE:</span><div class="border-b border-black flex-1"></div></div>
+                    <div class="flex items-end"><span class="font-bold text-[11px] mr-2">SCORE:</span><div class="border-b border-black flex-1"></div></div>
+                </div>
+            </div>
+            
+            <div class="columns-3 sm:columns-4 md:columns-5 gap-x-12 mt-8" style="column-gap: 3rem;">
+                ${answerGridItems}
+            </div>
+            
+            <div class="mt-12 text-center text-[9px] italic text-gray-500">
+                Ensure all answers are written clearly. Erasures may invalidate your answer depending on the instructor's policy.
+            </div>
+        </div>
+    ` : '';
+
     const footer = `
         <div class="mt-8 pt-4 border-t border-gray-100 text-center">
             <p class="text-[7px] font-bold text-gray-300 uppercase tracking-[0.4em]">Protocol Transmit Lock - ${assessment.id.substring(0, 8)}</p>
@@ -139,6 +215,7 @@ export const buildPrintableHTML = (assessment, options = {}) => {
              style="${paperSizeStyles[layout.paperSize || 'folio']}">
             ${header}
             ${content}
+            ${answerSheetHTML}
             ${footer}
         </div>
     `;
