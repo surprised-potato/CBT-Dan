@@ -32,32 +32,40 @@ export const addQuestion = async (questionData) => {
     }
 };
 
-export const getQuestions = async (filters = {}) => {
+/**
+ * Fetches only metadata for filtering.
+ * Note: Firestore still charges a full document read, but we save bandwidth.
+ */
+export const getQuestionsMetadata = async (filters = {}) => {
     try {
-        let q = collection(db, COLLECTION_NAME);
-
-        // Advanced filtering
-        if (filters.course && filters.topic) {
-            q = query(q, where("course", "==", filters.course), where("topic", "==", filters.topic));
-        } else if (filters.course) {
-            q = query(q, where("course", "==", filters.course));
-        } else if (filters.topic) {
-            q = query(q, where("topic", "==", filters.topic));
-        }
-
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => {
-            const data = doc.data();
-            // Normalize legacy 'MEDIUM' difficulty
-            if (data.difficulty === 'MEDIUM') data.difficulty = 'MODERATE';
-            return {
-                id: doc.id,
-                ...data
-            };
-        });
+        const qData = await getQuestions(filters);
+        return qData.map(q => ({
+            id: q.id,
+            type: q.type,
+            difficulty: q.difficulty,
+            topic: q.topic,
+            course: q.course
+        }));
     } catch (error) {
-        console.error("Error fetching questions: ", error);
-        throw error;
+        console.error("Error fetching metadata:", error);
+        return [];
+    }
+};
+
+export const getQuestionsByIds = async (ids) => {
+    const BATCH_SIZE = 30;
+    const results = [];
+    try {
+        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+            const chunk = ids.slice(i, i + BATCH_SIZE);
+            const q = query(collection(db, COLLECTION_NAME), where("__name__", "in", chunk));
+            const snap = await getDocs(q);
+            snap.forEach(d => results.push({ id: d.id, ...d.data() }));
+        }
+        return results;
+    } catch (error) {
+        console.error("Error fetching bulk questions:", error);
+        return [];
     }
 };
 

@@ -1,4 +1,4 @@
-import { getAssessments, deleteAssessment, updateAssessmentTitle } from '../../services/assessment.service.js';
+import { getAssessments, deleteAssessment, updateAssessmentTitle, getTeacherAssessmentsSummary } from '../../services/assessment.service.js';
 import { getClassesByTeacher } from '../../services/class.service.js';
 import { getUser } from '../../core/store.js';
 
@@ -70,14 +70,16 @@ export const AssessmentBankPage = async () => {
 
     const fetchAndRender = async () => {
         try {
+            // Using optimized summary (1 read for the whole list)
             const [assessmentsData, classesData] = await Promise.all([
-                getAssessments(user.user.uid),
+                getTeacherAssessmentsSummary(user.user.uid),
                 getClassesByTeacher(user.user.uid)
             ]);
             assessments = assessmentsData;
             classes = classesData;
             renderList();
         } catch (err) {
+            console.error(err);
             listContainer.innerHTML = `<div class="text-center py-20 text-red-500 font-bold glass-panel border border-white/10 rounded-[40px]">Failed to load assessments.</div>`;
         }
     };
@@ -98,7 +100,7 @@ export const AssessmentBankPage = async () => {
 
         listContainer.innerHTML = filtered.map(a => {
             const isActive = a.status === 'active';
-            const assignedIds = a.assignedClassIds || (a.assignedClassId ? [a.assignedClassId] : []);
+            const assignedIds = a.assignedClassIds || [];
             const assignedClasses = classes.filter(c => assignedIds.includes(c.id));
 
             return `
@@ -131,10 +133,10 @@ export const AssessmentBankPage = async () => {
                     <div class="flex items-center gap-4 mt-4 md:mt-0">
                         <div class="flex gap-2">
                             <button onclick="window.editAsTitle('${a.id}', '${a.title.replace(/'/g, "\\'")}')" class="w-12 h-12 bg-white/5 border border-white/5 rounded-2xl text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 transition-all flex items-center justify-center shadow-lg ring-1 ring-white/5" title="Modify Registry">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h1.828l8.586-8.586z"></path></svg>
                             </button>
                             <button onclick="window.delAs('${a.id}')" class="w-12 h-12 bg-white/5 border border-white/5 rounded-2xl text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center justify-center shadow-lg ring-1 ring-white/5" title="Purge Record">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                         

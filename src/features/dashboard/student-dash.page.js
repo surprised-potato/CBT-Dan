@@ -1,7 +1,7 @@
 import { renderButton } from '../../shared/button.js';
 import { renderInput } from '../../shared/input.js';
 import { joinClass, getStudentClasses } from '../../services/class.service.js';
-import { getActiveAssessments, getAssessment } from '../../services/assessment.service.js';
+import { getActiveAssessmentsSummary, getAssessment } from '../../services/assessment.service.js';
 import { getUser } from '../../core/store.js';
 import { renderModal, setupModalListeners } from '../../shared/modal.js';
 import { updateUserProfile, logoutUser, changeUserPassword } from '../../services/auth.service.js';
@@ -169,7 +169,6 @@ export const StudentDashPage = async () => {
         document.getElementById('exams-tab').onclick = () => {
             currentView = 'exams';
             app.querySelector('#view-content').innerHTML = renderAssessmentsView();
-            // Re-render nav to update active state
             app.querySelector('nav').outerHTML = renderNav();
             setupListeners();
             loadAssessments();
@@ -225,21 +224,19 @@ export const StudentDashPage = async () => {
                     await changeUserPassword(newPassword);
                 }
 
-                // If now complete, restore UI
                 const modal = document.getElementById('profile-modal');
                 const closeBtn = document.getElementById('profile-modal-close-btn');
                 const title = modal?.querySelector('h3');
 
                 if (closeBtn) closeBtn.classList.remove('hidden');
                 if (title) {
-                    const notice = title.querySelector('span'); // The pulse notice
+                    const notice = title.querySelector('span'); 
                     if (notice) notice.remove();
                     delete title.dataset.enforced;
                 }
 
                 document.getElementById('profile-modal').classList.add('hidden');
 
-                // Surgical UI Update: update the display name in the header
                 const nameDisplay = document.querySelector('header div p.text-[11px].font-medium');
                 if (nameDisplay) nameDisplay.textContent = newName;
 
@@ -264,9 +261,17 @@ export const StudentDashPage = async () => {
         try {
             myClasses = await getStudentClasses(user.user.uid);
             const myClassIds = myClasses.map(c => c.id);
-            const rawExams = await getActiveAssessments(myClassIds);
+            // Optimized summary fetch (1 read)
+            const rawExams = await getActiveAssessmentsSummary();
 
-            const examsWithStatus = await Promise.all(rawExams.map(async (a) => {
+            // Filter for student's classes
+            const myExams = rawExams.filter(a => {
+                const ids = a.assignedClassIds || [];
+                if (ids.length === 0) return true;
+                return ids.some(id => myClassIds.includes(id));
+            });
+
+            const examsWithStatus = await Promise.all(myExams.map(async (a) => {
                 const completed = await checkSubmission(a.id, user.user.uid);
                 return { ...a, completed };
             }));
@@ -275,7 +280,7 @@ export const StudentDashPage = async () => {
             myClasses.forEach(c => groups[c.id] = { name: c.name, section: c.section, exams: [] });
 
             examsWithStatus.forEach(ex => {
-                const classIds = ex.assignedClassIds || (ex.assignedClassId ? [ex.assignedClassId] : []);
+                const classIds = ex.assignedClassIds || [];
                 classIds.forEach(cid => {
                     if (groups[cid]) {
                         groups[cid].exams.push(ex);
@@ -285,7 +290,6 @@ export const StudentDashPage = async () => {
 
             let html = '';
 
-            // Enrolled Pills
             if (myClasses.length > 0) {
                 html += `
                     <div class="mb-4 overflow-hidden">
@@ -302,7 +306,6 @@ export const StudentDashPage = async () => {
                 `;
             }
 
-            // Render Groups
             Object.values(groups).forEach(g => {
                 html += `
                     <div class="glass-panel rounded-[40px] border border-white/5 overflow-hidden mb-10 transition-all hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)]">
@@ -327,12 +330,13 @@ export const StudentDashPage = async () => {
             container.innerHTML = html;
 
         } catch (err) {
+            console.error(err);
             container.innerHTML = '<div class="glass-panel text-red-400 text-center py-10 font-bold">Error loading course materials</div>';
         }
     };
 
     const renderExamRow = (ex, allClasses) => {
-        const classes = allClasses.filter(c => (ex.assignedClassIds || []).includes(c.id) || ex.assignedClassId === c.id);
+        const classes = allClasses.filter(c => (ex.assignedClassIds || []).includes(c.id));
         return `
         <div class="px-8 py-6 md:px-10 md:py-8 flex flex-col md:flex-row justify-between items-start md:items-center group hover:bg-white/5 transition-all">
             <div class="flex items-start md:items-center gap-6 w-full md:w-auto">
@@ -383,13 +387,21 @@ export const StudentDashPage = async () => {
                 return;
             }
 
+            // Resolve assessment titles efficiently (1 read for active summary)
+            const activeSummary = await getActiveAssessmentsSummary();
+            
             const enriched = await Promise.all(submissions.map(async (s) => {
                 try {
-                    const assessment = await getAssessment(s.assessmentId);
-                    const className = myClasses.find(c => (assessment.assignedClassIds || []).includes(c.id) || assessment.assignedClassId === c.id)?.name || 'Unknown Class';
+                    let assessment = activeSummary.find(a => a.id === s.assessmentId);
+                    
+                    if (!assessment) {
+                        assessment = await getAssessment(s.assessmentId);
+                    }
+
+                    const className = myClasses.find(c => (assessment.assignedClassIds || []).includes(c.id))?.name || 'Institutional Class';
                     return { ...s, assessmentTitle: assessment.title, className: className };
                 } catch {
-                    return { ...s, assessmentTitle: 'Archived Module', className: 'Unknown Class' };
+                    return { ...s, assessmentTitle: 'Completed Module', className: 'Legacy Record' };
                 }
             }));
 
@@ -403,7 +415,6 @@ export const StudentDashPage = async () => {
                     ${enriched.map(r => {
                 const isGraded = r.status === 'graded';
                 const scorePercentage = isGraded ? Math.round((r.score / r.totalPoints) * 100) : 0;
-                const date = new Date(r.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
                 return `
                         <div class="glass-panel p-8 rounded-[40px] border border-white/5 space-y-8 animate-in fade-in duration-500">
@@ -438,6 +449,7 @@ export const StudentDashPage = async () => {
     </div>
 `;
         } catch (err) {
+            console.error(err);
             container.innerHTML = '<div class="glass-panel text-red-500 text-center py-10 font-bold">Failed to process performance telemetry</div>';
         }
     };
