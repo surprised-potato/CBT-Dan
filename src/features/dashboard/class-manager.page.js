@@ -694,10 +694,3 @@ export const ClassManagerPage = async () => {
 
     renderLevel1();
 };
-;
-};
-;
-el1();
-};
-rLevel1();
-};
