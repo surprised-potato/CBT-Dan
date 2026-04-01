@@ -7,7 +7,7 @@ export const isProfileIncomplete = (user) => {
     if (!user) return false;
     const name = String(user.displayName || '').trim().toLowerCase();
 
-    const placeholders = ['', 'unknown', 'null', 'undefined', 'n/a', 'student', 'teacher'];
+    const placeholders = ['', 'unknown', 'null', 'undefined', 'n/a', 'student', 'teacher', 'test name'];
     return placeholders.includes(name);
 };
 
