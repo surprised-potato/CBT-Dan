@@ -722,6 +722,22 @@ export const TakerPage = async () => {
                 if (document.visibilityState === 'hidden') handleLockout("Switched Tabs/Background");
             });
 
+            // Focus/Blur API: catches notification center / control center pull-downs on mobile
+            window.addEventListener('blur', () => {
+                handleLockout("Lost Window Focus");
+            });
+
+            // Pagehide: Final fallback for app switching
+            window.addEventListener('pagehide', () => {
+                handleLockout("Backgrounded Assessment");
+            });
+
+            // Context Menu Block: Prevents lookups/system menus during exam
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+
             // Delegated click listeners for lockout overlay buttons
             document.addEventListener('click', (e) => {
                 if (e.target.id === 'unlock-btn') handleResume();
