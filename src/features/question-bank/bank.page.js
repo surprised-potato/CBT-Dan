@@ -1,5 +1,5 @@
 import { renderButton } from '../../shared/button.js';
-import { getQuestions, getHierarchy, deleteQuestion, repairQuestion } from '../../services/question-bank.service.js';
+import { getQuestions, getHierarchy, deleteQuestion, repairQuestion, renameTopic, renameCourse } from '../../services/question-bank.service.js';
 import { getUser } from '../../core/store.js';
 
 export const BankPage = async () => {
@@ -100,6 +100,19 @@ export const BankPage = async () => {
                     </div>
                 </div>
             </div>
+
+            <!-- Rename Item Modal -->
+            <div id="rename-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-md">
+                <div class="glass-panel w-full max-w-md rounded-[40px] border border-white/10 p-10 relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+                    <h3 id="rename-modal-title" class="text-2xl font-black text-white mb-6 uppercase tracking-tight">Modify Registry</h3>
+                    <p id="rename-modal-desc" class="text-[10px] text-blue-400 font-black uppercase tracking-[0.3em] mb-6 opacity-80">Update Identity</p>
+                    <input type="text" id="rename-modal-input" class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold outline-none focus:border-blue-500/50 transition-colors mb-8 uppercase tracking-tight" placeholder="ENTER NEW NAME...">
+                    <div class="flex gap-4">
+                        <button id="rename-modal-confirm-btn" class="flex-1 bg-purple-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-purple-500/20 border border-white/20 hover:-translate-y-0.5 transition-all">Commit Change</button>
+                        <button onclick="document.getElementById('rename-modal').classList.add('hidden')" class="px-8 py-4 bg-white/5 text-white/40 rounded-2xl font-black uppercase text-xs tracking-widest border border-white/5">Cancel</button>
+                    </div>
+                </div>
+            </div>
         `;
 
         document.getElementById('header-action-btn').onclick = onAction;
@@ -195,16 +208,22 @@ export const BankPage = async () => {
             const topicCount = new Set(courseQs.map(q => q.topic)).size;
 
             return `
-                <div onclick="window.viewCourse('${course}')" class="group relative glass-panel p-8 md:p-10 rounded-[45px] border border-white/5 hover:border-blue-500/30 hover:-translate-y-1 transition-all cursor-pointer overflow-hidden active:scale-[0.98] shadow-2xl">
-                    <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="group relative glass-panel p-8 md:p-10 rounded-[45px] border border-white/5 hover:border-blue-500/30 transition-all cursor-pointer overflow-hidden active:scale-[0.98] shadow-2xl">
+                    <div onclick="window.viewCourse('${course}')" class="absolute inset-0 z-0"></div>
+                    <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                     
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-                        <div class="flex items-center gap-6 md:gap-8">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10 pointer-events-none">
+                        <div class="flex items-center gap-6 md:gap-8 pointer-events-auto">
                             <div class="w-16 h-16 md:w-20 md:h-20 bg-blue-500/10 rounded-[28px] flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20 transition-all ring-1 ring-white/5 shadow-inner">
                                 <svg class="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                             </div>
                             <div>
-                                <h3 class="font-black text-white text-2xl md:text-3xl group-hover:text-blue-400 transition-colors uppercase tracking-tight">${course}</h3>
+                                <div class="flex items-center gap-3">
+                                    <h3 class="font-black text-white text-2xl md:text-3xl group-hover:text-blue-400 transition-colors uppercase tracking-tight">${course}</h3>
+                                    <button onclick="event.stopPropagation(); window.openRenameModal('course', '${course}')" class="p-2 bg-white/5 rounded-xl text-white/20 hover:text-blue-400 hover:bg-white/10 transition-all pointer-events-auto" title="Rename Department">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
+                                </div>
                                 <p class="text-[10px] font-black text-white/40 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
                                     ${topicCount} Topics
                                     <span class="w-1.5 h-1.5 bg-blue-400/30 rounded-full"></span>
@@ -213,7 +232,7 @@ export const BankPage = async () => {
                             </div>
                         </div>
 
-                        <div class="mt-4 md:mt-0 flex items-center justify-between p-5 bg-white/5 rounded-[28px] text-white/30 group-hover:bg-blue-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(37,99,235,0.4)] transition-all border border-white/5 group-hover:border-blue-400">
+                        <div onclick="window.viewCourse('${course}')" class="mt-4 md:mt-0 flex items-center justify-between p-5 bg-white/5 rounded-[28px] text-white/30 group-hover:bg-blue-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(37,99,235,0.4)] transition-all border border-white/5 group-hover:border-blue-400 pointer-events-auto">
                             <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Access Records</span>
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </div>
@@ -264,23 +283,29 @@ export const BankPage = async () => {
         const grid = topics.map(topic => {
             const count = topicsMap[topic];
             return `
-                <div onclick="window.viewTopic('${topic}')" class="group relative glass-panel p-8 md:p-10 rounded-[45px] border border-white/5 hover:border-blue-500/30 hover:-translate-y-1 transition-all cursor-pointer overflow-hidden active:scale-[0.98] shadow-2xl">
-                    <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="group relative glass-panel p-8 md:p-10 rounded-[45px] border border-white/5 hover:border-blue-500/30 transition-all cursor-pointer overflow-hidden active:scale-[0.98] shadow-2xl">
+                    <div onclick="window.viewTopic('${topic}')" class="absolute inset-0 z-0"></div>
+                    <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                     
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-                        <div class="flex items-center gap-6 md:gap-8">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10 pointer-events-none">
+                        <div class="flex items-center gap-6 md:gap-8 pointer-events-auto">
                             <div class="w-16 h-16 md:w-20 md:h-20 bg-blue-500/10 rounded-[28px] flex items-center justify-center transition-all ring-1 ring-white/5 shadow-inner">
                                 <div class="w-2 h-10 md:h-12 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]"></div>
                             </div>
                             <div>
-                                <h3 class="font-black text-white text-2xl md:text-3xl group-hover:text-blue-400 transition-colors uppercase tracking-tight">${topic}</h3>
+                                <div class="flex items-center gap-3">
+                                    <h3 class="font-black text-white text-2xl md:text-3xl group-hover:text-blue-400 transition-colors uppercase tracking-tight">${topic}</h3>
+                                    <button onclick="event.stopPropagation(); window.openRenameModal('topic', '${topic}')" class="p-2 bg-white/5 rounded-xl text-white/20 hover:text-blue-400 hover:bg-white/10 transition-all pointer-events-auto" title="Rename Topic">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h1.828l8.586-8.586z"></path></svg>
+                                    </button>
+                                </div>
                                 <p class="text-[10px] font-black text-white/40 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
                                     ${count} Resources
                                 </p>
                             </div>
                         </div>
 
-                        <div class="mt-4 md:mt-0 flex items-center justify-between p-5 bg-white/5 rounded-[28px] text-white/30 group-hover:bg-blue-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(37,99,235,0.4)] transition-all border border-white/5 group-hover:border-blue-400">
+                        <div onclick="window.viewTopic('${topic}')" class="mt-4 md:mt-0 flex items-center justify-between p-5 bg-white/5 rounded-[28px] text-white/30 group-hover:bg-blue-600 group-hover:text-white group-hover:drop-shadow-[0_10px_20px_rgba(37,99,235,0.4)] transition-all border border-white/5 group-hover:border-blue-400 pointer-events-auto">
                             <span class="text-[10px] font-black uppercase tracking-[0.3em] ml-2">Open Repository</span>
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </div>
@@ -473,6 +498,67 @@ export const BankPage = async () => {
         } catch (err) {
             alert("Purge failed.");
         }
+    };
+
+    window.openRenameModal = (type, oldValue) => {
+        const modal = document.getElementById('rename-modal');
+        const title = document.getElementById('rename-modal-title');
+        const desc = document.getElementById('rename-modal-desc');
+        const input = document.getElementById('rename-modal-input');
+        const confirmBtn = document.getElementById('rename-modal-confirm-btn');
+
+        input.value = oldValue;
+        modal.classList.remove('hidden');
+        input.focus();
+        input.select();
+
+        if (type === 'course') {
+            title.textContent = 'Rename Department';
+            desc.textContent = `Updating: ${oldValue}`;
+        } else {
+            title.textContent = 'Rename Topic';
+            desc.textContent = `Updating: ${oldValue}`;
+        }
+
+        confirmBtn.onclick = async () => {
+            const newValue = input.value.trim();
+            if (!newValue || newValue === oldValue) {
+                modal.classList.add('hidden');
+                return;
+            }
+
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'UPDATING...';
+
+            try {
+                if (type === 'course') {
+                    await renameCourse(oldValue, newValue);
+                } else {
+                    await renameTopic(viewState.selectedCourse, oldValue, newValue);
+                }
+                modal.classList.add('hidden');
+                // Refresh full data
+                const [newQs, newHierarchy] = await Promise.all([getQuestions(), getHierarchy()]);
+                allQuestions.length = 0;
+                allQuestions.push(...newQs);
+                Object.assign(hierarchy, newHierarchy);
+                
+                // Update viewState if we renamed the currently selected course/topic
+                if (type === 'course' && viewState.selectedCourse === oldValue) {
+                    viewState.selectedCourse = newValue;
+                }
+                if (type === 'topic' && viewState.selectedTopic === oldValue) {
+                    viewState.selectedTopic = newValue;
+                }
+
+                renderPage();
+            } catch (err) {
+                alert("Rename failed: " + err.message);
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Commit Change';
+            }
+        };
     };
 
     window.openAddModal = (type) => {

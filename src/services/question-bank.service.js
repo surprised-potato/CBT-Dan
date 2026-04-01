@@ -154,6 +154,53 @@ export const repairQuestion = async (id, data) => {
     }
 };
 
+export const renameTopic = async (course, oldTopic, newTopic) => {
+    try {
+        const q = query(
+            collection(db, COLLECTION_NAME),
+            where("course", "==", course),
+            where("topic", "==", oldTopic)
+        );
+        const snapshot = await getDocs(q);
+        const batch = writeBatch(db);
+        
+        snapshot.docs.forEach(d => {
+            batch.update(doc(db, COLLECTION_NAME, d.id), {
+                topic: newTopic,
+                updatedAt: new Date().toISOString()
+            });
+        });
+        
+        await batch.commit();
+    } catch (error) {
+        console.error("Error renaming topic:", error);
+        throw error;
+    }
+};
+
+export const renameCourse = async (oldCourse, newCourse) => {
+    try {
+        const q = query(
+            collection(db, COLLECTION_NAME),
+            where("course", "==", oldCourse)
+        );
+        const snapshot = await getDocs(q);
+        const batch = writeBatch(db);
+        
+        snapshot.docs.forEach(d => {
+            batch.update(doc(db, COLLECTION_NAME, d.id), {
+                course: newCourse,
+                updatedAt: new Date().toISOString()
+            });
+        });
+        
+        await batch.commit();
+    } catch (error) {
+        console.error("Error renaming course:", error);
+        throw error;
+    }
+};
+
 export const getQuestionById = async (id) => {
     try {
         const docRef = doc(db, COLLECTION_NAME, id);
