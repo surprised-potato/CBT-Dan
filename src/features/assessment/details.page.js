@@ -454,8 +454,3 @@ export const DetailsPage = async () => {
 
     renderDetails();
 };
-        }
-    };
-
-    renderDetails();
-};
