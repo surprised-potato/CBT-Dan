@@ -104,7 +104,21 @@ export const gradeSubmission = async (submissionId) => {
         const studentAnswers = submission.answers || {};
 
         for (const [qId, correctAnswer] of Object.entries(keys)) {
-            const studentAnswer = studentAnswers[qId];
+            let studentAnswer = studentAnswers[qId];
+
+            // Retroactive Fix: If not found, try a fuzzy lookup in case keys were stored with spaces or prefixes
+            if (studentAnswer === undefined) {
+                const cleanQid = qId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const alternativeKey = Object.keys(studentAnswers).find(k => {
+                    const cleanK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return cleanK === cleanQid || cleanK === 'q' + cleanQid;
+                });
+                if (alternativeKey) {
+                    studentAnswer = studentAnswers[alternativeKey];
+                    console.log(`[Grading] Fuzzy match found for ${qId} -> ${alternativeKey}`);
+                }
+            }
+
             const qObj = startData.questions.find(q => q.id === qId);
             if (!qObj) continue;
 

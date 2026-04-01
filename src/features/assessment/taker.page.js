@@ -391,7 +391,7 @@ export const TakerPage = async () => {
                     val.forEach(v => {
                         if (typeof v === 'string') {
                             // Multi-choice or identification bank
-                            const cb = document.querySelector(`input[name = "q-${CSS.escape(qId)}"][value = "${CSS.escape(v)}"]`);
+                            const cb = document.querySelector(`input[name="q-${CSS.escape(qId)}"][value="${CSS.escape(v)}"]`);
                             if (cb) cb.checked = true;
                         }
                     });
@@ -399,7 +399,7 @@ export const TakerPage = async () => {
                     const qObj = questions.find(item => item.id === qId);
                     if (qObj?.type === 'MATCHING') {
                         val.forEach((pairVal, i) => {
-                            const sel = document.querySelector(`select[name = "q-${CSS.escape(qId)}-pair-${i}"]`);
+                            const sel = document.querySelector(`select[name="q-${CSS.escape(qId)}-pair-${i}"]`);
                             if (sel) sel.value = pairVal;
                         });
                     } else if (qObj?.type === 'ORDERING') {
@@ -407,7 +407,7 @@ export const TakerPage = async () => {
                         // Reverse-map to numeric ranks for each shuffled item input
                         const shuffledItems = qObj.orderingItems || qObj.items || [];
                         shuffledItems.forEach((item, i) => {
-                            const inp = document.querySelector(`input[name = "q-${CSS.escape(qId)}-order-${i}"]`);
+                            const inp = document.querySelector(`input[name="q-${CSS.escape(qId)}-order-${i}"]`);
                             if (inp) {
                                 const rank = val.indexOf(item);
                                 inp.value = rank >= 0 ? rank + 1 : '';
@@ -415,15 +415,15 @@ export const TakerPage = async () => {
                         });
                     }
                 } else {
-                    const selector = `input[name = "q-${CSS.escape(qId)}"][value = "${CSS.escape(val)}"]`;
+                    const selector = `input[name="q-${CSS.escape(qId)}"][value="${CSS.escape(val)}"]`;
                     try {
                         const radio = document.querySelector(selector);
                         if (radio) radio.checked = true;
                     } catch (e) { }
 
-                    const input = document.querySelector(`input[name = "q-${CSS.escape(qId)}"]`);
+                    const input = document.querySelector(`input[name="q-${CSS.escape(qId)}"]`);
                     if (input && input.type !== 'radio') input.value = val;
-                    const select = document.querySelector(`select[name = "q-${CSS.escape(qId)}"]`);
+                    const select = document.querySelector(`select[name="q-${CSS.escape(qId)}"]`);
                     if (select) select.value = val;
                 }
             });
@@ -438,16 +438,16 @@ export const TakerPage = async () => {
 
                 activeQs.forEach(q => {
                     if (q.type === 'MCQ' || q.type === 'TRUE_FALSE' || q.type === 'IDENTIFICATION') {
-                        const val = formData.get(`q - ${q.id} `);
+                        const val = formData.get(`q-${q.id}`);
                         if (val !== null) newAnswers[q.id] = val;
                     } else if (q.type === 'MULTI_ANSWER') {
-                        const vals = formData.getAll(`q - ${q.id} `);
+                        const vals = formData.getAll(`q-${q.id}`);
                         newAnswers[q.id] = vals; // Array
                     } else if (q.type === 'MATCHING') {
                         const matched = [];
                         const terms = q.matchingTerms || (q.pairs || []);
                         terms.forEach((_, i) => {
-                            matched.push(formData.get(`q - ${q.id} -pair - ${i} `) || '');
+                            matched.push(formData.get(`q-${q.id}-pair-${i}`) || '');
                         });
                         newAnswers[q.id] = matched;
                     } else if (q.type === 'ORDERING') {
@@ -456,7 +456,7 @@ export const TakerPage = async () => {
                         // so the stored answer is item text in the student's intended order
                         const pairs = items.map((item, i) => ({
                             item,
-                            rank: parseInt(formData.get(`q - ${q.id} -order - ${i} `)) || 0
+                            rank: parseInt(formData.get(`q-${q.id}-order-${i}`)) || 0
                         }));
                         // Only store if at least one rank was entered
                         if (pairs.some(p => p.rank > 0)) {
