@@ -145,7 +145,9 @@ export const BankPage = async () => {
         searchTerm: '',
         limit: 20,
         totalFiltered: 0,
-        isTyping: false
+        isTyping: false,
+        sortBy: 'text',
+        sortOrder: 'asc'
     };
 
     // 3. Renderers
@@ -295,7 +297,29 @@ export const BankPage = async () => {
             filtered = filtered.filter(q => q.text.toLowerCase().includes(term));
         }
 
+        // Apply Sorting
+        filtered.sort((a, b) => {
+            let valA = (a[viewState.sortBy] || '').toString().toLowerCase();
+            let valB = (b[viewState.sortBy] || '').toString().toLowerCase();
+            
+            // Difficulty has a specific order
+            if (viewState.sortBy === 'difficulty') {
+                const diffOrder = { 'EASY': 1, 'MODERATE': 2, 'DIFFICULT': 3 };
+                valA = diffOrder[a.difficulty] || 0;
+                valB = diffOrder[b.difficulty] || 0;
+            }
+
+            if (valA < valB) return viewState.sortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return viewState.sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+
         viewState.totalFiltered = filtered.length;
+
+        const sortIcon = (field) => {
+            if (viewState.sortBy !== field) return `<span class="opacity-20 ml-2">↕</span>`;
+            return `<span class="ml-2 text-white">${viewState.sortOrder === 'asc' ? '↑' : '↓'}</span>`;
+        };
 
         let html = `
             <div class="mb-10 relative group bg-white/5 border border-white/10 rounded-[28px] overflow-hidden focus-within:border-blue-500/50 transition-colors shadow-2xl">
@@ -310,61 +334,87 @@ export const BankPage = async () => {
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
             </div>
+
+            <div class="glass-panel rounded-[40px] overflow-hidden border border-white/10 shadow-2xl bg-black/20">
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white/5 border-b border-white/10">
+                                <th class="p-6 text-[10px] font-black text-blue-400 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-colors group/th" onclick="window.toggleSort('text')">
+                                    <div class="flex items-center">Question ${sortIcon('text')}</div>
+                                </th>
+                                <th class="p-6 text-[10px] font-black text-blue-400 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-colors w-32 group/th" onclick="window.toggleSort('type')">
+                                    <div class="flex items-center">Type ${sortIcon('type')}</div>
+                                </th>
+                                <th class="p-6 text-[10px] font-black text-blue-400 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-colors w-32 group/th" onclick="window.toggleSort('difficulty')">
+                                    <div class="flex items-center">Level ${sortIcon('difficulty')}</div>
+                                </th>
+                                <th class="p-6 text-[10px] font-black text-blue-400 uppercase tracking-widest w-32 text-center">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            ${filtered.slice(0, viewState.limit).map(q => `
+                                <tr class="hover:bg-white/5 transition-colors group/tr relative">
+                                    <td class="p-6">
+                                        <div class="text-white text-xs font-bold leading-relaxed line-clamp-2 group-hover/tr:line-clamp-none transition-all duration-300 max-w-xl">${q.text}</div>
+                                        ${q.figures && q.figures.length > 0 ? `
+                                            <div class="mt-3 flex items-center gap-2">
+                                                <span class="text-[8px] font-black text-blue-400 uppercase tracking-[0.2em] bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1.5">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    ${q.figures.length} Visual Payload(s)
+                                                </span>
+                                            </div>
+                                        ` : ''}
+                                    </td>
+                                    <td class="p-6">
+                                        <span class="inline-block text-[9px] font-black px-3 py-1 rounded-full border bg-blue-500/10 text-blue-400 border-blue-500/20 uppercase tracking-widest">${q.type}</span>
+                                    </td>
+                                    <td class="p-6">
+                                        <span class="inline-block text-[9px] font-black px-3 py-1 rounded-full border ${q.difficulty === 'DIFFICULT' ? 'bg-red-500/10 text-red-400 border-red-500/20' : q.difficulty === 'MODERATE' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-green-500/10 text-green-400 border-green-500/20'} uppercase tracking-widest">${q.difficulty || 'EASY'}</span>
+                                    </td>
+                                    <td class="p-6">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button onclick="location.hash='#editor?id=${q.id}'" class="p-3 bg-white/5 border border-white/5 rounded-xl text-white/40 hover:text-blue-400 hover:bg-white/10 transition-all active:scale-90 shadow-lg" title="Modify Record">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h1.828l8.586-8.586z"></path></svg>
+                                            </button>
+                                            <button onclick="window.deleteQ('${q.id}')" class="p-3 bg-white/5 border border-white/5 rounded-xl text-white/40 hover:text-red-400 hover:bg-white/10 transition-all active:scale-90 shadow-lg" title="Purge Record">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         `;
 
-        if (filtered.length === 0) {
-            html += `<div class="text-center py-20 glass-panel rounded-[40px] text-gray-600 font-black uppercase tracking-widest text-xs opacity-70">No operational items match criteria</div>`;
-            return html;
-        }
-
-        const grid = filtered.slice(0, viewState.limit).map(q => {
-            return `
-                <div class="glass-panel p-8 rounded-[40px] border border-white/5 hover:border-blue-500/30 transition-all group/card overflow-hidden flex flex-col justify-between gap-6 relative shadow-2xl">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-3xl opacity-0 group-hover/card:opacity-100 transition-opacity"></div>
-                    
-                    <div class="flex-1 min-w-0 relative z-10">
-                        <div class="flex flex-wrap gap-3 mb-6">
-                            <span class="inline-block text-[10px] uppercase tracking-widest font-black px-4 py-1.5 rounded-full border bg-blue-500/10 text-blue-400 border-blue-500/20">${q.type}</span>
-                            <span class="inline-block text-[10px] uppercase tracking-widest font-black px-4 py-1.5 rounded-full border ${q.difficulty === 'DIFFICULT' ? 'bg-red-500/10 text-red-400 border-red-500/20' : q.difficulty === 'MODERATE' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-green-500/10 text-green-400 border-green-500/20'}">${q.difficulty || 'EASY'}</span>
-                        </div>
-                        <div class="text-white font-extrabold text-sm leading-relaxed mb-6">${q.text}</div>
-                        ${q.figures && q.figures.length > 0 ? `
-                            <div class="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                                ${q.figures.map(fig => `
-                                    <div class="w-32 h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden shrink-0 shadow-inner">
-                                        <img src="${fig}" class="w-full h-full object-cover">
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div class="flex justify-end gap-3 shrink-0 relative z-10">
-                        <button onclick="location.hash='#editor?id=${q.id}'" class="w-12 h-12 bg-white/5 border border-white/5 rounded-2xl text-white/40 hover:text-blue-400 transition-all flex items-center justify-center ring-1 ring-white/5" title="Modify Registry">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        </button>
-                        <button onclick="window.deleteQ('${q.id}')" class="w-12 h-12 bg-white/5 border border-white/5 rounded-2xl text-white/40 hover:text-red-400 transition-all flex items-center justify-center ring-1 ring-white/5" title="Purge Record">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        let finalHtml = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">${grid}</div>`;
-
         if (filtered.length > viewState.limit) {
-            finalHtml += `
+            html += `
                 <div class="pt-8 text-center flex flex-col items-center gap-4">
                     <p class="text-[10px] font-black text-white/40 uppercase tracking-widest">${viewState.limit} of ${viewState.totalFiltered} Items Displayed</p>
-                    <button onclick="window.loadMore()" class="bg-white/5 text-blue-400 border border-white/10 px-10 py-5 rounded-[22px] font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all active:scale-95">Load More Resources</button>
+                    <button onclick="window.loadMore()" class="bg-white/5 text-blue-400 border border-white/10 px-10 py-5 rounded-[22px] font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all active:scale-95 shadow-xl">Load More Resources</button>
                 </div>
             `;
         }
 
-        return finalHtml;
+        return html;
     };
 
     // --- Interaction Handlers ---
+    window.toggleSort = (field) => {
+        if (viewState.sortBy === field) {
+            viewState.sortOrder = viewState.sortOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+            viewState.sortBy = field;
+            viewState.sortOrder = 'asc';
+        }
+        renderPage();
+    };
+
     window.updateSearch = (val) => {
         viewState.searchTerm = val;
         viewState.isTyping = true;
