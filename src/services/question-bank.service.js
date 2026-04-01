@@ -32,6 +32,35 @@ export const addQuestion = async (questionData) => {
     }
 };
 
+export const getQuestions = async (filters = {}) => {
+    try {
+        let q = collection(db, COLLECTION_NAME);
+
+        // Advanced filtering
+        if (filters.course && filters.topic) {
+            q = query(q, where("course", "==", filters.course), where("topic", "==", filters.topic));
+        } else if (filters.course) {
+            q = query(q, where("course", "==", filters.course));
+        } else if (filters.topic) {
+            q = query(q, where("topic", "==", filters.topic));
+        }
+
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            // Normalize legacy 'MEDIUM' difficulty
+            if (data.difficulty === 'MEDIUM') data.difficulty = 'MODERATE';
+            return {
+                id: doc.id,
+                ...data
+            };
+        });
+    } catch (error) {
+        console.error("Error fetching questions: ", error);
+        throw error;
+    }
+};
+
 /**
  * Fetches only metadata for filtering.
  * Note: Firestore still charges a full document read, but we save bandwidth.
