@@ -72,102 +72,103 @@ export const WizardPage = async () => {
                     <div class="glass-panel p-8 md:p-10 rounded-[50px] border border-white/10 space-y-8 relative overflow-hidden shadow-2xl">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
                         
-                        <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] block relative z-10 ml-2">Exam Settings & Constraints</label>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                            <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[10px] font-black text-white uppercase tracking-widest">One at a Time</span>
-                                    <p class="text-[9px] font-bold text-white/30 uppercase">Show one question per screen</p>
-                                </div>
-                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
-                                    <input type="checkbox" id="one-at-a-time" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                    <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
-                                </div>
-                            </label>
-
-                            <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[10px] font-black text-white uppercase tracking-widest">Shuffle Questions</span>
-                                    <p class="text-[9px] font-bold text-white/30 uppercase">Randomize order for each student</p>
-                                </div>
-                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
-                                    <input type="checkbox" id="random-order" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                    <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
-                                </div>
-                            </label>
-
-                            <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[10px] font-black text-white uppercase tracking-widest">Shuffle Choices</span>
-                                    <p class="text-[9px] font-bold text-white/30 uppercase">Randomize MCQ answer order</p>
-                                </div>
-                                <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
-                                    <input type="checkbox" id="shuffle-choices" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                    <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
-                                </div>
-                            </label>
-
-                            <div class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 hover:bg-white/10 transition-all group">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[10px] font-black text-white uppercase tracking-widest">Time Limit</span>
-                                    <p class="text-[9px] font-bold text-white/30 uppercase">Set to 0 for unlimited time</p>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <input type="number" id="time-limit" placeholder="0" min="0" class="w-20 p-3 text-center bg-white/10 border border-white/10 rounded-2xl font-black text-purple-400 focus:border-purple-500/50 outline-none text-sm">
-                                    <span class="text-[9px] font-black text-white/40 uppercase">MIN</span>
-                                </div>
+                        <div class="relative z-10 flex flex-col gap-6">
+                            <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] block ml-2">Exam Settings & Constraints</label>
+                            
+                            <div class="p-8 bg-purple-500/5 rounded-[40px] border border-purple-500/20 space-y-4">
+                                <label class="text-[9px] font-black text-purple-400 uppercase tracking-widest ml-2">Master Proctor Unlock Password</label>
+                                <input type="text" id="unlock-password" placeholder="e.g. EXAM-2026-X" class="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white focus:border-purple-500 outline-none text-sm placeholder:text-white/10">
+                                <p class="text-[8px] font-bold text-white/20 uppercase ml-2 leading-relaxed">Required for proctors to manually bypass anti-cheat lockouts or location restrictions for students.</p>
                             </div>
 
-                            <div class="flex flex-col gap-4 p-6 bg-white/5 rounded-3xl border border-white/5 transition-all group md:col-span-2">
-                                <label class="flex items-center justify-between cursor-pointer">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Anti-Cheat Lockout</span>
-                                        <p class="text-[9px] font-bold text-white/30 uppercase">Require fullscreen & prevent tab switching</p>
+                                        <span class="text-[10px] font-black text-white uppercase tracking-widest">One at a Time</span>
+                                        <p class="text-[9px] font-bold text-white/30 uppercase">Show one question per screen</p>
                                     </div>
                                     <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
-                                        <input type="checkbox" id="require-fullscreen" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                        <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-red-500"></span>
-                                    </div>
-                                </label>
-                                
-                                <div id="lockout-settings" class="hidden flex-col gap-3 mt-2 pt-6 border-t border-white/5">
-                                    <label class="text-[9px] font-black text-white/40 uppercase tracking-widest ml-2">Proctor Override Password</label>
-                                    <input type="text" id="proctor-password" placeholder="e.g. unlock123" class="w-full p-4 bg-red-500/5 border border-red-500/20 rounded-2xl font-black text-red-400 focus:border-red-500 outline-none text-sm placeholder:text-red-900/40">
-                                    <p class="text-[8px] font-bold text-red-400/40 uppercase ml-2">Required to unlock exam if student leaves the application environment</p>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col gap-4 p-6 bg-white/5 rounded-3xl border border-white/5 transition-all group md:col-span-2">
-                                 <label class="flex items-center justify-between cursor-pointer">
-                                    <div class="flex flex-col gap-1">
-                                        <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Location Restriction</span>
-                                        <p class="text-[9px] font-bold text-white/30 uppercase">Only allow access within a defined operational area</p>
-                                    </div>
-                                    <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
-                                        <input type="checkbox" id="require-geofence" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
-                                        <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-blue-500"></span>
+                                        <input type="checkbox" id="one-at-a-time" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                        <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
                                     </div>
                                 </label>
 
-                                <div id="geofence-settings" class="hidden flex-col gap-6 mt-2 pt-6 border-t border-white/5">
-                                    <div class="flex flex-wrap items-center justify-between gap-4">
-                                        <button type="button" id="capture-location-btn" class="bg-blue-500/10 text-blue-400 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/20 border border-blue-500/20 transition-all flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                            Pin Current Location
-                                        </button>
-                                        <div class="flex items-center gap-3">
-                                            <label class="text-[9px] font-black text-white/40 uppercase tracking-widest">Radius</label>
-                                            <input type="number" id="geofence-radius" value="100" min="10" step="10" class="w-24 p-3 text-center bg-white/10 border border-white/10 rounded-2xl font-black text-blue-400 focus:border-blue-500 outline-none text-sm">
-                                            <span class="text-[9px] font-black text-white/40 uppercase tracking-widest">M</span>
+                                <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] font-black text-white uppercase tracking-widest">Shuffle Questions</span>
+                                        <p class="text-[9px] font-bold text-white/30 uppercase">Randomize order for each student</p>
+                                    </div>
+                                    <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                        <input type="checkbox" id="random-order" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                        <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] font-black text-white uppercase tracking-widest">Shuffle Choices</span>
+                                        <p class="text-[9px] font-bold text-white/30 uppercase">Randomize MCQ answer order</p>
+                                    </div>
+                                    <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                        <input type="checkbox" id="shuffle-choices" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                        <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-purple-600"></span>
+                                    </div>
+                                </label>
+
+                                <div class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 hover:bg-white/10 transition-all group">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] font-black text-white uppercase tracking-widest">Time Limit</span>
+                                        <p class="text-[9px] font-bold text-white/30 uppercase">Set to 0 for unlimited time</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <input type="number" id="time-limit" placeholder="0" min="0" class="w-20 p-3 text-center bg-white/10 border border-white/10 rounded-2xl font-black text-purple-400 focus:border-purple-500/50 outline-none text-sm">
+                                        <span class="text-[9px] font-black text-white/40 uppercase">MIN</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-4 p-6 bg-white/5 rounded-3xl border border-white/5 transition-all group md:col-span-2">
+                                    <label class="flex items-center justify-between cursor-pointer">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Anti-Cheat Lockout</span>
+                                            <p class="text-[9px] font-bold text-white/30 uppercase">Require fullscreen & prevent tab switching</p>
                                         </div>
+                                        <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                            <input type="checkbox" id="require-fullscreen" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                            <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-red-500"></span>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div class="flex flex-col gap-4 p-6 bg-white/5 rounded-3xl border border-white/5 transition-all group md:col-span-2">
+                                    <label class="flex items-center justify-between cursor-pointer">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Location Restriction</span>
+                                            <p class="text-[9px] font-bold text-white/30 uppercase">Only allow access within a defined operational area</p>
+                                        </div>
+                                        <div class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full shadow-inner">
+                                            <input type="checkbox" id="require-geofence" class="absolute w-6 h-6 opacity-0 z-10 cursor-pointer peer">
+                                            <span class="absolute left-0 w-6 h-6 bg-white/20 rounded-full shadow border border-white/10 transition-transform duration-200 peer-checked:translate-x-6 peer-checked:bg-blue-500"></span>
+                                        </div>
+                                    </label>
+
+                                    <div id="geofence-settings" class="hidden flex-col gap-6 mt-2 pt-6 border-t border-white/5">
+                                        <div class="flex flex-wrap items-center justify-between gap-4">
+                                            <button type="button" id="capture-location-btn" class="bg-blue-500/10 text-blue-400 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/20 border border-blue-500/20 transition-all flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                Pin Current Location
+                                            </button>
+                                            <div class="flex items-center gap-3">
+                                                <label class="text-[9px] font-black text-white/40 uppercase tracking-widest">Radius</label>
+                                                <input type="number" id="geofence-radius" value="100" min="10" step="10" class="w-24 p-3 text-center bg-white/10 border border-white/10 rounded-2xl font-black text-blue-400 focus:border-blue-500 outline-none text-sm">
+                                                <span class="text-[9px] font-black text-white/40 uppercase tracking-widest">M</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="geofence-map" class="w-full h-[400px] rounded-[32px] border border-white/5 overflow-hidden relative z-0 shadow-inner"></div>
+                                        <div class="text-[9px] font-black text-blue-400/40 uppercase tracking-[0.3em] text-center" id="coords-display">LAT: -- | LNG: --</div>
                                     </div>
-                                    
-                                    <div id="geofence-map" class="w-full h-[400px] rounded-[32px] border border-white/5 overflow-hidden relative z-0 shadow-inner"></div>
-                                    <div class="text-[9px] font-black text-blue-400/40 uppercase tracking-[0.3em] text-center" id="coords-display">LAT: -- | LNG: --</div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
 
@@ -485,11 +486,11 @@ export const WizardPage = async () => {
 
         try {
             const requireFullscreen = document.getElementById('require-fullscreen').checked;
-            const proctorPassword = document.getElementById('proctor-password').value.trim();
+            const unlockPassword = document.getElementById('unlock-password').value.trim();
             const requireGeofence = document.getElementById('require-geofence').checked;
 
-            if (requireFullscreen && !proctorPassword) {
-                throw new Error("Proctor password is required when anti-cheat lockout is enabled.");
+            if ((requireFullscreen || requireGeofence) && !unlockPassword) {
+                throw new Error("Master Proctor Unlock Password is required when anti-cheat or location restrictions are enabled.");
             }
 
             if (requireGeofence && (currentGeofence.lat === null || currentGeofence.lng === null)) {
@@ -549,7 +550,7 @@ export const WizardPage = async () => {
                     shuffleChoices: document.getElementById('shuffle-choices').checked,
                     timeLimit: timeLimit,
                     requireFullscreen: requireFullscreen,
-                    proctorPassword: requireFullscreen ? proctorPassword : null,
+                    unlockPassword: (requireFullscreen || requireGeofence) ? unlockPassword : null,
                     requireGeofence: requireGeofence,
                     geofenceLat: requireGeofence ? currentGeofence.lat : null,
                     geofenceLng: requireGeofence ? currentGeofence.lng : null,
@@ -589,13 +590,8 @@ export const WizardPage = async () => {
 
     // --- Anti-Cheat Setup ---
     const reqFullscreenToggle = document.getElementById('require-fullscreen');
-    const lockoutSettings = document.getElementById('lockout-settings');
     reqFullscreenToggle.onchange = (e) => {
-        if (e.target.checked) {
-            lockoutSettings.style.display = 'flex';
-        } else {
-            lockoutSettings.style.display = 'none';
-        }
+        // No extra settings needed for fullscreen now as password is top level
     };
 
     const reqGeofenceToggle = document.getElementById('require-geofence');

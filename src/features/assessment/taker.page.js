@@ -106,18 +106,39 @@ export const TakerPage = async () => {
                                     </div>
                                     <h2 class="text-2xl font-black text-amber-600 mb-4 uppercase tracking-tight">${help.title}</h2>
                                     <div class="text-[11px] font-bold text-gray-600 mb-8 leading-relaxed">${help.message}</div>
-                                    <button id="geo-retry-btn" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all mb-3">Retry Location</button>
+                                    
+                                    <div class="space-y-3 mb-8">
+                                        <button id="geo-retry-btn" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all">Retry Location</button>
+                                        
+                                        <div class="pt-6 border-t border-gray-100">
+                                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Proctor Override</p>
+                                            <input type="password" id="geo-override-pwd" placeholder="Enter Master Password" class="w-full p-4 text-center bg-gray-50 border border-gray-200 rounded-xl font-black text-gray-900 focus:border-blue-500 transition-all outline-none text-xs placeholder-gray-300 mb-2">
+                                            <button id="geo-override-btn" class="w-full bg-gray-900 text-white p-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all">Bypass Restriction</button>
+                                        </div>
+                                    </div>
+
                                     <button id="geo-cancel-btn" class="w-full bg-gray-100 text-gray-600 p-4 rounded-2xl font-black uppercase text-[10px] tracking-widest">Return to Dashboard</button>
                                 </div>
                             </div>
                         `;
                         document.getElementById('geo-retry-btn').onclick = () => resolve('retry');
                         document.getElementById('geo-cancel-btn').onclick = () => resolve('cancel');
+                        document.getElementById('geo-override-btn').onclick = () => {
+                            const pwd = document.getElementById('geo-override-pwd').value;
+                            if (pwd === (settings.unlockPassword || settings.proctorPassword)) {
+                                resolve('override');
+                            } else {
+                                alert("Invalid Master Password");
+                            }
+                        };
                     });
 
                     if (userAction === 'cancel') {
                         window.location.hash = '#student-dash';
                         return;
+                    }
+                    if (userAction === 'override') {
+                        geoPassed = true;
                     }
                     // Loop continues on retry
                 }
@@ -373,7 +394,7 @@ export const TakerPage = async () => {
                 <p class="text-[11px] md:text-xs font-black text-red-300 mb-8 uppercase tracking-widest leading-loose">You left the secure testing environment. Ask your Proctor to unlock.</p>
 
                 <div class="space-y-4 mb-8">
-                    <input type="password" id="proctor-auth" placeholder="Proctor Password" class="w-full p-5 text-center bg-black/50 border border-white/10 rounded-2xl font-black text-white focus:border-red-500 focus:bg-black/80 transition-all outline-none placeholder-gray-600">
+                    <input type="password" id="proctor-auth" placeholder="Master Proctor Password" class="w-full p-5 text-center bg-black/50 border border-white/10 rounded-2xl font-black text-white focus:border-red-500 focus:bg-black/80 transition-all outline-none placeholder-gray-600">
                         <button id="unlock-btn" class="w-full bg-white/10 text-white border border-white/20 p-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all hover:bg-white/20 hover:border-white/30 shadow-lg">Authorize Resume</button>
                 </div>
 
@@ -646,7 +667,8 @@ export const TakerPage = async () => {
 
         const handleResume = async () => {
             const pwdInput = document.getElementById('proctor-auth').value;
-            if (pwdInput === settings.proctorPassword) {
+            const targetPwd = settings.unlockPassword || settings.proctorPassword;
+            if (pwdInput === targetPwd) {
                 document.getElementById('proctor-auth').value = '';
                 unlockAttempts++;
                 isLockedOut = false;
