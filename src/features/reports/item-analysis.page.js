@@ -15,23 +15,28 @@ export const ItemAnalysisPage = async () => {
     }
 
     app.innerHTML = `
-        <div class="min-h-screen pb-20 bg-gray-50/50">
-            <header class="glass-panel sticky top-0 z-40 px-4 py-6 border-b border-gray-100">
+        <div class="min-h-screen pb-20 bg-[#020617] relative">
+            <!-- Dynamic Mesh Background -->
+            <div class="bg-premium-gradient-fixed"></div>
+            <div class="mesh-blob top-[-10%] right-[-10%] bg-purple-600/10 scale-150"></div>
+            <div class="mesh-blob bottom-[-20%] left-[-10%] bg-blue-500/10"></div>
+
+            <header class="glass-panel sticky top-0 z-40 px-6 py-6 border-b border-white/10 backdrop-blur-xl relative">
                 <div class="max-w-6xl mx-auto flex justify-between items-center">
                     <div class="flex items-center gap-4">
-                        <button onclick="window.history.back()" class="p-3 glass-panel rounded-2xl text-purple-600 hover:text-purple-800 transition-colors shadow-sm">
+                        <button onclick="window.history.back()" class="p-3 bg-white/5 border border-white/10 rounded-2xl text-purple-400 hover:text-white hover:bg-white/10 transition-all shadow-lg active:scale-90">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         </button>
                         <div>
-                            <h1 class="text-xs font-black text-purple-600 uppercase tracking-[0.3em] mb-1">Deep Diagnostic Protocol</h1>
-                            <h2 class="text-xl font-black text-gray-900 leading-tight tracking-tight uppercase" id="page-title">Loading...</h2>
+                            <h1 class="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em] mb-1">Deep Diagnostic Protocol</h1>
+                            <h2 class="text-xl md:text-2xl font-black text-white leading-tight tracking-tight uppercase" id="page-title">Loading...</h2>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <main class="max-w-6xl mx-auto p-4 space-y-8 mt-8" id="analysis-content">
-                <div class="animate-pulse glass-panel p-12 rounded-[40px] h-64"></div>
+            <main class="max-w-6xl mx-auto p-4 space-y-8 mt-8 relative z-10" id="analysis-content">
+                <div class="animate-pulse glass-panel p-12 rounded-[40px] h-64 border border-white/10"></div>
             </main>
         </div>
     `;
@@ -50,57 +55,57 @@ export const ItemAnalysisPage = async () => {
             const { itemStats } = calculateAnalytics(submissions, assessmentData, assessmentData.keys);
 
             content.innerHTML = `
-                <div class="bg-white rounded-[40px] shadow-2xl shadow-purple-50/50 border border-white overflow-hidden">
-                    <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Item Integrity Matrix</h3>
-                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${submissions.length} Datasets Analyzed</span>
+                <div class="glass-panel rounded-[40px] shadow-2xl border border-white/10 overflow-hidden bg-black/20">
+                    <div class="p-8 border-b border-white/10 flex justify-between items-center bg-white/5">
+                        <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Item Integrity Matrix</h3>
+                        <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest">${submissions.length} Datasets Analyzed</span>
                     </div>
                     
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto no-scrollbar">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-gray-50/50 text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                            <thead class="bg-white/5 text-[9px] font-black text-white/40 uppercase tracking-widest">
                                 <tr>
-                                    <th class="p-6 border-b border-gray-100 w-16 text-center">#</th>
-                                    <th class="p-6 border-b border-gray-100">Evaluative content</th>
-                                    <th class="p-6 border-b border-gray-100 w-32 text-center">Difficulty<br>(P-Value)</th>
-                                    <th class="p-6 border-b border-gray-100 w-32 text-center">Discrimination<br>(D-Index)</th>
-                                    <th class="p-6 border-b border-gray-100 w-40 text-center">Diagnostic</th>
-                                    <th class="p-6 border-b border-gray-100 w-32 text-center">Protocol</th>
+                                    <th class="p-6 border-b border-white/5 w-16 text-center">#</th>
+                                    <th class="p-6 border-b border-white/5">Evaluative content</th>
+                                    <th class="p-6 border-b border-white/5 w-32 text-center">Difficulty<br>(P-Value)</th>
+                                    <th class="p-6 border-b border-white/5 w-32 text-center">Discrimination<br>(D-Index)</th>
+                                    <th class="p-6 border-b border-white/5 w-40 text-center">Diagnostic</th>
+                                    <th class="p-6 border-b border-white/5 w-32 text-center">Protocol</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-50 text-xs">
+                            <tbody class="divide-y divide-white/5 text-xs">
                                 ${itemStats.map((stat, i) => {
                 // Interpretation Colors
-                let diffColor = 'text-gray-900';
-                if (stat.stats.difficulty < 0.2 || stat.stats.difficulty > 0.9) diffColor = 'text-amber-600';
+                let diffColor = 'text-white';
+                if (stat.stats.difficulty < 0.2 || stat.stats.difficulty > 0.9) diffColor = 'text-amber-400';
 
-                let discColor = 'text-gray-900';
-                if (stat.stats.discrimination < 0.2) discColor = 'text-red-500';
-                if (stat.stats.discrimination < 0) discColor = 'text-red-700 font-extrabold';
+                let discColor = 'text-white';
+                if (stat.stats.discrimination < 0.2) discColor = 'text-red-400';
+                if (stat.stats.discrimination < 0) discColor = 'text-red-500 font-extrabold';
 
-                let statusBadge = 'bg-gray-100 text-gray-500';
-                if (stat.stats.status === 'GOOD') statusBadge = 'bg-green-50 text-green-600 border border-green-100';
-                else if (stat.stats.status.includes('DIFFICULT') || stat.stats.status.includes('EASY')) statusBadge = 'bg-amber-50 text-amber-600 border border-amber-100';
-                else statusBadge = 'bg-red-50 text-red-600 border border-red-100';
+                let statusBadge = 'bg-white/5 text-white/40 border-white/10';
+                if (stat.stats.status === 'GOOD') statusBadge = 'bg-green-500/10 text-green-400 border-green-500/20';
+                else if (stat.stats.status.includes('DIFFICULT') || stat.stats.status.includes('EASY')) statusBadge = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                else statusBadge = 'bg-red-500/10 text-red-400 border-red-500/20';
 
                 const qObj = assessmentData.questions.find(q => q.id === stat.id);
                 const isExcluded = qObj.sectionPoints === 0 && qObj.points === 0;
 
                 return `
-                                        <tr class="hover:bg-purple-50/30 transition-colors group ${isExcluded ? 'opacity-50 bg-gray-50' : ''}">
-                                            <td class="p-6 text-center font-black text-gray-300 group-hover:text-purple-500 transition-colors">${i + 1}</td>
+                                        <tr class="hover:bg-white/5 transition-colors group ${isExcluded ? 'opacity-40 bg-black/40' : ''}">
+                                            <td class="p-6 text-center font-black text-white/20 group-hover:text-purple-400 transition-colors">${i + 1}</td>
                                             <td class="p-6">
-                                                <p class="font-bold text-gray-800 mb-1 line-clamp-2">${stat.text}</p>
+                                                <p class="font-bold text-white mb-2 line-clamp-2 uppercase tracking-tight">${stat.text}</p>
                                                 <div class="flex gap-2">
-                                                    <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-1 rounded-lg">${stat.type}</span>
-                                                    <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-1 rounded-lg">${stat.topic}</span>
+                                                    <span class="text-[8px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-lg">${stat.type}</span>
+                                                    <span class="text-[8px] font-black text-white/30 uppercase tracking-widest bg-white/5 border border-white/10 px-2 py-1 rounded-lg">${stat.topic}</span>
                                                 </div>
                                             </td>
                                             <td class="p-6 text-center">
-                                                <div class="flex flex-col items-center gap-1">
+                                                <div class="flex flex-col items-center gap-2">
                                                     <span class="text-sm font-black ${diffColor}">${Math.round(stat.stats.difficulty * 100)}%</span>
-                                                    <div class="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
-                                                        <div class="h-full bg-gray-400" style="width: ${stat.stats.difficulty * 100}%"></div>
+                                                    <div class="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
+                                                        <div class="h-full bg-white/40 rounded-full" style="width: ${stat.stats.difficulty * 100}%"></div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -108,12 +113,12 @@ export const ItemAnalysisPage = async () => {
                                                 <span class="text-sm font-black ${discColor}">${stat.stats.discrimination}</span>
                                             </td>
                                             <td class="p-6 text-center">
-                                                <span class="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${statusBadge}">
+                                                <span class="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusBadge}">
                                                     ${stat.stats.status}
                                                 </span>
                                             </td>
                                             <td class="p-6 text-center">
-                                                <button class="weed-btn px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${isExcluded ? 'bg-red-100 text-red-600 border-red-200 hover:bg-red-200' : 'bg-white text-gray-400 border-gray-200 hover:border-red-400 hover:text-red-500'}" data-qid="${stat.id}" data-excluded="${isExcluded}">
+                                                <button class="weed-btn px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${isExcluded ? 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30' : 'bg-white/5 text-white/40 border-white/10 hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/10'}" data-qid="${stat.id}" data-excluded="${isExcluded}">
                                                     ${isExcluded ? 'RESTORE' : 'EXCLUDE'}
                                                 </button>
                                             </td>
