@@ -50,10 +50,15 @@ export const loginUser = async (email, password) => {
         // Fetch role
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
-            return { user, ...userDoc.data() };
+            const data = userDoc.data();
+            // Normalize isAuthorized for teachers if missing
+            if (data.role === 'teacher' && data.isAuthorized === undefined) {
+                data.isAuthorized = false;
+            }
+            return { user, ...data };
         } else {
             // Fallback if no doc (shouldn't happen for valid users)
-            return { user, role: 'student' };
+            return { user, role: 'student', isAuthorized: true };
         }
     } catch (error) {
         throw error;
@@ -71,7 +76,12 @@ export const loginWithGoogle = async (role = 'student') => {
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
-            return { user, ...userDoc.data() };
+            const data = userDoc.data();
+            // Normalize isAuthorized for teachers if missing
+            if (data.role === 'teacher' && data.isAuthorized === undefined) {
+                data.isAuthorized = false;
+            }
+            return { user, ...data };
         } else {
             // If new user, save with default role (or passed role)
             // Note: For Google Login, we might defaulting to Student if not specified, 
@@ -193,16 +203,21 @@ export const observeAuthChanges = (callback) => {
             // Re-fetch role on reload
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists()) {
-                const userData = { user, ...userDoc.data() };
+                const data = userDoc.data();
+                // Normalize isAuthorized for teachers if missing
+                if (data.role === 'teacher' && data.isAuthorized === undefined) {
+                    data.isAuthorized = false;
+                }
+                const userData = { user, ...data };
                 setUser(userData);
                 setCookie('cbt_session', user.uid, 7);
                 setAuthInitialized(true);
                 if (callback) callback(userData);
             } else {
-                setUser({ user, role: 'student' });
+                setUser({ user, role: 'student', isAuthorized: true });
                 setCookie('cbt_session', user.uid, 7);
                 setAuthInitialized(true);
-                if (callback) callback({ user, role: 'student' });
+                if (callback) callback({ user, role: 'student', isAuthorized: true });
             }
         } else {
             deleteCookie('cbt_session');

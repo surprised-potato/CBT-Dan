@@ -17,7 +17,7 @@ export const TeacherDashPage = async () => {
         return;
     }
 
-    if (user.role === 'teacher' && user.isAuthorized === false) {
+    if (user.role === 'teacher' && user.isAuthorized !== true) {
         window.location.hash = '#pending-authorization';
         return;
     }

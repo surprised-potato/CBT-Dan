@@ -5,7 +5,7 @@ export const TeacherListPage = async () => {
     const app = document.getElementById('app');
     const user = getUser();
 
-    if (!user || user.role !== 'teacher' || user.isAuthorized === false) {
+    if (!user || user.role !== 'teacher' || user.isAuthorized !== true) {
         window.location.hash = '#login';
         return;
     }
