@@ -1,5 +1,5 @@
 import { renderButton } from '../../shared/button.js';
-import { getQuestions, getHierarchy, deleteQuestion, repairQuestion, renameTopic, renameCourse } from '../../services/question-bank.service.js';
+import { getQuestions, getHierarchy, deleteQuestion, repairQuestion, renameTopic, renameCourse, getQuestionBankSummary, regenerateQuestionBankSummary } from '../../services/question-bank.service.js';
 import { getUser } from '../../core/store.js';
 
 export const BankPage = async () => {
@@ -7,13 +7,39 @@ export const BankPage = async () => {
     const user = getUser();
     if (!user) { window.location.hash = '#login'; return; }
 
-    const [allQuestions, hierarchy] = await Promise.all([
-        getQuestions(),
-        getHierarchy()
-    ]);
+    let allQuestions = [];
+    let hierarchy = { courses: [], topics: {}, counts: {} };
+
+    // 2. State
+    let viewState = {
+        mode: 'COURSE_LIST', // 'COURSE_LIST', 'TOPIC_LIST', 'QUESTION_LIST'
+        selectedCourse: null,
+        selectedTopic: null,
+        searchTerm: '',
+        limit: 20,
+        totalFiltered: 0,
+        isTyping: false,
+        sortBy: 'text',
+        sortOrder: 'asc'
+    };
+
+    const syncData = async () => {
+        hierarchy = await getQuestionBankSummary();
+
+        if (viewState.mode === 'QUESTION_LIST') {
+            allQuestions = await getQuestions({ 
+                course: viewState.selectedCourse, 
+                topic: viewState.selectedTopic 
+            });
+        } else {
+            allQuestions = [];
+        }
+    };
 
     // --- UI Update Helper ---
-    const renderPage = () => {
+    const renderPage = async (skipSync = false) => {
+        if (!skipSync) await syncData();
+
         const getHeaderDetails = () => {
             switch (viewState.mode) {
                 case 'COURSE_LIST':
@@ -24,18 +50,17 @@ export const BankPage = async () => {
                         onAction: () => window.openAddModal('course')
                     };
                 case 'TOPIC_LIST':
-                    const topicCount = new Set(allQuestions.filter(q => (q.course || 'Uncategorized') === viewState.selectedCourse).map(q => q.topic)).size;
+                    const topicsForCourse = hierarchy.topics[viewState.selectedCourse] || [];
                     return {
                         title: viewState.selectedCourse,
-                        subtitle: `${topicCount} Theoretical Topics`,
+                        subtitle: `${topicsForCourse.length} Theoretical Topics`,
                         actionLabel: 'New Topic',
                         onAction: () => window.openAddModal('topic')
                     };
                 case 'QUESTION_LIST':
-                    const questionCount = allQuestions.filter(q => (q.course || 'Uncategorized') === viewState.selectedCourse && (q.topic || 'General') === viewState.selectedTopic).length;
                     return {
                         title: viewState.selectedTopic,
-                        subtitle: `${questionCount} Records Identified`,
+                        subtitle: `${allQuestions.length} Records Identified`,
                         actionLabel: 'New Question',
                         onAction: () => window.location.hash = `#editor?course=${encodeURIComponent(viewState.selectedCourse)}&topic=${encodeURIComponent(viewState.selectedTopic)}`
                     };
@@ -154,19 +179,6 @@ export const BankPage = async () => {
         }
     };
 
-    // 2. State
-    let viewState = {
-        mode: 'COURSE_LIST', // 'COURSE_LIST', 'TOPIC_LIST', 'QUESTION_LIST'
-        selectedCourse: null,
-        selectedTopic: null,
-        searchTerm: '',
-        limit: 20,
-        totalFiltered: 0,
-        isTyping: false,
-        sortBy: 'text',
-        sortOrder: 'asc'
-    };
-
     // 3. Renderers
     const renderCourseList = () => {
         let courses = hierarchy.courses;
@@ -195,7 +207,7 @@ export const BankPage = async () => {
                 html += `
                     <div class="text-center py-24 glass-panel rounded-[50px] border-2 border-dashed border-white/10">
                         <p class="text-white/30 font-black uppercase tracking-widest text-xs mb-6">Library is currently empty</p>
-                        <button onclick="location.hash='#editor'" class="bg-blue-600 text-white px-8 py-4 rounded-[22px] font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20 border border-white/20">Start Resource Building</button>
+                        <button onclick="window.openAddModal('course')" class="bg-blue-600 text-white px-8 py-4 rounded-[22px] font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20 border border-white/20">Initialize Department</button>
                     </div>`;
             } else {
                 html += `<div class="text-center py-20 glass-panel rounded-[40px] text-white/30 font-bold uppercase tracking-widest text-xs border-white/5">No departments match query "${viewState.searchTerm}"</div>`;
@@ -204,8 +216,8 @@ export const BankPage = async () => {
         }
 
         const grid = courses.map(course => {
-            const courseQs = allQuestions.filter(q => (q.course || 'Uncategorized') === course);
-            const topicCount = new Set(courseQs.map(q => q.topic)).size;
+            const topicCount = (hierarchy.topics[course] || []).length;
+            const qCount = hierarchy.counts[`${course}|ALL|ALL|ANY`] || 0;
 
             return `
                 <div class="group relative glass-panel p-8 md:p-10 rounded-[45px] border border-white/5 hover:border-blue-500/30 transition-all cursor-pointer overflow-hidden active:scale-[0.98] shadow-2xl">
@@ -221,13 +233,13 @@ export const BankPage = async () => {
                                 <div class="flex items-center gap-3">
                                     <h3 class="font-black text-white text-2xl md:text-3xl group-hover:text-blue-400 transition-colors uppercase tracking-tight">${course}</h3>
                                     <button onclick="event.stopPropagation(); window.openRenameModal('course', '${course}')" class="p-2 bg-white/5 rounded-xl text-white/20 hover:text-blue-400 hover:bg-white/10 transition-all pointer-events-auto" title="Rename Department">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h1.828l8.586-8.586z"></path></svg>
                                     </button>
                                 </div>
                                 <p class="text-[10px] font-black text-white/40 mt-2 uppercase tracking-[0.3em] flex items-center gap-3">
                                     ${topicCount} Topics
                                     <span class="w-1.5 h-1.5 bg-blue-400/30 rounded-full"></span>
-                                    ${courseQs.length} Items
+                                    ${qCount} Items
                                 </p>
                             </div>
                         </div>
@@ -241,28 +253,15 @@ export const BankPage = async () => {
             `;
         }).join('');
 
-        return `
-            <div class="flex flex-col gap-6">
-                ${grid}
-            </div>
-        `;
+        return `<div class="flex flex-col gap-6">${grid}</div>`;
     };
 
     const renderTopicList = () => {
-        const course = viewState.selectedCourse;
-        let questions = allQuestions.filter(q => (q.course || 'Uncategorized') === course);
-
-        const topicsMap = questions.reduce((acc, q) => {
-            const topic = q.topic || 'General';
-            if (!acc[topic]) acc[topic] = 0;
-            acc[topic]++;
-            return acc;
-        }, {});
-
-        let topics = Object.keys(topicsMap);
+        const topics = hierarchy.topics[viewState.selectedCourse] || [];
+        let filteredTopics = topics;
         if (viewState.searchTerm) {
             const term = viewState.searchTerm.toLowerCase();
-            topics = topics.filter(t => t.toLowerCase().includes(term));
+            filteredTopics = topics.filter(t => t.toLowerCase().includes(term));
         }
 
         let html = `
@@ -280,8 +279,17 @@ export const BankPage = async () => {
             </div>
         `;
 
-        const grid = topics.map(topic => {
-            const count = topicsMap[topic];
+        if (filteredTopics.length === 0) {
+            return html + `
+                <div class="text-center py-24 glass-panel rounded-[50px] border border-dashed border-white/10">
+                    <p class="text-white/30 font-black uppercase tracking-widest text-xs mb-6">No operational topics identified</p>
+                    <button onclick="window.openAddModal('topic')" class="text-blue-400 font-black uppercase text-[10px] tracking-[0.3em] border-b-2 border-blue-400 pb-1">Define New Topic</button>
+                </div>
+            `;
+        }
+
+        const grid = filteredTopics.map(topic => {
+            const count = hierarchy.counts[`${viewState.selectedCourse}|${topic}|ALL|ANY`] || 0;
             return `
                 <div class="group relative glass-panel p-8 md:p-10 rounded-[45px] border border-white/5 hover:border-blue-500/30 transition-all cursor-pointer overflow-hidden active:scale-[0.98] shadow-2xl">
                     <div onclick="window.viewTopic('${topic}')" class="absolute inset-0 z-0"></div>
@@ -314,12 +322,11 @@ export const BankPage = async () => {
             `;
         }).join('');
 
-        return `<div class="flex flex-col gap-6">${grid}</div>`;
+        return html + `<div class="flex flex-col gap-6">${grid}</div>`;
     };
+
     const renderQuestionList = () => {
-        const course = viewState.selectedCourse;
-        const topic = viewState.selectedTopic;
-        let filtered = allQuestions.filter(q => (q.course || 'Uncategorized') === course && (q.topic || 'General') === topic);
+        let filtered = [...allQuestions];
 
         if (viewState.searchTerm) {
             const term = viewState.searchTerm.toLowerCase();
@@ -441,13 +448,13 @@ export const BankPage = async () => {
             viewState.sortBy = field;
             viewState.sortOrder = 'asc';
         }
-        renderPage();
+        renderPage(true); // Skip heavy sync on visual-only sort
     };
 
     window.updateSearch = (val) => {
         viewState.searchTerm = val;
         viewState.isTyping = true;
-        renderPage();
+        renderPage(true); // Skip heavy sync on typing
         viewState.isTyping = false;
     };
 
@@ -485,13 +492,14 @@ export const BankPage = async () => {
 
     window.loadMore = () => {
         viewState.limit += 20;
-        renderPage();
+        renderPage(true);
     };
 
     window.deleteQ = async (id) => {
         if (!confirm("Delete this question permanently?")) return;
         try {
             await deleteQuestion(id);
+            await regenerateQuestionBankSummary(); // Force fresh metadata
             const idx = allQuestions.findIndex(q => q.id === id);
             if (idx > -1) allQuestions.splice(idx, 1);
             renderPage();
@@ -537,19 +545,10 @@ export const BankPage = async () => {
                     await renameTopic(viewState.selectedCourse, oldValue, newValue);
                 }
                 modal.classList.add('hidden');
-                // Refresh full data
-                const [newQs, newHierarchy] = await Promise.all([getQuestions(), getHierarchy()]);
-                allQuestions.length = 0;
-                allQuestions.push(...newQs);
-                Object.assign(hierarchy, newHierarchy);
+                await regenerateQuestionBankSummary();
                 
-                // Update viewState if we renamed the currently selected course/topic
-                if (type === 'course' && viewState.selectedCourse === oldValue) {
-                    viewState.selectedCourse = newValue;
-                }
-                if (type === 'topic' && viewState.selectedTopic === oldValue) {
-                    viewState.selectedTopic = newValue;
-                }
+                if (type === 'course' && viewState.selectedCourse === oldValue) viewState.selectedCourse = newValue;
+                if (type === 'topic' && viewState.selectedTopic === oldValue) viewState.selectedTopic = newValue;
 
                 renderPage();
             } catch (err) {
@@ -588,11 +587,8 @@ export const BankPage = async () => {
 
             modal.classList.add('hidden');
             let hash = '#editor';
-            if (type === 'course') {
-                hash += `?course=${encodeURIComponent(val)}`;
-            } else {
-                hash += `?course=${encodeURIComponent(viewState.selectedCourse)}&topic=${encodeURIComponent(val)}`;
-            }
+            if (type === 'course') hash += `?course=${encodeURIComponent(val)}`;
+            else hash += `?course=${encodeURIComponent(viewState.selectedCourse)}&topic=${encodeURIComponent(val)}`;
             window.location.hash = hash;
         };
     };
@@ -600,7 +596,9 @@ export const BankPage = async () => {
     window.runDataDiagnostics = async () => {
         if (!confirm("Run data integrity diagnostics and repair misidentified True/False questions?")) return;
         
-        const misidentified = allQuestions.filter(q => {
+        // Note: Diagnostics now needs ALL questions, which violates our optimization but is a rare admin tool
+        const allQsForDiag = await getQuestions(); 
+        const misidentified = allQsForDiag.filter(q => {
             if (q.type !== 'MCQ') return false;
             if (!q.choices || q.choices.length !== 2) return false;
             const texts = q.choices.map(c => c.text.toUpperCase());
@@ -619,21 +617,13 @@ export const BankPage = async () => {
             try {
                 const correctChoice = q.choices.find(c => (q.correct_answers || []).includes(c.id) || q.correct_answer === c.id);
                 if (!correctChoice) continue;
-
                 const isTrue = correctChoice.text.toUpperCase() === 'TRUE';
-                
-                await repairQuestion(q.id, {
-                    type: 'TRUE_FALSE',
-                    correct_answer: isTrue,
-                    correct_answers: [isTrue],
-                    choices: [] // T/F doesn't use choices in this schema
-                });
+                await repairQuestion(q.id, { type: 'TRUE_FALSE', correct_answer: isTrue, correct_answers: [isTrue], choices: [] });
                 repairedCount++;
-            } catch (err) {
-                console.error(`Failed to repair ${q.id}:`, err);
-            }
+            } catch (err) { console.error(`Failed to repair ${q.id}:`, err); }
         }
 
+        await regenerateQuestionBankSummary();
         alert(`Repair complete: ${repairedCount} items upgraded to True/False protocol.`);
         location.reload();
     };

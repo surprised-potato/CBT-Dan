@@ -10,7 +10,8 @@ import {
     query,
     where,
     orderBy,
-    writeBatch
+    writeBatch,
+    setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const COLLECTION_NAME = 'questions';
@@ -35,14 +36,14 @@ export const getQuestions = async (filters = {}) => {
     try {
         let q = collection(db, COLLECTION_NAME);
 
-        // Basic filtering (can be expanded)
-        if (filters.topic) {
+        // Advanced filtering
+        if (filters.course && filters.topic) {
+            q = query(q, where("course", "==", filters.course), where("topic", "==", filters.topic));
+        } else if (filters.course) {
+            q = query(q, where("course", "==", filters.course));
+        } else if (filters.topic) {
             q = query(q, where("topic", "==", filters.topic));
         }
-
-        // Order by creation usually
-        // Note: Enabling orderBy might require a Firestore Index if combined with 'where'
-        // q = query(q, orderBy("createdAt", "desc")); 
 
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => {
@@ -61,12 +62,35 @@ export const getQuestions = async (filters = {}) => {
 };
 
 /**
- * Fetches all questions to derive unique Courses, Topics, and counts by difficulty.
- * Returns: {
- *   courses: ['CE101', 'Math'],
- *   topics: {'CE101': ['Vectors', 'Truss'], 'Math': [...] },
- *   counts: { 'CE101|Vectors|MCQ|EASY': 3, 'CE101|Vectors|MCQ|MODERATE': 2, ... }
- * }
+ * Fetches optimized summary from a single document to save reads.
+ * Structure: system_stats/question_bank
+ */
+export const getQuestionBankSummary = async () => {
+    try {
+        const docSnap = await getDoc(doc(db, 'system_stats', 'question_bank'));
+        if (docSnap.exists()) {
+            return docSnap.data();
+        }
+        // Fallback: Regenerate if missing
+        return await regenerateQuestionBankSummary();
+    } catch (error) {
+        console.error("Error fetching summary:", error);
+        return { courses: [], topics: {}, counts: {} };
+    }
+};
+
+export const regenerateQuestionBankSummary = async () => {
+    const data = await getHierarchy();
+    try {
+        await setDoc(doc(db, 'system_stats', 'question_bank'), data);
+    } catch (e) {
+        console.warn("Failed to cache summary (permissions?):", e);
+    }
+    return data;
+};
+
+/**
+ * Internal helper to fetch all metadata. High read cost.
  */
 export const getHierarchy = async () => {
     try {
