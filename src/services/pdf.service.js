@@ -137,6 +137,26 @@ export const buildPrintableHTML = (assessment, options = {}) => {
             if (q.type === 'MCQ' && key && q.choices) {
                 const choiceIdx = q.choices.findIndex(c => c.id === key);
                 if (choiceIdx !== -1) displayKey = String.fromCharCode(65 + choiceIdx);
+            } else if (q.type === 'MATCHING' && Array.isArray(key)) {
+                const shuffledDefs = q.matchingDefinitions || [];
+                const terms = q.matchingTerms || key.map(p => p.term || p.premise || p.item || p);
+                const letters = terms.map(term => {
+                    const pair = key.find(p => (p.term || p.premise || p.item || p) === term);
+                    if (pair) {
+                        const defVal = pair.definition || pair.response || pair.correlate || pair;
+                        const defIdx = shuffledDefs.indexOf(defVal);
+                        if (defIdx !== -1) return String.fromCharCode(65 + defIdx);
+                    }
+                    return '____';
+                });
+                displayKey = letters.join(', ');
+            } else if (q.type === 'ORDERING' && Array.isArray(key)) {
+                const items = q.orderingItems || [];
+                const ranks = items.map(item => {
+                    const idx = key.indexOf(item);
+                    return idx !== -1 ? (idx + 1) : '____';
+                });
+                displayKey = ranks.join(', ');
             } else if (Array.isArray(key)) {
                 displayKey = key.join(', ');
             }

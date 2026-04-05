@@ -72,7 +72,7 @@ export const printMatching = (q, idx, showAnswer = false) => {
 
     // 4. Shuffling Column B
     // Use pre-shuffled definitions if available (student paper view)
-    const shuffledDefs = (q.matchingDefinitions && q.matchingDefinitions.length > 0 && !showAnswer)
+    const shuffledDefs = (q.matchingDefinitions && q.matchingDefinitions.length > 0)
         ? q.matchingDefinitions
         : [...definitions].sort(() => Math.random() - 0.5);
 
@@ -115,7 +115,7 @@ export const printOrdering = (q, idx, showAnswer = false) => {
     const keys = (q.correctAnswer && Array.isArray(q.correctAnswer)) ? q.correctAnswer :
         (q.correctAnswer ? [q.correctAnswer] : []);
 
-    let items = (showAnswer && keys.length > 0) ? keys : (q.orderingItems || q.items || []);
+    let items = (q.orderingItems && q.orderingItems.length > 0) ? q.orderingItems : (q.items || []);
 
     // Last resort fallback: if items are stripped and no safe field exists, use keys but shuffle
     if (items.length === 0 && keys.length > 0) {
